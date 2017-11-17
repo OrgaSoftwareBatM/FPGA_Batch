@@ -4,11 +4,11 @@ BT-sbRIO9602-50-137 = "169.254.84.198"
 [BT-sbRIO9602-50-137 2]
 BT-sbRIO9602-50-137 2 = "192.168.0.21"
 
-[My Computer]
-My Computer = "192.168.1.2"
+[BT-sbRIO9612-51-127]
+BT-sbRIO9612-51-127 = "192.168.137.11"
 
-[NI-sbRIO9612-0141269E]
-NI-sbRIO9612-0141269E = "192.168.1.21"
+[My Computer]
+My Computer = "192.168.137.204"
 
 [RT Single-Board RIO]
 RT Single-Board RIO = "10.0.0.2"
