@@ -1,0 +1,8 @@
+[Dip stick]
+
+IP: 192.168.0.21
+Bit file: fpga-clean1_FPGATarget_FPGAMAINlock-in_FC21E42C:lvbitx
+
+[Melsine]
+IP: FPGA_IP=10.0.0.2
+Bit file: fpga-clean1_FPGATarget_FPGAMAINlock-in_E26B44E6.lvbitx
