@@ -1,0 +1,571 @@
+﻿*******************************************************
+[[Exp_params in Labview]]******************************
+*******************************************************
+
+- List of parameters
+
+1. filename (string)
+2. ExpFilePath (path)
+3. File Ref list
+	1. Experimental File Ref
+	2. Data group reg
+4. sweep dimension (1D array of uint64)
+5. sweep parameter list (1D array of string)
+6. Read out parameter list (1D array of string)
+7. sweep instruments bool list (2D array of uint64) [0: False, else: True]
+	1st dimension: Initialize before measurement?
+	2nd dimension: Post process?
+8. Read out instruments bool list (2D array of uint64)
+	1st dimension: Initialize before measurement?
+	2nd dimension: Post process?
+9. Experimental bool list (1D array of bool)
+	[0]: Return to the initial position after sweep?
+	[1]: Use FPGA?
+10. FPGA Ref (FPGA Ref)
+11. Configuration parameters (cluster)
+	1. Configuration file path (path)
+	2. Instrument list (1D array of string)
+	3. Fast mode? (1D array of uint16)
+		[0] Faset mode?
+		[1] Ramp mode?
+	4. Wait times [ms] (1D array of uint64)
+		[0] Wait after going to the start position
+		[1] wait before readout after movement
+		[2] Integration time for normal sweep mode
+		[3] Wait after step movement
+	5. Instrument parameter array (1D array of cluster)
+		1. Kind (uint16)
+		2. Strings (1D array of string)
+		3. uint64s (1D array of uint64)
+		4. Doubles (1D array of double)
+		5. Take out list (1D array of DAQmx take out)
+			[0] ADC take out
+			[1] ADC internal clock
+
+*******************************************************
+[[Experiment file parameters (HDF5)]]*************************
+******************************************************
+1. Param_list
+	1. filename (String) [name of the experiment file]
+	2. saveFolder (String) [path to the folder to save this file]
+	3. configFilePath (String)
+	4. sweep_dim (1D array of uint64) [not include the dimension of fast sequence]
+	5. comments (string)
+	6. sweep_list (1D array of string) [list of sweep parameters]
+	7. readout_list (1D array of string) [list of readout instruments]
+	8. sweep_inst_bools (2D array of uint64)
+		[*, 0]: list of selection about the initialization of instruments
+		[*, 1]: list of selection about the post process of instruments
+	9. readout_inst_bools (2D array of uint64)
+		[*, 0]: list of selection about the initialization of instruments
+		[*, 1]: list of selection about the post process of instruments
+	10. Experimental_bool_list (1D array of uint64)
+		[0]: Return to the initial position after sweep?
+		[1]: use FPGA? [Automatically updated in the Labview program]
+	11. sweep_index (1D array of uint64) [Final index of the sweep. Initial value is expected value for complete sweep (= sweep_dim -1 for all)]
+2. Initial_move (1D array of cluster)
+	-cluster element
+		[0]: "name" = String
+		[1]: "parameter" = uint64
+		[2]: "value" = Double
+(3. Initial_positions (1D array of cluster, appear after measurement)
+	-cluster element
+		[0]: "Name" = String
+		[1]: "kind" = uint64
+		[2]: "Value" = Double)
+4. configure (group)
+	1. Meas_config (from configuration file)
+	2~. Some of the important instrument informations
+5. data (group)
+	1~. data
+
+6~. sweep parameters
+	- dataset: sweep values
+	- dataset attributes
+		- parameter (unsigned 64 bit integer, used in Labview)
+		- unit (string, used for analysis)
+		- dimension (uint64, used in GUI)
+		- creationMethod (string, used in GUI)
+
+*******************************************************
+[[Configure file parameters (HDF5)]]************************
+********************************************************
+
+1. Meas_config
+	1. wait_times
+		[0] initial wait
+		[1] wait before measurement after movement
+		[2] integration time
+		[3] wait after step move
+	2. fast_mode
+		[0] fast mode? (0 or else)
+		[1] ramp? (0 or else)
+	3. Inst_list (Name list of all the instruments)
+	4. Fast channel name list [only used for analysis, so appears in experiment file]
+		- It is list of 64 elements of string.
+
+2~. Parameters of the instruments
+
+
+***********************************************************
+[[ Instrument information definitions]]******************
+***********************************************************
+
+[Kind of instruments]
+
+0: ADC
+1: K2000
+2: 34401A
+3: LeCroy
+4: DAC
+5: DAC Lock-in
+6: RF
+7: AWG
+8: B-field
+9: fast sequences
+10: fast sequence slot
+11: command line
+12: Lock-in (signal recovery, readout)
+13: Lock-in (signal recovery, sweep)
+14: wait time (ms)
+15: ATM delay line
+16: RF_Attn
+
+-----------------------------------
+[Readout instruments]
+-----------------------------------
+
+- ADC (0)
+
+Strings[0] = Name
+Strings[1] = Address (?, maybe not used?)
+Strings[2] = Unit
+Strings[3] = Name list [This should be same number as 'N channels' ex) 'a;b']
+Strings[4] = Unit list [This should be same number as 'N channels' ex) 'V;V']
+Strings[5] = Conversion factor list [This should be same number as 'N channels' ex) '1.0;1.0']
+uint64s[0] = Range (V) [0: +/-0.2V, 1: +/-1V, 5: +/-5V, 10: +/-10V]
+uint64s[1] = N channels
+uint64s[2] = Samplingrate (Hz)
+uint64s[3] = Realtime? [0: no, else: yes]
+uint64s[4] = Real time averaging (points)
+uint64s[5] = InpConfig [-1: default, 10083: RSE, 10078: NRSE, 10106: Differential, 12529: Pseudodifferential]
+uint64s[6] = Buffer size
+uint64s[7] = Sample per channel
+uint64s[8] = Ramp trigger input [usually 0 or 1]
+uint64s[9] = Fast sequence trigger input [usually 0 or 1]
+Doubles[0] = Conversion factor [Not used]
+
+- K2000 (1)
+
+Strings[0] = Name
+Strings[1] = GPIB Address [ex. 0:17]
+Strings[2] = Unit
+uint64s[0] = Range (V) [0: 1000 V, 1: 100 V, 2: 10 V,, 3: 1 V, 4: 0.1 V else: 10 V]
+uint64s[1] = Digits [0: 4, 1: 5, 2: 6, 3: 7, else: 7]
+uint64s[2] = NPLC [0: 10, 1: 1, 2: 0.1, else: 1]
+uint64s[3] = NPLC fast [0: 10, 1: 1, 2: 0.1, else: 1]
+uint64s[4] = average
+Doubles[0] = Conversion factor
+
+
+- 34401A (2)
+
+Strings[0] = Name
+Strings[1] = GPIB Address [ex. 0:17]
+Strings[2] = Unit
+uint64s[0] = Range (V) [0: 10 V, 1: 1 V, 2: 0.1 V, else: 10 V]
+uint64s[1] = Digits [0: 4, 1: 5, 2: 6, 3: 7, else: 7]
+uint64s[2] = NPLC [0: 100, 1: 10, 2: 1, 3: 0.2, 4: 0.02, else: 1]
+uint64s[3] = NPLC fast [0: 100, 1: 10, 2: 1, 3: 0.2, 4: 0.02, else: 1]
+uint64s[4] = average
+Doubles[0] = conversion factor
+
+- Lock-in (signal recovery) (12)
+
+Strings[0] = name
+Strings[1] = GPIB address
+Strings[2] = Unit
+Strings[3] = name list [ex.) ['X','Y','Sensitivity'] or [] (automatically created)]
+Strings[4] = unit list [ex.) ['V','V','a.u.'] or [] (automatically created)]
+uint64s[0] = Storage interval control (RT average time [ms]) [speed of data acuisition in fast cycle mode, ms in 5 ms resolution, if 0 is specified, it becomes 1.25 ms but read only X and Y automatically.]
+uint64s[1] = Parameter to be read
+		[Bit	Decimal value 		Output and range
+		  0 	1 			X Output (±10000 FS)
+		  1 	2 			Y Output (±10000 FS)
+		  2 	4 			Magnitude Output (0 to +10000 FS)
+		  3 	8 			Phase (±18000 = ±180°)
+		  4 	16 			Sensitivity setting (1 to 27) + IMODE (0, 1, 2 = 0, 32, 64)
+		  5 	32 			ADC1 (±10000 = ±10.0 V)
+		  6 	64 			ADC2 (±10000 = ±10.0 V)
+		  7 	128 			ADC3 (-32768 to + 32767)
+		  8 	256 			DAC1 (±10000 = ±10.0 V)
+		  9 	512 			DAC2 (±10000 = ±10.0 V)
+		  10 	1024 			Noise (0 to +10000 FS)
+		  11 	2048 			Ratio (±10000 FS)
+		  12 	4096 			Log ratio (-3000 to +2000)
+		  13 	8192 			EVENT variable (0 to 32767)
+		  14 	16384 			Reference frequency bits 0 to 15 (mHz)
+		  15 	32768 			Reference frequency bits 16 to 32 (mHz) ]
+uint64s[2] = number of readouts [automatically set from 'parameter to be read' while making a file]
+uint64s[3] = coupling of signal channel [0: AC and float, 1: DC and float, 2: AC and GND, 3: DC and GND]
+uint64s[4] = signal channel input mode [0: V and A, 1: V and -B, 2: V and A-B, 3: I and wide band, 4: I and Low noise (default 0)]
+uint64s[5] = signal channel FET or Bipolar
+		[Voltage mode input device control
+		0: Bipolar 10 kohm input impedance, 2nV/sqrt(Hz) voltage noise at 1 kHz
+		1: FET 10 Mohm input impedance, 5 nV/sqrt(Hz) voltage noise at 1 kHz]
+uint64s[6] = signal channel line fileter [Line filter: 0: off, 1: 50 Hz, 2: 100 Hz, 3: both]
+uint64s[7] = Auto AC gain [0: off, 1: on]
+uint64s[8] = AC gain [0 ~ 9 --> 0 dB ~ 90 dB in 10 dB step]
+uint64s[9] = Sensitivity
+		[Sensitivity
+		1: 2nV, 2: 5 nV, 3: 10 nV
+		4: 20 nV, 5: 50 nV, 6: 100 nV
+		...
+		25: 200 mV, 26: 500 mV, 27: 1 V
+
+		Calculation:
+		10^(floor(N/3)-1)*[2 or 5 or 10, corresponding to N mod 3] nV]
+uint64s[10] = Time constant
+		[Time constant
+		0: 10 us, 1: 20 us, 2: 40 us, 3: 80 us, 4: 160 us, ....
+		7: 5 ms, 8: 10 ms, 9: 20 ms, 10: 50 ms, 11: 100 ms, 12: 200 ms, 13: 500 ms
+		14: 1s, 15: 2S, ...., 28: 50 ks, 29: 100 ks]
+uint64s[11] = Reference channel source 
+		[Reference channel
+		0: internal, 1: External logic (external rear panel TTL input)
+		2: External (external front panel input)]
+uint64s[12] = parameter to get initial value
+	0: Oscillator amplitude
+	1: Oscillator frequency
+	2: sensitivity
+	3: time constant
+Doubles[0] = conversion factor
+Doubles[1] = Oscillator amplitude (V rms)
+Doubles[2] = Oscillator frequency (Hz)
+Doubles[3] = Oscillator amplitude upper limit (V)
+Doubles[4] = Oscillator amplitude lower limit (V)
+Doubles[5] = Oscillator frequency upper limit (V)
+Doubles[6] = Oscillator frequency lower limit (V)
+
+[List of parameters for initilization and post process]
+0:	Singnal channel coupling
+1:	Signal channel input mode
+2:	Signal channel FET or Bipolar
+3:	Signal channel line filter
+4:	Auto ac gain
+5:	AC gain
+6:	Sensitivity
+7:	Auto sensitivity
+8:	Auto phase
+9:	Auto sensitivity & phase
+10:	Time constant
+11:	Reference channel source
+12:	Oscillator amplitude
+13:	Oscillator frequency
+14:	Parameter to be read
+--------------------------------
+[Sweep instruments]
+--------------------------------
+
+- DAC (4)
+
+Strings[0] = Name
+Strings[1] = IP address
+Strings[2] = Unit
+uint64s[0] = panel
+uint64s[1] = channel
+Doubles[0] = Upper limit (V)
+Doubles[1] = Lower limit (V)
+Doubles[2] = ms to wait between each bit (~ 150 uV)
+Doubles[3] = -1 (dummy)
+Doubles[4] = conversion factor for analysis
+
+- DAC_Lock-in (5)
+
+Strings[0] = “Lock-in”
+Strings[1] = IP address
+Strings[2] = Unit
+uint64s[0] = panel
+uint64s[1] = channel
+uint64s[2] = use? (0: not use, else: use)
+uint64s[3] = control parameter [parameter to sweep, see the list below]
+Doubles[0] = Upper limit (V)
+Doubles[1] = Lower limit (V)
+Doubles[2] = speed limit (disable if it is -1.)
+Doubles[3] = step limit (disable if it is -1.)
+Doubles[4] = frequency (Hz)
+Doubles[5] = Amplitude (V)
+	
+	- Control parameter list
+	
+	0: panel*8+channel [0 ~ 63, corresponding to 0:0 to 8:7]
+	1: Frequency (Hz)
+	2: Amplitude (V)
+
+
+- RF (6)
+
+Strings[0] = name
+Strings[1] = GPIB Address
+Strings[2] = Unit
+uint64s[0] = pulse_modulation [0: Off, else: on]
+uint64s[1] = output_on [0: Off, else: on]
+uint64s[2] = pulse_source [0: internal, 1: external]
+uint64s[3] = pulse_mode [0: single, 1: double, 2: train, only used with internal pulse generator]
+uint64s[4] = trigger_mode [0: auto, 1: external, 2: external gate, 3: single]
+uint64s[5] = ex_trigger_input_slope [0: Negative, else: positive]
+uint64s[6] = external_impedance [0: 10 kohm, else: 50 ohm]
+uint64s[7] = control parameter [parameter to sweep, see the list below]
+Doubles[0] = frequency [GHz]
+Doubles[1] = power [dBm]
+Doubles[2] = pulse_period [us]
+Doubles[3] = pulse_width [us]
+Doubles[4] = pulse_delay [us]
+Doubles[5] = frequency_ul [GHz]
+Doubles[6] = frequency_ll [GHz]
+Doubles[7] = power_ul [dBm]
+Doubles[8] = power_ll [dBm]
+
+	- Control parameter list
+
+	0: Frequency (GHz)
+	1: Power (dBm)
+	2: Pulse period (us)
+	3: Pulse width (us)
+	4: Pulse delay (us)
+	5: Pulse modulation (on or off)
+	6: Output On?
+	7: Pulse source (internal or external)
+	8: Pulse mode
+	9: External trigger input slope
+	10: External impedance
+
+- AWG (7)
+
+Strings[0] = name
+Strings[1] = IP address
+Strings[2] = unit
+Strings[3] = Function folder path [folder path which store all the user functions to be used]
+Strings[4] = dummy
+Strings[5] = Initial function name [name of the initial user function to be carried out]
+uint64s[0] = No of channels to be used [typically 1 ~ 4]
+uint64s[1] = empty
+uint64s[2] = run ? [0: off, else: run]
+uint64s[3] = run mode [0: continuous, 1: Triggered, 2: Gated, 3: Sequence]
+uint64s[4] = control parameter [parameter to sweep, see the list below]
+uint64s[5] = empty
+uint64s[6] = ch 1 output on?
+uint64s[7] = ch 1 marker 1 delay [ps]
+uint64s[8] = ch1 marker 2 delay [ps]
+uint64s[9] = ch 1 channel skew [ps]
+uint64s[10] = ch 2 output on?
+uint64s[11] = ch 2 marker 1 delay [ps]
+uint64s[12] = ch 2 marker 2 delay [ps]
+uint64s[13] = ch 2 channel skew [ps]
+uint64s[14] = ch 3 output on?
+uint64s[15] = ch 3 marker 1 delay [ps]
+uint64s[16] = ch 3 marker 2 delay [ps]
+uint64s[17] = ch 3 channel skew [ps]
+uint64s[18] = ch 4 output on?
+uint64s[19] = ch 4 marker 1 delay [ps]
+uint64s[20] = ch 4 marker 2 delay [ps]
+uint64s[21] = ch 4 channel skew [ps]
+uint64s[22] = port number [default: 4000, wodan = 5000]
+Doubles[0] = sampling frequency [GHz]
+Doubles[1] = ch 1 amplitude [V]
+Doubles[2] = ch 1 offset voltage [V]
+Doubles[3] = ch 1 marker 1 high [V]
+Doubles[4] = ch 1 marker 1 low [V]
+Doubles[5] = ch 1 marker 2 high [V]
+Doubles[6] = ch 1 marker 2 low [V]
+Doubles[7] = ch 2 amplitude [V]
+Doubles[8] = ch 2 offset voltage [V]
+Doubles[9] = ch 2 marker 1 high [V]
+Doubles[10] = ch 2 marker 1 low [V]
+Doubles[11] = ch 2 marker 2 high [V]
+Doubles[12] = ch 2 marker 2 low [V]
+Doubles[13] = ch 3 amplitude [V]
+Doubles[14] = ch 3 offset voltage [V]
+Doubles[15] = ch 3 marker 1 high [V]
+Doubles[16] = ch 3 marker 1 low [V]
+Doubles[17] = ch 3 marker 2 high [V]
+Doubles[18] = ch 3 marker 2 low [V]
+Doubles[19] = ch 4 amplitude [V]
+Doubles[20] = ch 4 offset voltage [V]
+Doubles[21] = ch 4 marker 1 high [V]
+Doubles[22] = ch 4 marker 1 low [V]
+Doubles[23] = ch 4 marker 2 high [V]
+Doubles[24] = ch 4 marker 2 low [V]
+
+	- Control parameter list
+	
+	0: Run [0: off, else: on]
+	1: All output on? [0: off, else: on]
+	2: Run mode [0: continuous, 1: Triggered, 2: Gated, 3: sequence]
+	3: Sampling frequency [GHz]
+	4: Sending trigger [0: no command, else: send trigger]
+	5: Sending event [0: no command, else: send event]
+	6: ch output on? [0: off, else: on]
+	7: ch amplitude [V]
+	8: ch offset voltage [V]
+	9: ch marker1 high [V]
+	10: ch marker1 low [V]
+	11: ch marker1 delay [ps] [50 ps resolution for AWG5000]
+	12: ch marker2 high [V]
+	13: ch marker2 low[V]
+	14: ch marker2 delay [ps]
+	15: ch skew [ps]
+	
+	16: Initial function execution [In principle it should be used at the initial move.]
+	
+	17: ch1 output on? [0: off, else: on]
+	18: ch1 amplitude [V]
+	19: ch1 offset voltage [V]
+	20: ch1 marker1 high [V]
+	21: ch1 marker1 low [V]
+	22: ch1 marker1 delay [ps]
+	23: ch1 marker2 high [V]
+	24: ch1 marker2 low[V]
+	25: ch1 marker2 delay [ps]
+	26: ch1 skew [ps]
+	27: ch2 output on? [0: off, else: on]
+	28: ch2 amplitude [V]
+	29: ch2 offset voltage [V]
+	30: ch2 marker1 high [V]
+	31: ch2 marker1 low [V]
+	32: ch2 marker1 delay [ps]
+	33: ch2 marker2 high [V]
+	34: ch2 marker2 low[V]
+	35: ch2 marker2 delay [ps]
+	36: ch2 skew [ps]
+	37: ch3 output on? [0: off, else: on]
+	38: ch3 amplitude [V]
+	39: ch3 offset voltage [V]
+	40: ch3 marker1 high [V]
+	41: ch3 marker1 low [V]
+	42: ch3 marker1 delay [ps]
+	43: ch3 marker2 high [V]
+	44: ch3 marker2 low[V]
+	45: ch3 marker2 delay [ps]
+	46: ch3 skew [ps]
+	47: ch4 output on? [0: off, else: on]
+	48: ch4 amplitude [V]
+	49: ch4 offset voltage [V]
+	50: ch4 marker1 high [V]
+	51: ch4 marker1 low [V]
+	52: ch4 marker1 delay [ps]
+	53: ch4 marker2 high [V]
+	54: ch4 marker2 low[V]
+	55: ch4 marker2 delay [ps]
+	56: ch4 skew [ps]
+
+- Fast sequence (9)
+
+Strings[0] = "fast_sequence"
+Strings[1] = IP address
+Strings[2] = Unit
+uint64s[0] = fast sequence divider
+uint64s[1] = trigger length (us)
+uint64s[2] = Sample count (used only for 'fast cycle mode')
+uint64s[3] = send all points? (0: no, else: yes)
+uint64s[4 ~ 19] = fast channels (0=0:0, ..., 12=1:4, ...63=8:8, else = dummy)
+uint64s[20] = Start ramp at
+Doubles[0] = Upper limit (V)
+Doubles[1] = Lower limit (V)
+Doubles[2] = -1 (dummy)
+Doubles[3] = -1 (dummy)
+	- Fast sequence has a data set of (2, N) dimension, which include information about the sequence
+	  (0,:) is parameter (0 ~ 15: fast channels, 101: trigger, 102: timing (ms), 103: jump, else: jump to its index)
+	  (1,:) is values. (DAC = value offset, trigger = bit wise value for each trigger (1~4, stop)
+		timing = ms to wait, jump = # of slot ot jump)
+
+- Fast sequence slot (10)
+
+Strings[0] = name
+Strings[1] = IP address
+Strings[2] = unit
+uint64s[0] = slot number
+uint64s[1] = 0 (dummy, we need at least 2 elements. You can change if necessary.)
+Doubles[0] = upper limit [V]
+Doubles[1] = lower limit [V]
+
+
+- Command line (11) [cannot be used for initial move.
+		     This is special and data is string rather than double.]
+
+Strings[0] = name
+Strings[1] = working directory
+uint64s[0] = wait for execution
+uint64s[1] = 0 [dummy, you can change if necessary]
+Doubles[0] = 0.0 [dummy]
+Doubles[1] = 0.0 [dummy]
+
+
+- Lock-in (signal recovery, sweep) (13)
+
+Strings[0] = name
+Strings[1] = GPIB address
+Strings[2] = Unit
+uint64s[0] = parameter to control
+[List of parameters to control]
+0:	Signal channel coupling
+1:	Signal channel input mode
+2:	Signal channel FET or Bipolar
+3:	Signal channel line filter
+4:	Auto ac gain
+5:	AC gain
+6:	Sensitivity
+7:	Auto sensitivity
+8:	Auto phase
+9:	Auto sensitivity & phase
+10:	Time constant
+11:	Reference channel source
+12:	Oscillator amplitude
+13:	Oscillator frequency
+14:	Parameter to be read
+uint64s[1] = 0 (dummy)
+Doubles[0] = upper limit
+Doubles[1] = lower limit
+Doubles[2] = conversion factor for analysis
+
+- mswait (14)
+
+Strings[0] = name
+Strings[1] = Unit
+uint64s[0] = 0 (dummy)
+uint64s[0] = 0 (dummy)
+Doubles[0] = upper limit
+Doubles[1] = lower limit
+
+- ATM delay line (15)
+
+Strings[0] = name
+Strings[1] = Com port [default for wodan is COM3]
+Strings[2] = unit [ps]
+uint64s[0] = baud rate [default 9600]
+uint64s[1] = Echo Mode [always 2]
+uint64s[2] = Acceleration [default 10000]
+uint64s[3] = Deceleration [default 10000]
+uint64s[4] = Velocity Initial [default 100000]
+uint64s[5] = Velocity Maximum [default 100000]
+Doubles[0] = upper limit of delay [ps]
+Doubles[1] = lower limit of delay [ps]
+
+	[Initialization bool list]
+	Bit0: Echo Mode [always 2]
+	Bit1: Acceleration [default 10000]
+	Bit2: Deceleration [default 10000]
+	Bit3: Velocity Initial [default 100000]
+	Bit4: Velocity Maximum [default 100000]
+	Bit5: Initialize to 0 position
+
+
+- RF_Attn (16) (e.g LDA 602 Vaunix)
+
+Strings[0] = Name
+Strings[1] = USB address (=1)
+Strings[2] = Unit (dB)
+Doubles[0] = Attenuation (dB)
+Doubles[1] = Upper limit (dB) (63dB - datasheet)
+Doubles[2] = Lower limit (dB) (0dB - datasheet)
+Doubles[3] = Insertion Loss (dB) (typ. 5.5dB @300MHz)
