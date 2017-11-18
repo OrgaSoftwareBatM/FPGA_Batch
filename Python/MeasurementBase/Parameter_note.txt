@@ -569,3 +569,23 @@ Doubles[0] = Attenuation (dB)
 Doubles[1] = Upper limit (dB) (63dB - datasheet)
 Doubles[2] = Lower limit (dB) (0dB - datasheet)
 Doubles[3] = Insertion Loss (dB) (typ. 5.5dB @300MHz)
+
+- FPGA_ADC (17)
+
+Strings[0] = instr name
+Strings[1] = FPGA address
+Strings[2] = names [;-separated, size must be Nchannels]
+Strings[3] = units
+Strings[4] = conv factors
+Strings[5] = input [0-31]
+Strings[6] = range [0, 1, 5 or 10 for ±0.2V, ±1V, ±5V or ±10V]
+Strings[7] = term mode ['RSE','NRSE' or 'DIFF']
+uint64s[0] = Nchannels
+uint64s[1] = Sampling rate
+uint64s[2] = RTavg
+uint64s[3] = trig mode [0:ramp,1:RT]
+uint64s[4] = trig input [1,2,3,4 or 0:manual]
+uint64s[5] = trig edge [0:falling,1:rising,2:both]
+uint64s[6] = samples per channel
+Doubles[0] = not used
+Doubles[1] = not used

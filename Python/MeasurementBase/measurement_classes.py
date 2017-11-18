@@ -15,11 +15,11 @@ sys.path.insert(0,'..') # import parent directory
 """ Fridge specific parameters """
 config = ConfigParser()
 config.read('../Fridge_settings.ini')
-FPGA_address = config.get('FPGA', 'address')
+FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
-for key in list(config['Instruments'].keys()):
+keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn']
+for key in keys:
     addressList[key] = config.get('Instruments',key)
-    
 
 """ parameters """
 compress_sweep = True
@@ -36,9 +36,11 @@ flexible_str_dt = h5py.special_dtype(vlen=bytes)
 readout_kind = [0,1,2,3,12]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 # list of class name ordered by 'kind' number
-classList = ['ADC','K2000','K34401A','dummy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
-classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn']
-readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
+classList = ['ADC','K2000','K34401A','dummy','DAC']
+classList+= ['DAC_Lock_in','RS_RF','AWG','dummy','FastSequences']
+classList+= ['FastSequenceSlot','CMD','DSP_lockIn','DSP_lockIn_sweep','mswait']
+classList+= ['ATMDelayLine','RF_Attn','FPGA_ADC']
+readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True]
 readConfigForExpFile+= [False,False,False,False,False,False,False]
 
 """
@@ -1151,6 +1153,97 @@ class RF_Attn(sweep_inst):
     def getParameter(self):
         return 0
 
-
+# class for FPGA built-in ADC
+class FPGA_ADC_channel:
+    def __init__(self,
+                 name='ADC0',
+                 unit='V',
+                 conversion=1.0,
+                 input_channel=0,
+                 input_range=0,
+                 input_term='DIFF'):
+        self.name=name
+        self.unit=unit
+        self.conversion=conversion
+        self.input_channel=input_channel
+        self.input_range=input_range
+        self.input_term=input_term
+        
+class FPGA_ADC(readout_inst):
+    def __init__(self,
+                 name='FPGA_ADC',
+                 sampling_rate=250000,
+                 RTaverage=100,
+                 samples_per_channel=1,
+                 trig_mode='ramp',
+                 trig_input=1,
+                 trig_edge='falling'):
+        super(FPGA_ADC, self).__init__()
+        self.kind = 17
+        self.name = name
+        self.sampling_rate = sampling_rate
+        self.RTaverage = RTaverage
+        self.samples_per_channel = samples_per_channel
+        self.trig_mode = trig_mode
+        self.trig_input = trig_input
+        self.trig_edge = trig_edge
+        self.channels = []
+        
+    def addChannel(self,
+                   name='ADC0',
+                   unit='V',
+                   conversion=1.0,
+                   input_channel=0,
+                   input_range=0,
+                   input_term='DIFF'):
+        new_channel = FPGA_ADC_channel(name,unit,conversion,input_channel,input_range,input_term)
+        self.channels.append(new_channel)
+        self.Nchannels = len(self.channels)
+        
+    def refreshConfig(self):
+        self.name_list = ';'.join([c.name for c in self.channels])
+        self.unit_list = ';'.join([c.unit for c in self.channels])
+        self.conv_list = ';'.join([str(c.conversion) for c in self.channels])
+        self.chan_list = ';'.join([str(c.input_channel) for c in self.channels])
+        self.range_list = ';'.join([str(c.input_range) for c in self.channels])
+        self.term_list = ';'.join([c.input_term for c in self.channels])
+        trig_mode_num = {'ramp':0, 'RT':1}[self.trig_mode]
+        trig_edge_num = {'falling':0, 'rising':1, 'both':2}[self.trig_edge]
+        
+        self.strings = [self.name, '', self.name_list, self.unit_list, self.conv_list, self.chan_list, self.range_list, self.term_list]
+        self.uint64s = [self.Nchannels, self.sampling_rate, self.RTaverage]
+        self.uint64s+= [trig_mode_num, self.trig_input, trig_edge_num, self.samples_per_channel]
+        self.doubles = [0.,0.]
+        
+    def getNamesAndUnits(self):
+        return [self.strings[2].split(';'), self.strings[3].split(';')] # return [list of names, list of units]
+  
+class FPGA_ADC(readout_inst):
+    def __init__(self,
+                 name='FPGA_ADC',
+                 address=FPGA_address,
+                 name_list='ADC0;ADC1',
+                 unit_list='V;V',
+                 conv_list='1.0;1.0',
+                 channel_list='0;1',
+                 range_list='+/-10V;+/-10V',
+                 term_list='DIFF;DIFF',
+                 Nchannels=2,
+                 sampling_rate=250000,
+                 RTaverage=100,
+                 trig_mode=0,
+                 trig_input=1,
+                 trig_edge=0,
+                 samples_per_channel=1):
+        super(FPGA_ADC, self).__init__()
+        self.kind = 17
+        self.strings = [name, address, name_list, unit_list, conv_list, channel_list, range_list, term_list]
+        self.uint64s = [Nchannels, sampling_rate, RTaverage]
+        self.uint64s+= [trig_mode, trig_input, trig_edge, samples_per_channel]
+        self.doubles = [0.,0.]
+        
+    def getNamesAndUnits(self):
+        return [self.strings[2].split(';'), self.strings[3].split(';')] # return [list of names, list of units]
+        
 if __name__=='__main__':
     pass

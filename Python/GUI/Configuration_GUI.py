@@ -21,9 +21,9 @@ pathSep = QtCore.QDir.separator()
 init_param_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})
 
 # global List of instruments
-ginst_list = ['ADC','K2000','34401A','None','DAC','DAC_Lock_in','RF','AWG','None','fast sequence']
-ginst_list+= ['Fast seuqnce slot','command line','DSP_Lock_in','DSP_Lock_in_sweep','ms2wait','ATMDelayLine']
-ginst_list += ['RF_Attn']
+ginst_list = ['ADC','K2000','34401A','None','DAC','DAC_Lock_in','RF','AWG','None','Fast sequence']
+ginst_list+= ['Fast sequence slot','command line','DSP_Lock_in','DSP_Lock_in_sweep','ms2wait','ATMDelayLine']
+ginst_list+= ['RF_Attn','FPGA_ADC']
 
 class FileNameCheck(QtWidgets.QWidget):
     def __init__(self,
@@ -313,8 +313,7 @@ class FastSlotUI(QtWidgets.QWidget):
         else:
             param = 103
             value = int(self.valueUI.get_value())
-        return [param, value]
-            
+        return [param, value]  
         
 class FastSequenceUI(QtWidgets.QWidget):
     def __init__(self,
@@ -589,6 +588,87 @@ class inst_setup_UI(QtWidgets.QWidget):
         self.UIs[5] = wlist
         self.ly.insertLayout(5,hb)
         
+    def fpga_adc_Setup(self, noOfchannel):
+        for i in range(6):
+            ly = self.ly.itemAt(i+2).layout()
+            for j in range(ly.count()):
+                ly.itemAt(j).widget().deleteLater()
+        
+        hb = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel('Name list')
+        hb.addWidget(label)
+        wlist = []
+        for i in range(noOfchannel):
+            item = QtWidgets.QLineEdit()
+            item.setText('ADC'+str(i))
+            wlist.append(item)
+            hb.addWidget(item)
+        self.UIs[2] = wlist
+        self.ly.insertLayout(2,hb)
+        
+        hb = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel('Unit list')
+        hb.addWidget(label)
+        wlist = []
+        for i in range(noOfchannel):
+            item = QtWidgets.QLineEdit()
+            item.setText('V')
+            wlist.append(item)
+            hb.addWidget(item)
+        self.UIs[3] = wlist
+        self.ly.insertLayout(3,hb)
+        
+        hb = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel('Conversion factor list')
+        hb.addWidget(label)
+        wlist = []
+        for i in range(noOfchannel):
+            item = QFloatLineEdit()
+            item.set_value(1.0)
+            wlist.append(item)
+            hb.addWidget(item)
+        self.UIs[4] = wlist
+        self.ly.insertLayout(4,hb)
+            
+        hb = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel('Input channels list')
+        hb.addWidget(label)
+        wlist = []
+        for i in range(noOfchannel):
+            item = QtWidgets.QSpinBox()
+            item.setRange(0,31)
+            item.setValue(i)
+            wlist.append(item)
+            hb.addWidget(item)
+        self.UIs[5] = wlist
+        self.ly.insertLayout(5,hb)
+        
+        hb = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel('Range List')
+        hb.addWidget(label)
+        wlist = []
+        for i in range(noOfchannel):
+            item = QtWidgets.QComboBox()
+            item.addItems(['+/-0.2V','+/-1V','+/-5V','+/-10V'])
+            item.setCurrentIndex(0)
+            wlist.append(item)
+            hb.addWidget(item)
+        self.UIs[6] = wlist
+        self.ly.insertLayout(6,hb)
+        
+        hb = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel('Term List')
+        hb.addWidget(label)
+        wlist = []
+        for i in range(noOfchannel):
+            item = QtWidgets.QComboBox()
+            item.addItems(['RSE','NRSE','DIFF'])
+            item.setCurrentIndex(2)
+            wlist.append(item)
+            hb.addWidget(item)
+        self.UIs[7] = wlist
+        self.ly.insertLayout(7,hb)
+
     def awgSetup(self, noOfchannel):
         for i in range(10):
             ly = self.ly.itemAt(i+10).layout()
@@ -899,6 +979,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             
         elif kind == 3:
             pass
+        
         elif kind == 4:
             #DAC
             if self.item == 0:
@@ -1369,6 +1450,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             
         elif kind == 8:
             pass
+        
         elif kind == 9:
             # fast sequence
             if self.item == 0:
@@ -1521,6 +1603,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             hb.addWidget(label)
             hb.addWidget(item)
             self.ly.addLayout(hb)
+        
         elif kind == 12:
             #DSP lock-in
             if self.item == 0:
@@ -1585,6 +1668,7 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
+        
         elif kind == 13:
             #DSP lock-in sweep
             if self.item == 0:
@@ -1625,6 +1709,7 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
+        
         elif kind == 14:
             # ms to wait
             if self.item == 0:
@@ -1654,6 +1739,7 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
+        
         elif kind == 15:
             # ATM delay line
             if self.item == 0:
@@ -1697,8 +1783,9 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
-
+        
         elif kind == 16:
+
              #RF attenuator 
             if self.item == 0:
                 self.item = RF_Attn()
@@ -1740,7 +1827,171 @@ class inst_setup_UI(QtWidgets.QWidget):
                 hb.addWidget(label)
                 hb.addWidget(item)
                 self.ly.addLayout(hb)
-
+        
+        elif kind == 17:
+            #FPGA built-in ADC
+            if self.item == 0:
+                self.item = FPGA_ADC()
+            namelabel = QtWidgets.QLabel('Name')
+            name = QtWidgets.QLineEdit()
+            name.setText(self.item.strings[0])
+            self.UIs.append(name)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(namelabel)
+            hb.addWidget(name)
+            self.ly.addLayout(hb)
+            
+            nochannellabel = QtWidgets.QLabel('No of channels')
+            nochannel = QtWidgets.QSpinBox()
+            nochannel.setValue(self.item.uint64s[0])
+            nochannel.valueChanged.connect(self.fpga_adc_Setup)
+            self.UIs.append(nochannel)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(nochannellabel)
+            hb.addWidget(nochannel)
+            self.ly.addLayout(hb)
+            
+            hb = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel('Name list')
+            hb.addWidget(label)
+            wlist = []
+            nlist = self.item.strings[2].split(';')
+            for i in range(nochannel.value()):
+                item = QtWidgets.QLineEdit()
+                item.setText(nlist[i])
+                wlist.append(item)
+                hb.addWidget(item)
+            self.UIs.append(wlist)
+            self.ly.addLayout(hb)
+            
+            hb = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel('Unit list')
+            hb.addWidget(label)
+            wlist = []
+            nlist = self.item.strings[3].split(';')
+            for i in range(nochannel.value()):
+                item = QtWidgets.QLineEdit()
+                wlist.append(item)
+                item.setText(nlist[i])
+                hb.addWidget(item)
+            self.UIs.append(wlist)
+            self.ly.addLayout(hb)
+            
+            hb = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel('Conversion factor list')
+            hb.addWidget(label)
+            wlist = []
+            nlist = self.item.strings[4].split(';')
+            for i in range(nochannel.value()):
+                item = QFloatLineEdit()
+                item.set_value(float(nlist[i]))
+                wlist.append(item)
+                hb.addWidget(item)
+            self.UIs.append(wlist)
+            self.ly.addLayout(hb)
+            
+            hb = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel('Input channels list')
+            hb.addWidget(label)
+            wlist = []
+            nlist = self.item.strings[5].split(';')
+            for i in range(nochannel.value()):
+                item = QtWidgets.QSpinBox()
+                item.setRange(0,31)
+                item.setValue(int(nlist[i]))
+                wlist.append(item)
+                hb.addWidget(item)
+            self.UIs.append(wlist)
+            self.ly.addLayout(hb)
+            
+            hb = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel('Range List')
+            hb.addWidget(label)
+            wlist = []
+            nlist = self.item.strings[6].split(';')
+            for i in range(nochannel.value()):
+                item = QtWidgets.QComboBox()
+                item.addItems(['+/-0.2V','+/-1V','+/-5V','+/-10V'])
+                item.setCurrentIndex(['+/-0.2V','+/-1V','+/-5V','+/-10V'].index(nlist[i]))
+                wlist.append(item)
+                hb.addWidget(item)
+            self.UIs.append(wlist)
+            self.ly.addLayout(hb)
+            
+            hb = QtWidgets.QHBoxLayout()
+            label = QtWidgets.QLabel('Term List')
+            hb.addWidget(label)
+            wlist = []
+            nlist = self.item.strings[7].split(';')
+            for i in range(nochannel.value()):
+                item = QtWidgets.QComboBox()
+                item.addItems(['RSE','NRSE','DIFF'])
+                item.setCurrentIndex(['RSE','NRSE','DIFF'].index(nlist[i]))
+                wlist.append(item)
+                hb.addWidget(item)
+            self.UIs.append(wlist)
+            self.ly.addLayout(hb)
+            
+            samplinglabel = QtWidgets.QLabel('Sampling rate')
+            sampling = QtWidgets.QSpinBox()
+            sampling.setRange(1,250000)
+            sampling.setValue(self.item.uint64s[1])
+            self.UIs.append(sampling)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(samplinglabel)
+            hb.addWidget(sampling)
+            self.ly.addLayout(hb)
+            
+            RTavglabel = QtWidgets.QLabel('RT average')
+            RTavg = QtWidgets.QSpinBox()
+            RTavg.setRange(1,1000000)
+            RTavg.setValue(self.item.uint64s[2])
+            self.UIs.append(RTavg)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(RTavglabel)
+            hb.addWidget(RTavg)
+            self.ly.addLayout(hb) 
+            
+            sampleslabel = QtWidgets.QLabel('Samples per channel')
+            samples = QtWidgets.QSpinBox()
+            samples.setRange(1,1000000)
+            samples.setValue(self.item.uint64s[6])
+            self.UIs.append(samples)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(sampleslabel)
+            hb.addWidget(samples)
+            self.ly.addLayout(hb)            
+            
+            TriggerModeLabel = QtWidgets.QLabel('Trigger mode')
+            TriggerMode = QtWidgets.QComboBox()
+            TriggerMode.addItems(['ramp','manual/RT'])
+            TriggerMode.setCurrentIndex(self.item.uint64s[3])
+            self.UIs.append(TriggerMode)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(TriggerModeLabel)
+            hb.addWidget(TriggerMode)
+            self.ly.addLayout(hb)
+            
+            TriggerSourceLabel = QtWidgets.QLabel('Trigger source')
+            TriggerSource = QtWidgets.QComboBox()
+            TriggerSource.addItems(['manual','1','2','3','4'])
+            TriggerSource.setCurrentIndex(self.item.uint64s[4])
+            self.UIs.append(TriggerSource)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(TriggerSourceLabel)
+            hb.addWidget(TriggerSource)
+            self.ly.addLayout(hb)
+            
+            TriggerEdgeLabel = QtWidgets.QLabel('Trigger edge')
+            TriggerEdge = QtWidgets.QComboBox()
+            TriggerEdge.addItems(['falling','rising','both'])
+            TriggerEdge.setCurrentIndex(self.item.uint64s[5])
+            self.UIs.append(TriggerEdge)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(TriggerEdgeLabel)
+            hb.addWidget(TriggerEdge)
+            self.ly.addLayout(hb)
+                        
     def ok_proc(self):
         kind = self.kind
         print(kind)
@@ -1950,7 +2201,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.doubles[4] = self.UIs[21].get_value()
             item.doubles[5] = self.UIs[22].get_value()
             item.doubles[6] = self.UIs[23].get_value()
-        elif kind==13:
+        elif kind == 13:
             item = DSP_lockIn_sweep()
             item.strings[0] = self.UIs[0].text()
             item.strings[1] = self.UIs[1].text()
@@ -1959,13 +2210,13 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.doubles[0] = self.UIs[4].get_value()
             item.doubles[1] = self.UIs[5].get_value()
             item.doubles[2] = self.UIs[6].get_value()
-        elif kind==14:
+        elif kind == 14:
             item = mswait()
             item.strings[0] = self.UIs[0].text()
             item.strings[1] = self.UIs[1].text()
             item.doubles[0] = self.UIs[2].get_value()
             item.doubles[1] = self.UIs[3].get_value()
-        elif kind==15:
+        elif kind == 15:
             item = ATMDelayLine()
             item.strings[0] = self.UIs[0].text()
             item.strings[1] = self.UIs[1].text()
@@ -1987,6 +2238,23 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.doubles[1] = self.UIs[4].get_value()
             item.doubles[2] = self.UIs[5].get_value()
             item.doubles[3] = self.UIs[6].get_value()
+        elif kind == 17:
+            item = FPGA_ADC()
+            item.strings[0] = self.UIs[0].text()
+            item.strings[1] = self.UIs[1].text()
+            item.strings[2] = ';'.join([i.text() for i in self.UIs[2]])
+            item.strings[3] = ';'.join([i.text() for i in self.UIs[3]])
+            item.strings[4] = ';'.join([str(i.get_value()) for i in self.UIs[4]])
+            item.strings[5] = ';'.join([str(i.value()) for i in self.UIs[5]])
+            item.strings[6] = ';'.join([str(i.currentText()) for i in self.UIs[6]])
+            item.strings[7] = ';'.join([str(i.currentText()) for i in self.UIs[7]])
+            item.uint64s[0] = self.UIs[1].value()
+            item.uint64s[1] = self.UIs[8].value()
+            item.uint64s[2] = self.UIs[9].value()
+            item.uint64s[6] = self.UIs[10].value()
+            item.uint64s[3] = self.UIs[11].currentIndex()
+            item.uint64s[4] = self.UIs[12].currentIndex()
+            item.uint64s[5] = self.UIs[13].currentIndex()
         item.name = item.strings[0]
         self.item = item
         self.name.setText(item.strings[0])
