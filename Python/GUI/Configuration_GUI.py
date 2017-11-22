@@ -1912,7 +1912,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             for i in range(nochannel.value()):
                 item = QtWidgets.QComboBox()
                 item.addItems(['+/-0.2V','+/-1V','+/-5V','+/-10V'])
-                item.setCurrentIndex(['+/-0.2V','+/-1V','+/-5V','+/-10V'].index(nlist[i]))
+                item.setCurrentIndex(int(nlist[i]))
                 wlist.append(item)
                 hb.addWidget(item)
             self.UIs.append(wlist)
@@ -2246,7 +2246,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.strings[3] = ';'.join([i.text() for i in self.UIs[3]])
             item.strings[4] = ';'.join([str(i.get_value()) for i in self.UIs[4]])
             item.strings[5] = ';'.join([str(i.value()) for i in self.UIs[5]])
-            item.strings[6] = ';'.join([str(i.currentText()) for i in self.UIs[6]])
+            item.strings[6] = ';'.join([str(i.currentIndex()) for i in self.UIs[6]])
             item.strings[7] = ';'.join([str(i.currentText()) for i in self.UIs[7]])
             item.uint64s[0] = self.UIs[1].value()
             item.uint64s[1] = self.UIs[8].value()

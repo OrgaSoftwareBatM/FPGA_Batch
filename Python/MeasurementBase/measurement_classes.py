@@ -14,7 +14,9 @@ sys.path.insert(0,'..') # import parent directory
 
 """ Fridge specific parameters """
 config = ConfigParser()
-config.read('../Fridge_settings.ini')
+# a=config.read('../Fridge_settings.ini')
+a=config.read('Fridge_settings.ini')
+print(a)
 FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
 keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn']
@@ -33,7 +35,7 @@ init_position_dt = np.dtype({'names':['Name','kind','Value'],'formats':['S100','
 flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 # list of kind for readout instruments and sweep instruments
-readout_kind = [0,1,2,3,12]
+readout_kind = [0,1,2,3,12,17]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 # list of class name ordered by 'kind' number
 classList = ['ADC','K2000','K34401A','dummy','DAC']
@@ -41,8 +43,7 @@ classList+= ['DAC_Lock_in','RS_RF','AWG','dummy','FastSequences']
 classList+= ['FastSequenceSlot','CMD','DSP_lockIn','DSP_lockIn_sweep','mswait']
 classList+= ['ATMDelayLine','RF_Attn','FPGA_ADC']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True]
-readConfigForExpFile+= [False,False,False,False,False,False,False]
-
+readConfigForExpFile+= [False,False,False,False,False,False,False,False]
 """
 --------- Place to be changed when you add a new instruments -----------------------
 
@@ -139,6 +140,9 @@ class Experiment():
             fill_readout_bools = True
         else:
             fill_readout_bools = False
+        print('fill_readout_bools')
+        print(fill_readout_bools)
+        print(self.readout_inst_bools)
         #If self.sweep_inst_bools is empty, we fill up here to default values.
         if self.sweep_inst_bools == list():
             fill_sweep_bools = True
@@ -152,6 +156,7 @@ class Experiment():
         sUnitList = {}
         for i, inst in enumerate(measConfig.list):
             # Treat readout instruments
+            print('inst '+str(inst))
             if inst.kind in readout_kind:
                 # set readout inst bools if it was not given
                 if fill_readout_bools:
@@ -1226,7 +1231,7 @@ class FPGA_ADC(readout_inst):
                  unit_list='V;V',
                  conv_list='1.0;1.0',
                  channel_list='0;1',
-                 range_list='+/-10V;+/-10V',
+                 range_list='10;10',
                  term_list='DIFF;DIFF',
                  Nchannels=2,
                  sampling_rate=250000,

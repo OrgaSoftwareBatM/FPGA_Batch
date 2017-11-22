@@ -28,11 +28,11 @@ inst_combo_width = 80
 numberOfDigitsTobeReadForInitialPosition = 5
 
 # list of kind for readout instruments and sweep instruments
-readout_kind = [0,1,2,3,12]
+readout_kind = [0,1,2,3,12,17]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 
 #-------create parameter list for bool setup-------------
-listOfCustomBools = [None, None, None, None, None, None, 'RF', 'AWG', None, None, None, None, 'DSP', None, None,'ATMDelayLine']
+listOfCustomBools = [None, None, None, None, None, None, 'RF', 'AWG', None, None, None, None, 'DSP', None, None,'ATMDelayLine',None,None]
 # parameter for RF
 param_list = {'RF':['Frequency','Power','Pulse period','Pulse width','Pulse delay','Pulse mod on?','output on?','Pulse source (int or ext)','Pulse mode','Ext trig input src','Ext impedance']}
 # parameter for AWG
@@ -163,6 +163,8 @@ class inst_list():
                 inst_list = list(dset.attrs['Inst_list'])
         else:
             inst_list = list()
+        print('inst_list')
+        print(inst_list)
         return inst_list
 
 """------------------------------------
@@ -698,6 +700,8 @@ class Inst_bools(QtWidgets.QWidget):
             for k in self.UI_list:
                 if name == k.inst.text():
                     blist.append([int(k.value.text()),int(k.value2.text())])
+        print('blist')
+        print(blist)
         return blist
         
 """---------------------------
@@ -1012,6 +1016,8 @@ class Main_window(QtWidgets.QWidget):
                 self.config.fpath = self.exp.configFile
                 self.config.read()
                 self.instInfos = self.getInstLists()
+                print('load')
+                print(self.instInfos)
                 self.updateUIs()
             
             # Fill information into UIs
@@ -1229,7 +1235,11 @@ class Main_window(QtWidgets.QWidget):
             self.exp.Initial_move = np.array([('None',100,0.0)],dtype=init_move_dt)
         self.exp.index = np.array(self.exp.dim)-1
         self.exp.readoutlist = self.instInfos[0]
+        print('readout_list export')
+        print(self.instInfos[0])
         self.exp.readout_inst_bools = self.readout_inst_bools.exportInstBools(self.instInfos[0])
+        print('readout_bools export')
+        print(self.exp.readout_inst_bools)
         
         if self.tab.currentIndex()==0:
             # square sweep
@@ -1287,6 +1297,8 @@ class Main_window(QtWidgets.QWidget):
                 sweep_inst_list.append(i.name)
                 sweep_inst_kind_list.append(i.kind)
             
+        print('inst_list')
+        print([readoutList,readoutKindList,sweep_inst_list,sweep_inst_kind_list])
         return [readoutList,readoutKindList,sweep_inst_list,sweep_inst_kind_list]
         
     def setSweepListandBools(self):
