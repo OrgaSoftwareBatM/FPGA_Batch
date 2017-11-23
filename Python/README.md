@@ -12,7 +12,14 @@ Guidelines for Measurement files and analysis Python Part
 
 # Software and Hacks - to be completed
 - Anaconda Software Suite
+- Create Shortcuts:
+For Open Anaconda Prompt here:
+Lookup your Anaconda3 path eg. C:\\ProgramData\\Anaconda3
+insert right path before and double click AnacondaPromptHere.reg file
+For Ipython Console and Jupyter Notebook 
+https://github.com/hyperspy/start_jupyter_cm.git 
 - H5PY
+
 - Documentation with Jupyter Notebook
 - Create a start Anaconda Prompt in Context Menu Windows, and 
 - Python for Data Science Books/Computational Physics Landau

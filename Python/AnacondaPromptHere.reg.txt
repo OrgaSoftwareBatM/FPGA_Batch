@@ -1,0 +1,16 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Anaconda]
+"Icon"="%USERPROFILE%\\Anaconda3\\Menu\\Iconleak-Atrous-Console.ico"
+@="Open Anaconda Prompt here"
+
+[HKEY_CLASSES_ROOT\Directory\Background\shell\Anaconda\command]
+@="C:\\Users\\bdforbes\\Anaconda3\\pythonw.exe C:\\Users\\bdforbes\\Anaconda3\\cwp2.py C:\\Users\\bdforbes\\Anaconda3 \"%V\" cmd.exe \"/K\" C:\\Users\\bdforbes\\Anaconda3\\Scripts\\activate.bat C:\\Users\\bdforbes\\Anaconda3"
+
+[HKEY_CLASSES_ROOT\Directory\shell\Anaconda]
+@="Open Anaconda Prompt here"
+"Icon"="%USERPROFILE%\\Anaconda3\\Menu\\Iconleak-Atrous-Console.ico"
+
+[HKEY_CLASSES_ROOT\Directory\shell\Anaconda\command]
+@="C:\\Users\\bdforbes\\Anaconda3\\pythonw.exe C:\\Users\\bdforbes\\Anaconda3\\cwp2.py C:\\Users\\bdforbes\\Anaconda3 \"%V\" cmd.exe \"/K\" C:\\Users\\bdforbes\\Anaconda3\\Scripts\\activate.bat C:\\Users\\bdforbes\\Anaconda3"
+
