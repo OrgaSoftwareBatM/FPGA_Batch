@@ -20,7 +20,7 @@ def myFunction(*args, **kwargs):
         sweeplist, readoutlist
     """
     try:
-        #part to load HDF5 file
+		#load e.g. hdf5 file
 		return sweeplist, readoutlist
 
     except Exception as error:
