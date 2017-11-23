@@ -8,17 +8,17 @@ Guidelines for Measurement files and analysis Python Part
 3) Please use the python Try-Except Error handling:
 ```python
 def myFunction(*args, **kwargs):
-        """
-        myFunction reads spec data from hdf5 file
+    """
+    myFunction reads spec data from hdf5 file
 
-        Parameters
-        ----------
-        input: 
-            filename and path
+    Parameters
+    ----------
+    input: 
+        filename and path
         
-        output : 
-            sweeplist, readoutlist
-        """
+    output : 
+        sweeplist, readoutlist
+    """
     try:
         # ... load HDF5 file
 		return sweeplist, readoutlist
