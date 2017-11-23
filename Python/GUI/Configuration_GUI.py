@@ -315,7 +315,6 @@ class FastSlotUI(QtWidgets.QWidget):
             value = int(self.valueUI.get_value())
         return [param, value]
             
-        
 class FastSequenceUI(QtWidgets.QWidget):
     def __init__(self,
                  parent=None,
@@ -441,6 +440,160 @@ class FastSequenceUI(QtWidgets.QWidget):
         self.seqIndex.removeItem(self.seqIndex.itemAt(size-1))
         self.seqSize.setValue(size-1)
         self.w.setFixedSize(450,100+60*self.seqSize.value())
+      
+class CreateFastRampUI(QtWidgets.QWidget):
+    def __init__(self,
+                 parent=None,
+                 Nparam=1,
+                 ptsPerDim=1001,
+                 startAt=0,
+                 channels=[0]*1,
+                 start=[0.]*1,
+                 stop=[0.]*1
+                 ):
+				 
+        super(CreateFastRampUI, self).__init__()
+
+        Nparam_label = QtWidgets.QLabel('Nchannels')
+        self.Nparam = QtWidgets.QSpinBox()
+        self.Nparam.setRange(1,16)
+        self.Nparam.setValue(Nparam)
+        self.Nparam.setFixedSize(60,30)  
+        self.Nparam.valueChanged.connect(self.Nparam_update)
+
+        Npts_label = QtWidgets.QLabel('Pts per channel')
+        self.Npts = QtWidgets.QSpinBox()
+        self.Npts.setRange(2,4001)
+        self.Npts.setValue(ptsPerDim)
+        self.Npts.setFixedSize(60,30)
+        self.Npts.editingFinished.connect(self.calc_step)
+
+        startAt_label = QtWidgets.QLabel('Start at')
+        self.startAt = QtWidgets.QSpinBox()
+        self.startAt.setRange(0,4095)
+        self.startAt.setValue(startAt)
+        self.startAt.setFixedSize(60,30)
+        
+        self.grid1 = QtWidgets.QGridLayout()
+        self.grid1.setVerticalSpacing(10)
+        self.grid1.setHorizontalSpacing(10)
+        self.grid1.addWidget(Nparam_label,0,0,1,1)	
+        self.grid1.addWidget(self.Nparam,0,1,1,1)
+        self.grid1.addWidget(Npts_label,1,0,1,1)
+        self.grid1.addWidget(self.Npts,1,1,1,1)
+        self.grid1.addWidget(startAt_label,2,0,1,1)
+        self.grid1.addWidget(self.startAt,2,1,1,1)
+        self.grid1.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignTop)
+        
+        param_val = []
+        for i in range(Nparam):
+            param_val.append([channels[i],start[i],stop[i]])
+        self.build_grid2(Nparam,param_val)
+
+        self.main = QtWidgets.QHBoxLayout()
+        self.main.setSpacing(50)
+        self.main.addLayout(self.grid1)
+        self.main.addLayout(self.grid2)
+        self.w = QtWidgets.QWidget()
+        self.w.setLayout(self.main)
+
+        self.w.setFixedSize(500,400)
+        container = QtWidgets.QScrollArea()
+        container.setWidget(self.w)
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(container)
+        self.setLayout(layout)
+        
+    def clearLayout(self, layout):
+        for i in reversed(range(layout.count())):
+            item = layout.itemAt(i)
+            item.widget().close()
+            # remove the item from layout
+            layout.removeItem(item)    
+        
+    def Nparam_update(self,newN):
+        oldN = len(self.channels)
+        param_val = []
+        for i in range(oldN):
+            param_val.append([self.channels[i].value(),self.start[i].get_value(),self.stop[i].get_value()])
+        if newN > oldN:
+            param_val += [[0.,0.,0.]]*(newN-oldN)	# append 0 for new lines		
+        else:
+            param_val = param_val[:newN]	# remove extra lines
+        self.clearLayout(self.grid2)
+        self.build_grid2(newN,param_val)
+        self.main.addLayout(self.grid2)
+    
+    def calc_step(self):
+        Nparam = self.Nparam.value()
+        Npts = self.Npts.value()
+#        DAC_step = 10./2**16
+        for i in range(Nparam):
+            start = self.start[i].get_value()
+            stop = self.stop[i].get_value()
+#            self.step[i].set_value((stop-start)/(Npts-1)/DAC_step)
+            self.step[i].set_value((stop-start)/(Npts-1))
+            self.step[i].formatter = '.6f'
+    
+    # def set_step(self):
+    #     line = self.step.index(self.sender())
+    #     new_step = self.step[line].get_value()
+    #     DAC_step = 10./2**16
+    #     new_start = np.round(self.start[line].get_value()/(new_step*DAC_step))*new_step*DAC_step
+    #     new_stop = np.round(self.stop[line].get_value()/(new_step*DAC_step))*new_step*DAC_step
+    #     new_Npts = int(abs(new_stop-new_start)/(new_step*DAC_step))
+    #     self.start[line].set_value(new_start)
+    #     self.stop[line].set_value(new_stop)
+    #     self.Npts.setValue(new_Npts)
+		
+    def build_grid2(self,Nparam,param_val):
+        self.grid2 = QtWidgets.QGridLayout()
+        for i,txt in enumerate(['Channel','From','To','Step']):
+            label = QtWidgets.QLabel(txt)
+            label.setAlignment(QtCore.Qt.AlignCenter | QtCore.Qt.AlignVCenter)
+            self.grid2.addWidget(label,0,i,1,1)
+        self.channels = []
+        self.start = []
+        self.stop = []
+        self.step = []
+        for k in range(Nparam):
+            box = QtWidgets.QSpinBox()
+            box.setRange(0,15)
+            box.setValue(param_val[k][0])
+            box.setFixedWidth(40)            
+            self.channels.append(box)
+            self.grid2.addWidget(box,k+1,0,1,1)
+            			
+            box = QFloatLineEdit()
+            box.set_value(param_val[k][1])
+            box.setFixedWidth(60)     
+            box.formatter = '.3f'       
+            box.editingFinished.connect(self.calc_step)
+            self.start.append(box)
+            self.grid2.addWidget(box,k+1,1,1,1)
+            			
+            box = QFloatLineEdit()
+            box.set_value(param_val[k][2])
+            box.setFixedWidth(60)          
+            box.formatter = '.3f'  
+            box.editingFinished.connect(self.calc_step)
+            self.stop.append(box)
+            self.grid2.addWidget(box,k+1,2,1,1)
+            			
+            step = (param_val[k][2]-param_val[k][1])/(self.Npts.value()-1)
+            DAC_step = 10./2**16
+            box = QFloatLineEdit()
+            # box.set_value(step/DAC_step)
+            box.set_value(step)
+            box.setFixedWidth(60)
+            box.formatter = '.3f'
+            # box.editingFinished.connect(self.set_step)
+            self.step.append(box)
+            self.grid2.addWidget(box,k+1,3,1,1)
+            
+        self.grid2.setVerticalSpacing(10)
+        self.grid2.setHorizontalSpacing(10)
+        self.grid2.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         
 class FastSeqModUI(QtWidgets.QWidget):
     def __init__(self,
@@ -462,31 +615,54 @@ class FastSeqModUI(QtWidgets.QWidget):
         subly.addWidget(self.okBtn)
         w1 = QtWidgets.QWidget()
         w1.setLayout(subly)
-        self.tab.addTab(w1, 'fast seq UI')
+        self.tab.addTab(w1,'fast seq UI')
+        
+        subly = QtWidgets.QVBoxLayout()
+        self.fastRampUI = CreateFastRampUI()
+        subly.addWidget(self.fastRampUI)
+        self.setRampBtn = QtWidgets.QPushButton('Set')
+        self.setRampBtn.clicked.connect(self.setRampProc)
+        subly.addWidget(self.setRampBtn)
+        w2 = QtWidgets.QWidget()
+        w2.setLayout(subly)
+        self.tab.addTab(w2,'Create fast ramp')
         
         self.console = IpyConsole.IpyConsoleWidget()
         self.console.ipyConsole.pushVariables({'fs':self})
         #import fast frequency generation file
         self.console.ipyConsole.executeCommand('from MeasurementBase.FastSequenceGenerator import *')
-        self.setSeqBtn = QtWidgets.QPushButton('set')
+        self.setSeqBtn = QtWidgets.QPushButton('Set')
         self.setSeqBtn.clicked.connect(self.setSeqProc)
         subly = QtWidgets.QVBoxLayout()
         subly.addWidget(self.console)
         subly.addWidget(self.setSeqBtn)
         w1 = QtWidgets.QWidget()
         w1.setLayout(subly)
-        self.tab.addTab(w1, 'Edit console')
-        
+        self.tab.addTab(w1,'Edit console')
         
         mainly = QtWidgets.QVBoxLayout()
         mainly.addWidget(self.tab)
-        
         self.setLayout(mainly)
-        
         
     def okProc(self):
         self.close()
     
+    def setRampProc(self):
+        channels = []
+        start = []
+        stop = []
+        for i in range(self.fastRampUI.Nparam.value()):
+            channels.append(self.fastRampUI.channels[i].value())
+            start.append(self.fastRampUI.start[i].get_value())
+            stop.append(self.fastRampUI.stop[i].get_value())
+        
+        ramp = createRamp(points=self.fastRampUI.Npts.value(),
+                       fast_channels=channels,
+                       initial=start,
+                       final=stop)
+        self.sequence = ramp
+        self.setSeqProc()
+        
     def setSeqProc(self):
         # clean up all the old UIs and create new one
         for i in reversed(range(self.seqUI.seqIndex.count())):
@@ -496,7 +672,7 @@ class FastSeqModUI(QtWidgets.QWidget):
             self.seqUI.sequence.removeItem(self.seqUI.sequence.itemAt(i))
         self.seqUI.fastSeq = self.sequence
         self.seqUI.loadUIs()
-        
+
 class inst_setup_UI(QtWidgets.QWidget):
     def __init__(self,
                  parent=None,
