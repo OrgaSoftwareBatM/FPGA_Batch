@@ -10,14 +10,17 @@ import os
 from PyQt5 import QtWidgets
 from configparser import ConfigParser
 import sys
-sys.path.insert(0,'..') # import parent directory
+sys.path.insert(0,'') # import parent directory
+sys.path.insert(0,'..') # import current directory
 
 """ Fridge specific parameters """
 config = ConfigParser()
-config.read('../Fridge_settings.ini')
-FPGA_address = config.get('FPGA', 'address')
+ans=config.read('Fridge_settings.ini')
+print(ans)
+FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
-for key in list(config['Instruments'].keys()):
+keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn']
+for key in keys:
     addressList[key] = config.get('Instruments',key)
     
 
@@ -618,25 +621,26 @@ class K2000(readout_inst):
 # class for K34401A
 class K34401A(readout_inst):
     def __init__(self,
-                 name='I',
+                 name='V',
                  GPIB_address = addressList['K34401A'],
-                 unit = 'nA',
-                 Range = [0,1,2,3,4][0],# 0: 10 V, 1: 1 V, 2: 0.1 V
-                 Digits = [0,1,2,3][3],# 0: 4 digits, 1: 5, 2: 6, 3: 7
-                 NPLC = [0,1,2,3,4][2],# 0: 100, 1: 10, 2: 1, 3: 0.2, 4: 0.02
-                 NPLC_fast = [0,1,2,3,4][2],# 0: 100, 1: 10, 2: 1, 3: 0.2, 4: 0.02
+                 unit = 'mV',
+                 Function = [0,1,2,3,4,5,6,7,8,9,10,11,12][0],
+#                0: DC Voltage 1: AC Voltage 2: 2 - Wire Resistance 3: 4 - Wire Resistance 4: DC Current 5: AC Current,...
                  average = 1,
-                 conversion_factor = 1.0
+                 conversion_factor = 1.0,
+                 Range = [10.0, 1.0 , 0.1][0], #else: autoRange
+                 Digits = [5.5, 6.5][1] #else: 5.5
                  ):
         super(K34401A, self).__init__()
         self.kind = 2
         self.name = name
         self.strings = [name, GPIB_address, unit]
-        self.uint64s = [Range, Digits, NPLC, NPLC_fast, average]
-        self.doubles = [conversion_factor]
+        self.uint64s = [Function, average]
+        self.doubles = [conversion_factor, Range, Digits]
         
     def getNamesAndUnits(self):
         return [[self.strings[0]], [self.strings[2]]]
+        
         
 # class for DSP lock-in amplifier as a readout instrument            
 class DSP_lockIn(readout_inst):
