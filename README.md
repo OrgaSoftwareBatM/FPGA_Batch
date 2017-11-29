@@ -31,6 +31,7 @@ The drivers' references/sources are available online at:
 - NI FPGA : sbRIO, cRIO, NI RealTime e.g. http://www.ni.com/product-documentation/14031/en/#toc3
 - HDF5 file format : http://h5labview.sourceforge.net/
 
+- 34401A : HP Multimeter http://sine.ni.com/apps/utf8/niid_web_display.model_page?p_model_id=978
 - ADC : NI-DAQmx e.g. http://www.ni.com/download/ni-daqmx-17.0/6624/en/
 - ATM DelayLine : MCode driver Schneider electric http://motion.schneider-electric.com/support/mdrive/programs/MCode_LV_86.zip
 - AWG : Tektronix AWG700 http://www.tek.com/awg710-0-software/awg700-series-gpib-programming-and-labview-driver
