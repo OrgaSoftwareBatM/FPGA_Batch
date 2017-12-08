@@ -21,6 +21,12 @@ import os
 from PyQt5 import QtWidgets
 import sys
 sys.path.insert(0,'..') # import parent directory
+import Utility.Utility_func as util
+
+
+""" Fridge specific parameters """
+addressList = util.get_InstrumentDict()
+FPGA_address = addressList['fpga']
 
 
 """ parameters """
@@ -425,6 +431,7 @@ class MeasConfig():
                 grp = f.get(group)
                 dset = grp.get('Meas_config')
             u = dset.attrs['wait_times']
+            print(u)
             self.initial_wait = u[0]
             self.wait_before_meas = u[1]
             self.integration_time = u[2]
@@ -598,7 +605,7 @@ class ADC(readout_inst):
 class K2000(readout_inst):
     def __init__(self,
                  name='I',
-                 GPIB_address = addressList['K2000'],
+                 GPIB_address = addressList['k2000'],
                  unit = 'nA',
                  Range = [0,1,2,3,4][2],# 0: 1000 V, 1: 100 V, 2: 10 V, 3: 1V, 4: 0.1 V
                  Digits = [0,1,2,3][3],# 0: 4 digits, 1: 5, 2: 6, 3: 7
@@ -621,7 +628,7 @@ class K2000(readout_inst):
 class K34401A(readout_inst):
     def __init__(self,
                  name='I',
-                 GPIB_address = addressList['K34401A'],
+                 GPIB_address = addressList['k34401a'],
                  unit = 'nA',
                  Range = [0,1,2,3,4][0],# 0: 10 V, 1: 1 V, 2: 0.1 V
                  Digits = [0,1,2,3][3],# 0: 4 digits, 1: 5, 2: 6, 3: 7
@@ -644,7 +651,7 @@ class K34401A(readout_inst):
 class DSP_lockIn(readout_inst):
     def __init__(self,
                  name = 'Lock-in',
-                 GPIBAddress=addressList['DSP_lockIn'],
+                 GPIBAddress=addressList['dsp_lockin'],
                  unit = 'V',
                  nameList = [], # list of names ex.) ['X','Y','Sensitivity']
                  unitList = [], # list of units ex.) ['V','V','a.u']
@@ -816,7 +823,7 @@ class DAC_Lock_in(sweep_inst):
 class RS_RF(sweep_inst):
     def __init__(self,
                  name='RF',
-                 GPIBAddress=addressList['RS_RF'],
+                 GPIBAddress=addressList['rs_rf'],
                  Unit='GHz',
                  frequency=2, # GHz
                  power=-30, # dBm
@@ -862,7 +869,7 @@ class RS_RF(sweep_inst):
 class AWG(sweep_inst):
     def __init__(self,
                  name = 'AWG',
-                 IPAddress = addressList['AWG'],
+                 IPAddress = addressList['awg'],
                  port = 4000,
                  Unit = '',
                  functionFolderPath = 'C:\Documents and Settings\Bauerle\Mes documents\Bautze\FPGA-clean_works_1.13.6_batchtest\Python\AWG', #Path to the folder containing your fuction
@@ -1031,7 +1038,7 @@ class CMD(sweep_inst):# Used for sending command line arguments, data should be 
             
 class DSP_lockIn_sweep(sweep_inst):
     def __init__(self,
-                 name='DSP7265',
+                 name='dsp7265',
                  address = '0:12',
                  unit = 'V',
                  parameter = 12,
@@ -1099,7 +1106,7 @@ class mswait(sweep_inst):   # kind = 14
 class ATMDelayLine(sweep_inst):   # kind = 15
     def __init__(self,
                  name='Delay',
-                 address = addressList['ATMDelayLine'],
+                 address = addressList['atmdelayline'],
                  unit = 'ps',
                  baudRate = 9600,
                  EchoMode = 2,
@@ -1130,7 +1137,7 @@ class ATMDelayLine(sweep_inst):   # kind = 15
 class RF_Attn(sweep_inst):
     def __init__(self,
                  name='RF_Attn',
-                 USBAddress=addressList['RF_Attn'],
+                 USBAddress=addressList['rf_attn'],
                  Unit='dB',
                  attn = 10,
                  attn_ul=63, # dB upper limit

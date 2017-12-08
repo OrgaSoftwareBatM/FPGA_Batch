@@ -1,10 +1,10 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Fri Jul 28 08:59:57 2017
 
 @author: Baptiste
 """
+
 
 import os,sys
 import numpy as np
@@ -14,25 +14,17 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from GUI.Experiment_GUI import arrayGenerator
-from Cameron_config import DAC_ADC_config
+from DAC_ADC_config import DAC_ADC_config
+from Utility.Utility_func import find_unused_name
 
-def find_unused_name(folder,prefix):
-    findex = 0
-    exists = True
-    while exists:
-    	findex += 1
-    	config_path = folder+'\\'+prefix+'config_'+str(findex)+'.h5'
-    	exp_path = folder+'\\'+prefix+ 'exp_'+str(findex)+'.h5'
-    	exists = os.path.isfile(config_path) or os.path.isfile(exp_path)
-    return findex,config_path,exp_path
 
-class StabilityDiagram():
+class fastRamp():
     def __init__(self,folder=os.getcwd(),prefix='test'):
         self.folder = folder
         self.prefix = prefix
-        self.findex,self.config_path,self.exp_path = find_unused_name(folder,prefix)
-        
-        self.DAC,self.fs,self.ADC = DAC_ADC_config()  
+        self.findex, self.config_path, self.exp_path = find_unused_name(folder,prefix)
+
+        self.DAC, self.fs, self.ADC = DAC_ADC_config()  
         self.waits = {}
         
         self.init_val = {}     # dict of [values]
@@ -55,12 +47,15 @@ class StabilityDiagram():
                  print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
                  return 0
              self.fast_ramp[name] = [start,stop,channel_id]
-             print(name)
+            #  print(name)
          else:      # adding to sweep_param
              self.sweep_param[name] = [start,stop,dim]
              
          if init_at is not None:
-             self.init_val[name] = init_at
+            if dim == 0 :
+                 self.init_val[name] = 0.
+            else :
+                self.init_val[name] = init_at
          else:  # unless specified, param is initialized at starting value
              self.init_val[name] = start
          return 1
@@ -81,13 +76,13 @@ class StabilityDiagram():
         arr = np.swapaxes(arr, 0, ax)
         arr[index,:] = ms
         arr = np.swapaxes(arr, 0, ax)
-        sweep = mc.single_sweep(name = name,
+        sweep = mc.single_sweep(    name = name,
                                     parameter = 0,
                                     ar = arr,
                                     dataType = 'float', # for CMD use dt=h5py.special_dtype(vlen=bytes)
                                     creationMethod = '1_pos',
                                     sweep_dim = axis, # sweep dimension 0: array sweep, 1: sweep along 1st dim, 2: sweep along 2nd dim, ....
-                                    )
+                                )
         self.sweep_list.append(sweep)  
         return 1
     
@@ -124,7 +119,8 @@ class StabilityDiagram():
         txt += os.linesep
         for name in self.fast_ramp.keys():
             txt += name + ' on channel %d : ' % (self.fast_ramp[name][2])
-            txt += 'offset %f, from %f to %f' % (self.init_val[name],self.fast_ramp[name][0],self.fast_ramp[name][1])
+            # txt += 'offset %f, from %f to %f' % (self.init_val[name],self.fast_ramp[name][0],self.fast_ramp[name][1])
+            txt += 'offset %.2f, delta_V %.2f, from %f to %f' % (self.init_val[name], self.fast_ramp[name][1] - self.fast_ramp[name][0], self.fast_ramp[name][0], self.fast_ramp[name][1])
             txt += os.linesep
         txt += '--- Step dimensions ---' + os.linesep
         txt += '%s points, wait %f ms' % (self.sweep_dim[1:],self.step_wait)
@@ -173,12 +169,52 @@ class StabilityDiagram():
         out = self.exp.write(fpath=self.exp_path)
         if out==0:
             print(self.exp_path + ' created') 
+        else :
+            print("file creation FAILED !")
+
+
+
+    def send_files(self, ask = False):
+        """
+        Send the last built experiment file (exp_path) to the LabView software.
+        If the input parameter "ask" is True, then the terminal ask a confirmation
+        before sending the experiment to LabView.
+
+        INPUT :
+            - [bool] ask : if True, then ask for confirmation in the terminal 
+
+        OUTPUT :
+            - None 
+        """
+
+        bool_send_files = False
+
+        ## Authorization Part
+        ################################
+
+        if ask :
+            """ If ask, then user need to confirm sending """
+
             ans = input('SEND THIS MAP? (Y/N)    ')
             if ans in ['y','Y']:
-                print ('Sending to Labview')
-                sendFiles(fileList=[self.exp_path])
+                bool_send_files = True
             else:
                 print ('Sending aborted')
+
+        else :
+            """ else, authorize sending without asking """
+
+            bool_send_files = True
+
+
+        ## Sending Part
+        ################################
+
+        if bool_send_files :
+            print ('Sending to Labview')
+            sendFiles(fileList=[self.exp_path])
+ 
+
 
 
 ##########################
@@ -186,26 +222,44 @@ class StabilityDiagram():
 ##########################
 #folder = os.getcwd()+'\\test'
 folder = 'C:\\Utilisateurs\\manip.batm\\Mes Documents\\GitHub\\FPGA_Batch\\Python'
+
+folder = '.'
 prefix = 'classificationTest_'
-#findex,config_path,exp_path = find_unused_name(folder,prefix)
-Map = StabilityDiagram(folder,prefix)
+
+Map = fastRamp(folder,prefix)
 
 ##########################
 ###	 FASTSEQ + CONF FILE   			
 ##########################
-Map.initial_wait = 100    # ms before everything
+Map.initial_wait = 100      # ms before everything
 Map.ms_per_point = 0.2      # integration time (fastseq divider)
-Map.step_wait = 1.         # ms wait after every fastseq
+Map.step_wait = 1.          # ms wait after every fastseq
 
-Map.sweep_dim = [1001,1]
-Map.ramp_DAC('Vg1',-1.2,0.5,0)
+Map.init_val['0:0'] = -0.
+Map.init_val['0:1'] = 1.
+Map.init_val['0:4'] = 0.04
 
-Map.ramp_DAC('Vg2',1.,1.,1)
-#Map.ramp_DAC('0:3',0.05,0.05,3)
+# Map.sweep_dim = [1001,1]
+# Map.ramp_DAC('0:0',-0.5,0.5,0)
 
-#Map.add_wait('wait_bg',0,10000,1) # (index,ms,axis) wait n ms at index for given axis
+
+Map.sweep_dim = [401, 401]
+
+Map.ramp_DAC(   name    = '0:0', 
+                start   = -0.25,
+                stop    =  0.25,
+                dim     =  0,
+                init_at =  None)
+
+Map.ramp_DAC(   name    = '0:1', 
+                start   = -1.,
+                stop    =  1.,
+                dim     =  1,
+                init_at = None)
 
 Map.build_fastramp()
 Map.build_sweep()
 Map.build_files()
+
+Map.send_files(ask=True)
 
