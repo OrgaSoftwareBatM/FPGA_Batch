@@ -6,12 +6,15 @@ Created on Thu Aug 10 20:25:39 2017
 """
 
 import os,sys
+sys.path.insert(0,'..') # import parent directory
+
 import numpy as np
 import MeasurementBase.measurement_classes as mc
+import Utility.Utility_func as util
 
-# Numerobis parameters
-FPGA_address = '192.168.0.21'
-addressList = {'K2000':'0:17','K34401A':'0:12','DSP_lockIn':'0:12','RS_RF':'0:28','AWG':'192.168.0.4', 'ATMDelayLine':'COM3'}
+# Import Instruments address
+addressList = util.get_InstrumentDict()
+FPGA_address = addressList['fpga']
     
 def DAC_ADC_config():
     ##########################
@@ -92,5 +95,5 @@ def DAC_ADC_config():
     		ramp_trigger_input = 0,
     		fast_seq_trigger_input = 1,
     		)
-    
+
     return DAC,fs,ADC

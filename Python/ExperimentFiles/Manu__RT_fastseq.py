@@ -14,16 +14,9 @@ import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from GUI.Experiment_GUI import arrayGenerator
 from DAC_ADC_config import DAC_ADC_config
-        
-def find_unused_name(folder,prefix):
-    findex = 0
-    exists = True
-    while exists:
-    	findex += 1
-    	config_path = folder+'\\'+prefix+'config_'+str(findex)+'.h5'
-    	exp_path = folder+'\\'+prefix+ 'exp_'+str(findex)+'.h5'
-    	exists = os.path.isfile(config_path) or os.path.isfile(exp_path)
-    return findex,config_path,exp_path
+from Utility.Utility_func import find_unused_name
+
+
 
 class RT_fastseq():
     def __init__(self,folder=os.getcwd(),prefix='test'):
@@ -225,6 +218,7 @@ class RT_fastseq():
 #folder = os.getcwd()+'\\test'
 
 folder = 'C:\\users\\manip.batm\\Documents\\GitHub\\FPGA_Batch\\Python\\ExperimentFiles'
+folder = '.'
 prefix = 'classificationTest_'
 #findex,config_path,exp_path = find_unused_name(folder,prefix)
 Map = RT_fastseq(folder,prefix)
@@ -251,9 +245,13 @@ Map.sequence.append(['0:0',0.])
 Map.sequence.append(['Timing',10])
 Map.sequence.append(['Jump',len(Map.sequence)])
 
-Map.sweep_dim = [0,401,1]
+Map.sweep_dim = [0,401,101]
 Map.ramp_DAC('0:0',-1.,1.,1)
-Map.ramp_DAC('0:1',-2.,-1.,2)
+Map.ramp_DAC(   name    = '0:1', 
+                start   = -1.,
+                stop    = 1.,
+                dim     = 2)
+# Map.ramp_DAC('0:1',-2.,-1.,2)
 
 #Map.ramp_slot(1,"VgRamp",0,401,1)
 #Map.ramp_DAC('0:1',0.2,-0.2,1)
