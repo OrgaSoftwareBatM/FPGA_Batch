@@ -1,2 +1,6 @@
-
+Labview/Batch_main Folder/fpga-bitfile-ref.ctl
+Labview/Batch_main Folder/host-subvis/Utilities/OpenFPGARef.vi
 *.h5
+*.lvbitx
+Labview/fpga_batch.aliases
+

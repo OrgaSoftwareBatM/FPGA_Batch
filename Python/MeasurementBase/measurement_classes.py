@@ -4,11 +4,21 @@ Created on Mon Oct 24 17:06:53 2016
 
 @author: shintaro
 """
+
+from configparser import ConfigParser
+""" Fridge specific parameters """
+config = ConfigParser()
+config.read('../Fridge_settings.ini')
+#FPGA_address = config.get('FPGA', 'address')
+FPGA_address = '192.168.0.21'
+addressList = {'K2000':'0:17','K34401A':'0:12','DSP_lockIn':'0:12','RS_RF':'0:28','AWG':'192.168.0.4', 'ATMDelayLine':'COM3', 'RF_Attn': '1'}
+#for key in list(config['Instruments'].keys()):
+#    addressList[key] = config.get('Instruments',key)
+    
 import numpy as np
 import h5py
 import os
 from PyQt5 import QtWidgets
-from configparser import ConfigParser
 import sys
 sys.path.insert(0,'..') # import parent directory
 import Utility.Utility_func as util
