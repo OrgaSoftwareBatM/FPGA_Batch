@@ -1,0 +1,7 @@
+
+Labview/Batch_main Folder/fpga-bitfile-ref.ctl
+Labview/Batch_main Folder/host-subvis/Utilities/OpenFPGARef.vi
+*.h5
+Labview/FPGA Bitfiles/fpga-clean1_FPGATarget_FPGAMAINlock-in_E26B44E6.lvbitx
+*.lvbitx
+Labview/fpga_batch.aliases
