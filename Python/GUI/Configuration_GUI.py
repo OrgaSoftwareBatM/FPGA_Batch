@@ -16,6 +16,7 @@ import time
 import GUI.IpythonWidgetClass as IpyConsole
 from GUI.UtilityGUI import *
 from MeasurementBase.measurement_classes import *
+from MeasurementBase.FastSequenceGenerator import *
 
 pathSep = QtCore.QDir.separator()
 init_param_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})

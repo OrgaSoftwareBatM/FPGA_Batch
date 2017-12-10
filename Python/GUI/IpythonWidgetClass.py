@@ -9,6 +9,8 @@ import os
 os.environ['QT_API'] = 'pyqt'
 import sys
 sys.path.insert(0,'..')
+sys.path.insert(0,'')
+sys.path.insert(0,'MeasurementBase')
 import sip
 sip.setapi("QString", 2)
 sip.setapi("QVariant", 2)
