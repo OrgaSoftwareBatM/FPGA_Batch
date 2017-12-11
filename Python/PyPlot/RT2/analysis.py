@@ -6,43 +6,32 @@ Created on Fri Jan 27 22:16:32 2017
 @author: shintaro
 """
 
-import sys, os
+import sys, os, glob
 sys.path.insert(0,'..') # import parent directory
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import rc
-import matplotlib.gridspec as gridspec
-#from DataStructure.LoadGDS import structurefromGDS
-import textwrap
-from cycler import cycler
-from DataStructure.ImageSlice import LineSlice
 from PyQt5 import QtCore
-rc('axes', prop_cycle=(cycler('color',
-                            ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-                              '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-                              '#bcbd22', '#17becf'])))
-rc('lines', linewidth=1.0)
-rc('font',**{'family':'sans-serif', 'sans-serif':'Helvetica'})
-rc('text',**{'usetex':False, 'latex.unicode':False})
-rc('axes',**{'facecolor':'white', 'edgecolor':'black', 'grid':False, 'linewidth': 1.0,
-             'titlesize':18, 'labelsize':16})
-rc('xtick',**{'top':True, 'bottom':True, 'direction':'in'})
-rc('ytick',**{'left':True, 'right':True, 'direction':'in'})
-rc('grid',**{'color':'grey','linewidth':0.5,'linestyle':':','alpha':0.5})
-rc('figure',**{'titlesize':18, 'facecolor':'white', 'edgecolor':'white'})
-rc('savefig',**{'format':'pdf'})
-rc('mathtext',**{'fontset':'stix'})
-rc('legend',**{'fontsize':12})
-rc('image',cmap='viridis')
 
 init_pos_dt = np.dtype({'names':['Name','kind','Value'],'formats':['S100','u8','f8']})
 pathSeparator = QtCore.QDir.separator()
 gdsname = 'HBT6'
 
-class ExpData():
+class spec():
+    """
+    Class for data import 
+    reads txt files with only 2 columns: x position and height
+
+    Parameters
+    ----------
+    input: 
+        filename and path,... parameters see __init__
+        
+    output : 
+        Class to view the config, plot, work with Data
+    """
     def __init__(self,
-                 filename = '',
+                 fname = '',
                  path = '',
                  comments = '',
                  sweepDims = [],
@@ -55,7 +44,10 @@ class ExpData():
                  'start ramp at':0, 'channels':[i for i in np.arange(16)],
                  'divider': 6661, 'count': 0},
                  ):
-        self.filename = filename
+        
+        if not (fname.endswith('.h5') or fname.endswith('.txt') or fname.endswith('.dat') or fname.endswith('.csv') or fname.endswith('.sp2')):
+            raise ValueError( 'Can only create a spec class object from hdf5, txt,csv, dat or s2p file; fname=%s' % fname )
+        self.fname = fname
         self.path = path
         self.comments = comments
         self.sweepDims = sweepDims
@@ -67,16 +59,41 @@ class ExpData():
         self.fastSeq = fastSeq
         self.readouts = {}
         self.sweeps = {}
+        self.reads = readoutnamelist
+        self.sweeps = sweepnamelist
+        if fname.endswith('.h5'):
+            self.read()
+        if fname.endswith('.txt'):
+            self.read_txt()
+        if fname.endswith('.dat'):
+            self.read_dat()
+        if fname.endswith('.csv'):
+            self.read_csv()
+        if fname.endswith('.s2p'):
+            self.read_s2p()
         
-    def readData(self):
-        with h5py.File(self.path+self.filename+'.h5', 'r') as f:
+    def read(self):
+        """
+        read spec data from hdf5 file
+
+        Parameters
+        ----------
+        input: 
+            filename and path
+        
+        output : 
+            sweeplist, readoutlist
+        """
+        with h5py.File(os.path.join(self.path, self.fname), 'r') as f:
             # read parameter list
             dset = f['Param_list']
             self.comments = str(dset.attrs['comments'])
             self.sweepDims = list(dset.attrs['sweep_dim'])
             self.sweepIndex = list(dset.attrs['sweep_index'])
             self.readoutnamelist = [str(s, 'utf-8') for s in dset.attrs['readout_list']]
+            self.reads = [str(s, 'utf-8') for s in dset.attrs['readout_list']]
             self.sweepnamelist = [str(s, 'utf-8') for s in dset.attrs['sweep_list']]
+            self.sweeps = [str(s, 'utf-8') for s in dset.attrs['readout_list']]
             # read initial positions
             try:
                 self.InitialPositions = np.array(f['Initial_positions'], dtype=init_pos_dt)
@@ -110,12 +127,92 @@ class ExpData():
                     self.fastSeq['count'] = int(self.fastSeq['seq'].shape[1])-2
                 else:
                     self.fastSeq['count'] = int(dset.attrs['uint64s'][2])
+                    
+############################## under construction other file extensions ########################
+    def read_txt( self ):
+        """
+        
+        Wrapper function for *.txt import as np.loadtext()
+        reads txt files with only 2 columns: x position and height
+
+        Parameters
+        ----------
+        input: 
+            as np.loadtxt(args, kwargs)
+        
+        output : 
+            rlist, slist
+        """
+        skips = 5
+        try:
+            data = np.loadtxt(self.fname, delimiter=',', skiprows=skips)
+            self.rlist()
+            self.slist()
+            self.time = data[:,0]
+            self.amp = data[:,1]
+        except:
+            #print(Could not load %s)
+            pass
+
+    def read_dat( self ):
+        """
+        Wrapper function for dat import as np.loadtext()
+        reads dat files with only 2 columns: x position and height
+
+        Parameters
+        ----------
+        input: 
+            as np.loadtxt(args, kwargs)
+        output : 
+            rlist, slist
+        """
+        try:
+            data = np.loadtxt(self.fname)
+            self.rlist()
+            self.slist()
+#            pprint(data)
+        except:
+            pass
+    def read_csv( self ):
+        """
+        Wrapper function for csv import as np.genfromtext()
+        reads simple csv files with only 2 columns: x position and height
+
+        Parameters
+        ----------
+        input: 
+            as np.genfromtxt(args, kwargs)
+        output : 
+            rlist, slist
+        """
+        try:
+            data = np.genfromtxt(self.fname,skip_header=40,delimiter=',', skip_footer=5)
+            self.rlist()
+            self.slist()
+#            pprint(data)
+        except:
+            pass
+#        self.X = data[0:,0]
+#        self.H = data[0:,1]
+
+############################## under construction other file extensions ########################
+
                 
     def slist(self, selection=[]):
+        """
+        Creating sweep list dictionary
+
+        Parameters
+        ----------
+        input: 
+            sweepnamelist, fname
+        output : 
+            dictionary of sweeps
+        """
         if len(self.sweepnamelist)==0: # Return empty dictionary if there is no sweep parameter
             self.sweeps = {}
         else:
-            slist = {'dims':[],'params':[],'units':[]}
+            slist = {'names':[],'dims':[],'params':[],'units':[]}
             if selection == []:
                 selection = [Ellipsis]
             elif len(selection) > len(self.sweepDims):
@@ -126,7 +223,7 @@ class ExpData():
                     selection.append(Ellipsis)
             selection = tuple(selection)
             
-            with h5py.File(self.path+self.filename+'.h5', 'r') as f:
+            with h5py.File(os.path.join(self.path, self.fname), 'r') as f:
                 for i, name in enumerate(self.sweepnamelist):
                     dset = f[name]
                     slist['dims'].append(int(dset.attrs['dimension']))
@@ -146,6 +243,16 @@ class ExpData():
             self.sweeps = slist
     
     def rlist(self,selection=[]):
+        """
+        Creating readout list dictionary
+
+        Parameters
+        ----------
+        input: 
+            as np.genfromtxt(args, kwargs)
+        output : 
+            rlist, slist
+        """
         if len(self.readoutnamelist)==0:
             self.readouts = {}
         else:
@@ -165,7 +272,7 @@ class ExpData():
                     selection.append(Ellipsis)
             selection = tuple(selection)
             
-            with h5py.File(self.path+self.filename+'.h5', 'r') as f:
+            with h5py.File(os.path.join(self.path, self.fname), 'r') as f:
                 for i, name in enumerate(self.readoutnamelist):
                     dset = f['data/'+name]
                     if type(dset.attrs['unit'])==str:
@@ -187,6 +294,16 @@ class ExpData():
                 axisSelec = 0, # name or number
                 selection = slice(None), # partial selection
                 ):
+        """
+        ToDo Update description
+
+        Parameters
+        ----------
+        input: 
+            as np.genfromtxt(args, kwargs)
+        output : 
+            rlist, slist
+        """
         dims = list(self.readouts['data'].shape)[1:] # shape of data for each readout
         """ Get sweep axis for plot """
         if dim == 0:
@@ -253,7 +370,7 @@ class ExpData():
                             labelX = self.sweepnamelist[0] + ' ('+self.sweeps['units'][0]+')'
                             print('plot range selection is out of range.')
         else:
-            if not self.mode == 0: # In case of fast sequence, paxis = plotaxis -1
+            if not self.mode == 0: # In case of fast sequence, paxis = plotAxis -1
                 paxis = dim - 1
             else:
                 paxis = dim
@@ -283,7 +400,7 @@ class ExpData():
                         print('plot range selection is out of range.')
         # if x[0] == x [-1], convert x to counter
         if x[0] == x[-1]:
-            print('Selected axis is not swept along the plot axis. The fixed value is %f.' % (x[0]))
+            print('Selected axis is not swept: Xmin = Xmax = %f --> useCounter' % (x[0]))
             x = np.linspace(0,x.size-1,num=x.size,dtype=float)
             labelX = 'counter (points)'
         return x, labelX
@@ -293,7 +410,18 @@ class ExpData():
                       selectFastSequenceDim = False,    # get axis for fast sequence or not
                       choice = 0,       # choice of the sweep array (number or name)
                       ):
-        """ Get array for the 3D plot or pcolormesh plot """
+        """
+        ToDo Update description
+
+        Parameters
+        ----------
+        input: 
+            selectRange=[],   # range to return the sweep array
+            selectFastSequenceDim = False,    # get axis for fast sequence or not
+            choice = 0
+        output : 
+            ar, label
+        """
         if self.mode == 0:      # normal sweep mode
             # convert choice to number
             if type(choice) == str:
@@ -386,126 +514,169 @@ class ExpData():
             
         return ar, label
     
-    def getGateConfig(self,
-                      axes=[],
-                      gdsFile=os.path.dirname(os.path.abspath(__file__))+pathSeparator+'GDS'+pathSeparator+gdsname+'.GDS',
-                      figNo='Config',
-                      commentsize=8,
-                      labelsize = 8,
-                      titlesize = 10,
-                      ):
-        try:
-            getStuff = structurefromGDS(gdsFile)
-        except:
-            print('GDS file has not been found.')
-            return
-        
-        """ read initial positions """
-        if type(self.InitialPositions) == type([]):
-            print('This file has not been measured yet.')
-            return
-            
-        """ plot into given ax."""
-        if axes ==[]:
-            tight = True
-            if figNo == 0:
-                fig = plt.figure(figsize=(2*3.375,1.8*3.375))
-            else:
-                fig = plt.figure(figNo,figsize=(2*3.375,1.8*3.375))
-                fig.clf()
-            fig.patch.set_facecolor('#ffffff')
-            fig.subplots_adjust(left=0.01, top=0.94, right=0.99, bottom=0.1, hspace=0.1, wspace=0.1)
-            plt.suptitle(self.filename,y=0.99,fontsize=titlesize)
-            axes.append(plt.subplot2grid((4,1),(0,0),rowspan=3))
-            axes.append(plt.subplot2grid((4,1),(3,0)))
-        else:
-            tight = False
-            axes[0].set_title(self.filename)
-        
+    def plot1D(self,*args, **kwargs):
         """
-        Plot the gate geometry with all the gate voltages
+        Wrapper function for 1D plotting with mpl.plt.plot()
+
+        Prameters
+        ----------
+        input: 
+            arguments as matplotlib.pyplot.plot(*args, **kwargs)
+        aditional inputs: 
+            to be completed
+        output: 
+            mpl line
         """
-        axes[0].get_xaxis().set_visible(False)
-        axes[0].get_yaxis().set_visible(False)
-        axes[0].set_frame_on(False)
-        clist = np.array(['green','blue','orange','purple','cyan','yellow'])
-        xmin = 0; xmax=0; ymin = 0; ymax=0;
-        for i, array in enumerate(getStuff()):
-                xpos = array[:,0]
-                ypos = array[:,1]
-                if max(xpos)>xmax: xmax=max(xpos)
-                if min(xpos)<xmin: xmin=min(xpos)
-                if max(ypos)>ymax: ymax=max(ypos)
-                if min(ypos)<ymin: ymin=min(ypos)
-                """Show gates with enumeration if wanted"""
-                if not i in getStuff.string_infos.keys():                                  # If polygone ...
-                    axes[0].fill(xpos, ypos, facecolor='grey',alpha=0.2,edgecolor='white') # draw it.
-                else:                                                                      # If label ...
-                    col='black'; style='normal'
-                    label = str(getStuff.string_infos[i], 'utf-8')
-                    if np.any(label.encode('utf-8')==self.InitialPositions['Name']):
-                        gValue = "%s=%4.3f V" % (label, self.InitialPositions['Value'][label.encode('utf-8')==self.InitialPositions['Name']])
-                        if label in self.sweepnamelist:
-                            gValue = label
-                            j = int(self.sweeps['dims'][self.sweepnamelist.index(label)])
-                            col = clist[j]; style='bold'
-                        if self.mode == 1: # for ramp mode
-                            fast_channel_index = list(set(self.fastSeq['seq'][0,1:-1]))
-                            for index in fast_channel_index:
-                                if label == self.fastSeq['channels'][int(index)]:
-                                    gValue = label
-                                    col = "red"; style='bold'
-                    elif label in self.readoutnamelist:
-                            gValue = "read %s" % label
-                            style='bold'
-                    else:
-                            gValue = label
-                    axes[0].text(xpos[0], ypos[0], gValue, color=col, weight=style, size=labelsize)
-        axes[0].set_xlim([xmin, xmax]); axes[0].set_ylim([ymin, ymax])
-        axes[0].margins(0)
-        # comments            
-        axes[1].axis('off')
-        axes[1].margins(0)
-        axes[1].annotate(textwrap.fill(self.comments, width=70),(0.01,0.999),xycoords='axes fraction',
-                         horizontalalignment='left',verticalalignment='top', size=commentsize)
-        if tight:   plt.tight_layout()
-    
-    def plot1D(self,
-               figNo=0, # Number of the figure in case ax is not given
-               ax='', # ax to be plotted data
-               clear = True, # clear the existing plot in the 'ax'
-               useCounter = False,
-               showlegend=True, showTitle=True, showGrid=True,
-               title = '', # set title
-               plotaxis = 0, # plot along 
-               plotrange=[], # plot range ex.) [slice(0,100), slice(None), Ellipsis, 0]
-               readouts = [], # select plot readout by name or number
-               xaxis = 0, #0, 1, 2 or 'name' of axis
-               xoffsets=[], yoffsets=[], # offset for x and y
-               xfactor=1, yfactor=1, # factor to multiply
-               xlabel='', ylabel='',
-               x_axis_range = [], y_axis_range = [],
-               x_tick_freq = 0, y_tick_freq = 0,
-               xticks=[], yticks=[],
-               ticklabelsize = 12, labelsize = 14,
-               linestyles=[], linewidth = 1.0,
-               markers=[None], markersize=3,
-               colors=[],
-               mode = ['standard', 'vector'][0],          # (under construction) please use pcolor mesh when you plot vector sweep data.
-               ):
         if len(self.readoutnamelist)==0: # escape plot if there is no readout
             return
+        
+        """
+        define all additional inputs to variables set defaults and delete args kwargs
+        """
+        if 'figNo' in kwargs:
+            figNo = kwargs['figNo']
+            del kwargs['figNo']
+        else:
+            figNo = 0
+        if 'ax' in kwargs:
+            ax = kwargs['ax']
+            del kwargs['ax']
+        else:
+            ax = ''
+        if 'clear' in kwargs:
+            clear = kwargs['clear']
+            del kwargs['clear']
+        else:
+            clear = False
+        if 'counter' in kwargs:
+           useCounter = kwargs['counter']
+           del kwargs['counter']
+        else:
+            useCounter = False
+        if 'showTitle' in kwargs:
+            showTitle = kwargs['showTitle']
+            del kwargs['showTitle']
+        else:
+            showTitle = True
+        if 'showLegend' in kwargs:
+            showLegend = kwargs['showLegend']
+            del kwargs['showLegend']
+        else:
+            showLegend = True
+        if 'showGrid' in kwargs:
+            showGrid = kwargs['showGrid']
+            del kwargs['showGrid']
+        else:
+            showGrid = False
+        if 'title' in kwargs:
+            titlein = kwargs['title']
+            del kwargs['title']
+        else:
+            titlein = ''  
+        if 'plotAxis' in kwargs:
+            plotAxis = kwargs['plotAxis']
+            del kwargs['plotAxis']
+        else:
+            plotAxis = 0
+        if 'plotRange' in kwargs:
+            plotrange = kwargs['plotRange']
+            del kwargs['plotRange']
+        else:
+            plotrange = []
+        if 'readouts' in kwargs:
+            readouts = kwargs['readouts']
+            del kwargs['readouts']
+        else:
+            readouts = []
+        if 'xaxis' in kwargs:
+            xaxis = kwargs['xaxis']
+            del kwargs['xaxis']
+        else:
+            xaxis = 0
+        if 'xoffsets' in kwargs:
+            xoffsets = kwargs['xoffsets']
+            del kwargs['xoffsets']
+        else:
+            xoffsets = []
+        if 'yoffsets' in kwargs:
+            yoffsets = kwargs['yoffsets']
+            del kwargs['yoffsets']
+        else:
+            yoffsets = []
+        if 'xfactor' in kwargs:
+            xfactor = kwargs['xfactor']
+            del kwargs['xfactor']
+        else:
+            xfactor = 1
+        if 'yfactor' in kwargs:
+            yfactor = kwargs['yfactor']
+            del kwargs['yfactor']
+        else:
+            yfactor = 1
+        if 'xlabel' in kwargs:
+            xlabel = kwargs['xlabel']
+            del kwargs['xlabel']
+        else:
+            xlabel = ''
+        if 'ylabel' in kwargs:
+            ylabel = kwargs['ylabel']
+            del kwargs['ylabel']
+        else:
+            ylabel = ''
+        if 'xaxisRange' in kwargs:
+            xaxisRange = kwargs['xaxisRange']
+            del kwargs['xaxisRange']
+        else:
+            xaxisRange = []
+        if 'yaxisRange' in kwargs:
+            yaxisRange = kwargs['yaxisRange']
+            del kwargs['yaxisRange']
+        else:
+            yaxisRange = []
+        if 'xtickFreq' in kwargs:
+            xtickFreq = kwargs['xtickFreq']
+            del kwargs['xtickFreq']
+        else:
+            xtickFreq = 0
+        if 'ytickFreq' in kwargs:
+            ytickFreq = kwargs['ytickFreq']
+            del kwargs['ytickFreq']
+        else:
+            ytickFreq = 0
+        if 'xticks' in kwargs:
+            xticks = kwargs['xticks']
+            del kwargs['xticks']
+        else:
+            xticks= []
+        if 'yticks' in kwargs:
+            yticks= kwargs['yticks']
+            del kwargs['yticks']
+        else:
+            yticks = []
+        
+        if 'mode' in kwargs:
+            mode = kwargs['mode']
+            del kwargs['mode']
+        else:
+            mode = 'standard'
+        
         """ Define figure and ax if ax is not given."""
         if ax == '':
             tight = True
             """ Either plot for specific figure or make new figure"""
             if figNo == 0:
-                fig = plt.figure()
+                if plt.fignum_exists(figNo):
+                    plt.figure(0)
+                else:
+                    fig = plt.figure()
             else:
-                fig = plt.figure(figNo)
+                if plt.fignum_exists(figNo):
+                    fig = plt.figure(figNo)
+                else:
+                    fig = plt.figure()
                 if clear:
                     fig.clf()
-            ax = fig.add_subplot(111)
+            ax = plt.gca()
             """ Set background white """
             fig.patch.set_facecolor('#ffffff')
         else:
@@ -513,16 +684,16 @@ class ExpData():
             
         """ set title """
         if showTitle:
-            if title == '':
-                title = self.filename
-            ax.set_title(title, fontdict={'fontsize':labelsize})
+            if titlein == '':
+                title = self.fname
+            ax.set_title(title)
                 
         # Get dimensions
         dims = list(self.readouts['data'].shape)[1:]
         
-        # correct plotaxis into the available range
-        plotaxis = max(0, plotaxis)
-        plotaxis = min(len(dims)-1, plotaxis)
+        # correct plotAxis into the available range
+        plotAxis = max(0, plotAxis)
+        plotAxis = min(len(dims)-1, plotAxis)
         
         # correct readouts
         if readouts == []:
@@ -562,19 +733,19 @@ class ExpData():
         # Get xaxis
         if mode == 'standard':
             if useCounter:
-                X = np.arange(dims[plotaxis])[plotrange[plotaxis]]
+                X = np.arange(dims[plotAxis])[plotrange[plotAxis]]
                 labelX = 'Counter (points)'
             else:
-                X, labelX = self.getAxis(dim = plotaxis,
+                X, labelX = self.getAxis(dim = plotAxis,
                                  axisSelec = xaxis,
-                                 selection = plotrange[plotaxis])
+                                 selection = plotrange[plotAxis])
                 X = np.multiply(X, xfactor) # Apply factor for x
         elif mode == 'vector':
             if useCounter:
-                X = np.moveaxis(np.moveaxis(np.ones(tuple(dims),dtype=float),plotaxis,-1)*np.arange(dims[plotaxis]),-1,plotaxis)[tuple(plotrange)]
+                X = np.moveaxis(np.moveaxis(np.ones(tuple(dims),dtype=float),plotAxis,-1)*np.arange(dims[plotAxis]),-1,plotAxis)[tuple(plotrange)]
                 labelX = 'Counter (points)'
             else:
-                if (self.mode != 0) and (plotaxis == 0):    # fast sequence and plot axis = 0
+                if (self.mode != 0) and (plotAxis == 0):    # fast sequence and plot axis = 0
                     selectFastSequenceDim = True
                 else:
                     selectFastSequenceDim = False
@@ -582,22 +753,12 @@ class ExpData():
                 X, labelX = self.getSweepArray(selectRange=plotrange,
                                                selectFastSequenceDim=selectFastSequenceDim,
                                                choice=xaxis)
-                X = np.moveaxis(X, plotaxis, 0) # move plot axis to axis 0
+                X = np.moveaxis(X, plotAxis, 0) # move plot axis to axis 0
                 dshape = X.shape                # Get the dim size
                 X = X.reshape(dshape[0], -1)    # reshape X for plot
-                
-        # start ploting
-        if linestyles == []:
-            linestyles = ['-','--',':','-.']
-        
-        if colors == []:
-            colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-                      '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-                      '#bcbd22', '#17becf']
-        if markers == []:
-            markers = [None]
+
         labelY = ''
-        xoffset = np.moveaxis(xoffset, plotaxis, 0) # move plot axis to axis0
+        xoffset = np.moveaxis(xoffset, plotAxis, 0) # move plot axis to axis0
         dshape = xoffset.shape # Get the dim size
         xoffset = xoffset.reshape(dshape[0], -1) # reshape xoffset for plot
         
@@ -610,7 +771,7 @@ class ExpData():
             d = self.readouts['data'][read,Ellipsis][tuple(plotrange)]      # Get data
             d = np.multiply(d, yfactor) # Apply factor for data
             d = np.add(d, yoffset) # Apply offset to data
-            d = np.moveaxis(d, plotaxis, 0) # move plot axis to axis0
+            d = np.moveaxis(d, plotAxis, 0) # move plot axis to axis0
             d = d.reshape(dshape[0], -1) # reshape data for plot
             NoPlot = d.shape[1] # keep dimension
             if i == 0:
@@ -626,357 +787,299 @@ class ExpData():
                 elif mode == 'vector':
                     x = X[:,j] + xoffset[:,j]; y = d[:,j]
                 if j == 0: # put legend only for the first one
-                    ax.plot(x, y, linewidth = linewidth,
-                            linestyle=linestyles[np.mod(i, len(linestyles))],
-                            color = colors[np.mod(j+i,len(colors))],
-                            marker=markers[np.mod(i, len(markers))], markersize=markersize,
-                            label=self.readoutnamelist[read]+'('+self.readouts['units'][read]+')'
-                            )
+                    ax.plot(x, y, label=self.readoutnamelist[read]+\
+                            '('+self.readouts['units'][read]+')', *args, **kwargs)
                 else:
-                    ax.plot(x, y, linewidth = linewidth,
-                        linestyle=linestyles[np.mod(i, len(linestyles))],
-                        color = colors[np.mod(j+i,len(colors))],
-                        )
+                    ax.plot(x, y, *args, **kwargs)
             labelY += self.readoutnamelist[read]+' ('+self.readouts['units'][read]+')'
             
         """ set various plotting settings """       
-        if xlabel=='':     ax.set_xlabel(labelX, fontsize=labelsize)  
-        else:              ax.set_xlabel(xlabel, fontsize=labelsize)
-        if ylabel=='':     ax.set_ylabel(labelY, fontsize=labelsize)
-        else:              ax.set_ylabel(ylabel, fontsize=labelsize)
-        if showlegend:     
+        if xlabel=='':     ax.set_xlabel(labelX)  
+        else:              ax.set_xlabel(xlabel)
+        if ylabel=='':     ax.set_ylabel(labelY)
+        else:              ax.set_ylabel(ylabel)
+        if showLegend:     
             ax.legend(loc='best')
         """ set tick  and their label size """
         if xticks==[]:
-            if x_tick_freq > 0:
-                ax.set_xticks(np.linspace(xmin,xmax,x_tick_freq))
+            if xtickFreq > 0:
+                ax.set_xticks(np.linspace(xmin,xmax,xtickFreq))
         else:
             ax.set_xticks(xticks)
         if yticks==[]:
-            if y_tick_freq > 0:
-                ax.set_yticks(np.linspace(ymin,ymax,y_tick_freq))
+            if ytickFreq > 0:
+                ax.set_yticks(np.linspace(ymin,ymax,ytickFreq))
         else:
             ax.set_yticks(yticks)
-        ax.tick_params(axis='both', which='major', labelsize=ticklabelsize)
+        ax.tick_params(axis='both', which='major')
         """ set axis range """    
-        if x_axis_range == []:
+        if xaxisRange == []:
             ax.set_xlim([xmin,xmax])
         else:
-            ax.set_xlim(x_axis_range)
-        if y_axis_range == []:
+            ax.set_xlim(xaxisRange)
+        if yaxisRange == []:
             ax.set_ylim([ymin-(ymax-ymin)*0.05,ymax+(ymax-ymin)*0.05])
         else:
-            ax.set_ylim(y_axis_range)
+            ax.set_ylim(yaxisRange)
         if showGrid == True:     ax.grid()
         if tight:   plt.tight_layout()
-        
-    def plot2D(self,
-               figNo=0,
-               title='',
-               fig='',                                                         # plot data to given fig
-               ax = '',                                                        # plot data into given ax
-               plotDims = [[0,0],[1,0]],                                        # plot axis [[x, choice], [y, choice]] (choice is number of 'name')
-               readout=0,                                                     # name or number of readout instrument that should be plotted on z-axis
-               plotrange= [],                                                    # plotting ranges [ range for sweep, step 1, etc.]; should give a matrix!!
-               factors = [1.0,1.0,1.0],                                         # scaling factor for x, y and z
-               clear = True,                                                   # clear previous plot or not
-               showColorbar = True, showTitle = True, showGrid = True,
-               flipX = False, flipY = False, transpose = True,
-               xlabel = '',   ylabel = '',   zlabel = '',
-               x_ax_range=[], y_ax_range=[], z_ax_range=[],
-               x_tick_freq=0, y_tick_freq=0, z_tick_freq=0,
-               xticks=[],     yticks=[],     zticks=[],
-               ticklabelsize = 12, labelsize = 14,
-               colormap = "viridis", lineSlice = False, pyqt = False,
-               mode = ['imshow', 'pcolormesh'][0],          # (under construction) please use pcolor mesh when you plot vector sweep data.
-               ):
-        if len(self.readoutnamelist)==0: # Escape if there is no readout.
-            return
-        """ Define figure and ax if ax is not given."""
-        if ax == '' or (lineSlice and pyqt): # create ax if ax is not given. Or line slice is True and ax is given by pyqt.
-            tight = True
-            """Either plot for specific figure or make new figure"""
-            if figNo == 0:
-                fig = plt.figure()
-            else:
-                fig = plt.figure(figNo)
-                if clear == True:
-                    fig.clf()
-            ax = fig.add_subplot(111)
-            """ Set background white """
-            fig.patch.set_facecolor('#ffffff')
-        else:
-            tight = False
-            
-        """ set title """
-        if showTitle:
-            if title == '':
-                title = self.filename
-            ax.set_title(title, fontdict={'fontsize':labelsize})
-                
-        # Get dimensions
-        dims = list(self.readouts['data'].shape)[1:]
-            
-        # Treat plot range
-        if plotrange == []:
-            plotrange = [0]*len(dims)
-            plotrange[plotDims[0][0]]=slice(None)
-            plotrange[plotDims[1][0]]=slice(None)
-        else:
-            if len(plotrange)>len(dims):
-                plotrange = plotrange[:len(dims)]
-            elif len(plotrange)<len(dims):
-                dif = len(dims)-len(plotrange)
-                length = len(plotrange)
-                for i in range(dif):
-                    if (length+i == plotDims[0][0]) or (length+i == plotDims[1][0]):
-                        plotrange.append(slice(None))
-                    else:
-                        plotrange.append(0)            
-            for i in range(len(dims)):
-                if (i==plotDims[0][0]) or (i==plotDims[1][0]):
-                    if type(plotrange[i]) == int:   # plot axis should slice and else should be int.
-                        plotrange[i] = slice(None)
-                else:
-                    if not type(plotrange[i]) == int: # if non integer is given, correct it to 0.
-                        plotrange[i] = 0
-                    else: 
-                        n = plotrange[i] # if the given range is not within the available range, correct it.
-                        plotrange[i] = int(max(0, plotrange[i]))
-                        plotrange[i] = int(min(dims[i]-1, plotrange[i]))
-                        if n != plotrange[i]:
-                            print('Selected plotrange[%d]=%d is corrected to %d.' % (i, n, plotrange[i]))
-            
-        # Get data
-        selectRange = tuple(plotrange)
-        if not type(readout) == type(0): # check whether readout is name or number, then get data
-            if readout in self.readoutnamelist:
-                readout = self.readoutnamelist.index(readout)
-                data = self.readouts['data'][readout,Ellipsis]
-            else:
-                readout = 0
-                data = self.readouts['data'][0,Ellipsis]
-        else:
-            if readout < len(self.readoutnamelist):
-                data = self.readouts['data'][readout,Ellipsis]
-            else:
-                readout = 0
-                data = self.readouts['data'][0,Ellipsis]
-        Z = data[selectRange]
-        if plotDims[0][0]>plotDims[1][0]: # set x axis to first dimension
-            Z = np.moveaxis(Z, 1, 0)
-        labelZ = self.readoutnamelist[readout]+' ('+self.readouts['units'][readout]+')'
-        
-        # Get plot axis
-        if mode == 'imshow':
-            # Get xaxis
-            X, labelX = self.getAxis(dim = plotDims[0][0],
-                             axisSelec = plotDims[0][1],
-                             selection = plotrange[plotDims[0][0]])
-            # Get yaxis
-            Y, labelY = self.getAxis(dim = plotDims[1][0],
-                             axisSelec = plotDims[1][1],
-                             selection = plotrange[plotDims[1][0]])
-        elif mode == 'pcolormesh':
-            if plotDims[0][0]==0:
-                selectFastSequenceDim = True
-            else:
-                selectFastSequenceDim = False
-            X, labelX = self.getSweepArray(selectRange=plotrange,   # range to return the sweep array
-                                          selectFastSequenceDim = selectFastSequenceDim,    # get axis for fast sequence or not
-                                          choice = plotDims[0][1],       # choice of the sweep array (number or name)
-                                          )
-            if plotDims[1][0]==0:
-                selectFastSequenceDim = True
-            else:
-                selectFastSequenceDim = False
-            Y, labelY = self.getSweepArray(selectRange=plotrange,   # range to return the sweep array
-                                          selectFastSequenceDim = selectFastSequenceDim,    # get axis for fast sequence or not
-                                          choice = plotDims[1][1],       # choice of the sweep array (number or name)
-                                          )
-        # Apply factor
-        X = np.multiply(X, factors[0]) # Apply factor for x
-        Y = np.multiply(Y, factors[1]) # Apply factor for y        
-
-        if transpose:
-            Z = Z.T
-            T = X
-            X = Y
-            Y = T
-            t = labelX; labelX = labelY; labelY = t
-            if mode == 'pcolormesh':
-                X = X.T
-                Y = Y.T
-            
-        # Get plot limits for X, Y and Z
-        if mode == 'imshow':
-            xini = X[0]; xfin = X[-1];
-            yini = Y[0]; yfin = Y[-1];
-        elif mode == 'pcolormesh':
-            xini = X[0,0]; xfin = X[-1,-1];
-            yini = Y[0,0]; yfin = Y[-1,-1];
-        
-        if z_ax_range == []:                                                   # Obtain limits of z.
-            zmin = np.min(Z.flatten()); zmax = np.max(Z.flatten())
-        else:
-            zmin = z_ax_range[0]; zmax = z_ax_range[1];
-            
-        # plot
-        if mode == 'imshow':
-            # imshow
-            cax = ax.imshow(np.fliplr(np.flipud(Z)).T, extent=(xfin,xini,yfin,yini),origin='lower',
-                      interpolation='nearest', aspect='auto', cmap=plt.get_cmap(colormap),
-                      vmin=zmin, vmax=zmax)
-        elif mode == 'pcolormesh':
-            #pcolormesh used for plotting the vector sweep data
-            cax = ax.pcolormesh(X, Y, Z, cmap=plt.get_cmap(colormap),
-                      vmin=zmin, vmax=zmax)
-        
-        """ Add colorbar, set label and ticks """
-        if showColorbar:
-            cbar = fig.colorbar(cax)
-            if zlabel == '':  cbar.set_label(labelZ, rotation=270, labelpad=20, fontsize = labelsize)
-            else:             cbar.set_label(zlabel, rotation=270, labelpad=20, fontsize = labelsize)
-            if zticks==[]:
-                if z_tick_freq > 0:
-                    cbar.ax.set_ticks(np.linspace(zmin,zmax,z_tick_freq))
-            else:
-                cbar.ax.set_ticks(zticks)
-            cbar.ax.tick_params(labelsize=ticklabelsize) 
-        
-        """ set various plotting settings """       
-        if xlabel=='':     ax.set_xlabel(labelX, fontsize=labelsize)  
-        else:              ax.set_xlabel(xlabel, fontsize=labelsize)
-        if ylabel=='':     ax.set_ylabel(labelY, fontsize=labelsize)
-        else:              ax.set_ylabel(ylabel, fontsize=labelsize)
-            
-        """ set tick  and their label size """
-        if xticks==[]:
-            if x_tick_freq > 0:
-                ax.set_xticks(np.linspace(xini,xfin,x_tick_freq))
-        else:
-            ax.set_xticks(xticks)
-        if yticks==[]:
-            if y_tick_freq > 0:
-                ax.set_yticks(np.linspace(yini,yfin,y_tick_freq))
-        else:
-            ax.set_yticks(yticks)
-        ax.tick_params(axis='both', which='major', labelsize=ticklabelsize)
-        """ set axis ranges """
-        if not x_ax_range == []:
-            ax.set_xlim(x_ax_range[0], x_ax_range[1])
-        if not y_ax_range == []:
-            ax.set_ylim(y_ax_range[0], y_ax_range[1])
-            
-        """ Flip axes """
-        if flipX:
-            ax.invert_xaxis()
-        
-        if flipY:
-            ax.invert_yaxis()
-        
-        if showGrid == True:     ax.grid()                                     # If chosen, show grid.
-        if tight:   plt.tight_layout()
-        # Image line slice
-        if lineSlice:
-            fig2 = plt.figure('Image slice')
-            fig2.clf()
-            axS = fig2.add_subplot(111)
-            LnTr = LineSlice(cax, axS, Z, X, Y)
-            
-            
-#    def save2DTiledData(self,
-#                        plotaxis = [[0,0],[1,1]],
-#                        readouts = [0], # number or name
-#                        plotrange = [], # silce the data
-#                        xdim = -1, # -1 is default and choose lowest dim except plot dimensions
-#                        width = 20, # widh of each figure
-#                        height = 15, # height of each figure
-#                       ):
-#        dshape = self.readouts['data'].shape
-#        # Treat plot range
-#        if plotrange == []:
-#            plotrange = [slice(None)]*len(dshape[1:])
-#        elif len(plotrange) > len(dshape[1:]):
-#            plotrange = plotrange[0:len(dshape[1:])]
-#            print('Selected range is larger than sweep dimensions.')
-#        elif len(plotrange) < len(dshape[1:]):
-#            dif = len(dshape[1:])-len(plotrange)
-#            if not Ellipsis in plotrange:
-#                plotrange += [slice(None)]*(dif)
-#            else:
-#                plotrange = plotrange[0:plotrange.index(Ellipsis)]+[slice(None)]*(dif)+plotrange[plotrange.index(Ellipsis)+1:]
-#        for i, p in enumerate(plotrange):
-#            if type(p) == int:
-#                plotrange[i] = slice(p,p+1) # By replacing number to slice of 1 value, keep the data dimensions
-#        # Get x dim for plotting
-#        axisList = list(range(len(dshape[1:])))
-#        del axisList[plotaxis[0][0]]
-#        del axisList[plotaxis[1][0]]
-#        if xdim == -1:
-#            xdim = axisList[0]
-#        else:
-#            if not xdim in axisList:
-#                xdim = axisList[0]
-#        data = self.readouts['data'][tuple([slice(None)]+plotrange)]
-#        # make tiles
-#        for i, read in enumerate(readouts):
-#            # convert name to number here
-#            if read in self.readoutnamelist:
-#                read = self.readoutnamelist.index(read)
-#            else:
-#                if not type(read) == int:
-#                    read = i
-#            data = self.readouts['data'][tuple([read]+plotrange)]
-            
-if __name__=='__main__':
-    fname = '201612141401'
-#    fname = '201702031747'
-    path = '/Users/shintaro/Documents/1_Research/3_SAW/4_Data/4_Postdoc/HBT6/'
-#    path = r'E:/Takada/DATA/HBT6/data2/20170202/'
-    data = ExpData(filename = fname,
-                   path = path,
-                   )
-    data.readData()
-    data.plot1D(figNo=1, # Number of the figure in case ax is not given
-               ax='', # ax to be plotted data
-               clear = True, # clear the existing plot in the 'ax'
-               useCounter=False,
-               showlegend=True, showTitle=True, showGrid=True,
-               title = '', # set title
-               plotaxis = 0, # plot along 
-               plotrange=[], # plot range ex.) [slice(0,100), slice(None), Ellipsis, 0]
-               readouts = [], # select plot readout by name or number
-               xaxis = 4, #0, 1, 2 or 'name' of axis
-               xoffsets=[], yoffsets=[],
-               xfactor=1, yfactor=1,
-               xlabel='', ylabel='',
-               x_axis_range = [], y_axis_range = [],
-               x_tick_freq = 0, y_tick_freq = 0,
-               xticks=[], yticks=[],
-               ticklabelsize = 12, labelsize = 14,
-               linestyles=[], linewidth = 1.0,
-               markers=['P'], markersize=3,
-               colors=[],
-               mode = ['standard', 'vector'][1],
-               )
-#    data.plot2D(figNo=4,
+#        
+#    def plot2D(self,
+#               figNo=0,
+#               title='',
 #               fig='',                                                         # plot data to given fig
 #               ax = '',                                                        # plot data into given ax
 #               plotDims = [[0,0],[1,0]],                                        # plot axis [[x, choice], [y, choice]] (choice is number of 'name')
 #               readout=0,                                                     # name or number of readout instrument that should be plotted on z-axis
-#               plotrange= [slice(None),slice(None)],                                                    # plotting ranges [ range for sweep, step 1, etc.]; should give a matrix!!
+#               plotrange= [],                                                    # plotting ranges [ range for sweep, step 1, etc.]; should give a matrix!!
 #               factors = [1.0,1.0,1.0],                                         # scaling factor for x, y and z
 #               clear = True,                                                   # clear previous plot or not
 #               showColorbar = True, showTitle = True, showGrid = True,
-#               flipX = False, flipY = False, transpose = False,
+#               flipX = False, flipY = False, transpose = True,
 #               xlabel = '',   ylabel = '',   zlabel = '',
 #               x_ax_range=[], y_ax_range=[], z_ax_range=[],
-#               x_tick_freq=0, y_tick_freq=0, z_tick_freq=0,
+#               xtickFreq=0, ytickFreq=0, z_tick_freq=0,
 #               xticks=[],     yticks=[],     zticks=[],
-#               ticklabelsize = 12, labelsize = 14,
-#               colormap = "viridis", lineSlice=False,
-#               mode = ['imshow', 'pcolormesh'][1],
-#               )
-#    data.getGateConfig()
+#               colormap = "viridis", lineSlice = False, pyqt = False,
+#               mode = ['imshow', 'pcolormesh'][0],          # (under construction) please use pcolor mesh when you plot vector sweep data.
+#               ):
+#        if len(self.readoutnamelist)==0: # Escape if there is no readout.
+#            return
+#        """ Define figure and ax if ax is not given."""
+#        if ax == '' or (lineSlice and pyqt): # create ax if ax is not given. Or line slice is True and ax is given by pyqt.
+#            tight = True
+#            """Either plot for specific figure or make new figure"""
+#            if figNo == 0:
+#                fig = plt.figure()
+#            else:
+#                fig = plt.figure(figNo)
+#                if clear == True:
+#                    fig.clf()
+#            ax = fig.add_subplot(111)
+#            """ Set background white """
+#            fig.patch.set_facecolor('#ffffff')
+#        else:
+#            tight = False
+#            
+#        """ set title """
+#        if showTitle:
+#            if title == '':
+#                title = self.plotrange
+#            ax.set_title(title)
+#                
+#        # Get dimensions
+#        dims = list(self.readouts['data'].shape)[1:]
+#            
+#        # Treat plot range
+#        if plotrange == []:
+#            plotrange = [0]*len(dims)
+#            plotrange[plotDims[0][0]]=slice(None)
+#            plotrange[plotDims[1][0]]=slice(None)
+#        else:
+#            if len(plotrange)>len(dims):
+#                plotrange = plotrange[:len(dims)]
+#            elif len(plotrange)<len(dims):
+#                dif = len(dims)-len(plotrange)
+#                length = len(plotrange)
+#                for i in range(dif):
+#                    if (length+i == plotDims[0][0]) or (length+i == plotDims[1][0]):
+#                        plotrange.append(slice(None))
+#                    else:
+#                        plotrange.append(0)            
+#            for i in range(len(dims)):
+#                if (i==plotDims[0][0]) or (i==plotDims[1][0]):
+#                    if type(plotrange[i]) == int:   # plot axis should slice and else should be int.
+#                        plotrange[i] = slice(None)
+#                else:
+#                    if not type(plotrange[i]) == int: # if non integer is given, correct it to 0.
+#                        plotrange[i] = 0
+#                    else: 
+#                        n = plotrange[i] # if the given range is not within the available range, correct it.
+#                        plotrange[i] = int(max(0, plotrange[i]))
+#                        plotrange[i] = int(min(dims[i]-1, plotrange[i]))
+#                        if n != plotrange[i]:
+#                            print('Selected plotrange[%d]=%d is corrected to %d.' % (i, n, plotrange[i]))
+#            
+#        # Get data
+#        selectRange = tuple(plotrange)
+#        if not type(readout) == type(0): # check whether readout is name or number, then get data
+#            if readout in self.readoutnamelist:
+#                readout = self.readoutnamelist.index(readout)
+#                data = self.readouts['data'][readout,Ellipsis]
+#            else:
+#                readout = 0
+#                data = self.readouts['data'][0,Ellipsis]
+#        else:
+#            if readout < len(self.readoutnamelist):
+#                data = self.readouts['data'][readout,Ellipsis]
+#            else:
+#                readout = 0
+#                data = self.readouts['data'][0,Ellipsis]
+#        Z = data[selectRange]
+#        if plotDims[0][0]>plotDims[1][0]: # set x axis to first dimension
+#            Z = np.moveaxis(Z, 1, 0)
+#        labelZ = self.readoutnamelist[readout]+' ('+self.readouts['units'][readout]+')'
+#        
+#        # Get plot axis
+#        if mode == 'imshow':
+#            # Get xaxis
+#            X, labelX = self.getAxis(dim = plotDims[0][0],
+#                             axisSelec = plotDims[0][1],
+#                             selection = plotrange[plotDims[0][0]])
+#            # Get yaxis
+#            Y, labelY = self.getAxis(dim = plotDims[1][0],
+#                             axisSelec = plotDims[1][1],
+#                             selection = plotrange[plotDims[1][0]])
+#        elif mode == 'pcolormesh':
+#            if plotDims[0][0]==0:
+#                selectFastSequenceDim = True
+#            else:
+#                selectFastSequenceDim = False
+#            X, labelX = self.getSweepArray(selectRange=plotrange,   # range to return the sweep array
+#                                          selectFastSequenceDim = selectFastSequenceDim,    # get axis for fast sequence or not
+#                                          choice = plotDims[0][1],       # choice of the sweep array (number or name)
+#                                          )
+#            if plotDims[1][0]==0:
+#                selectFastSequenceDim = True
+#            else:
+#                selectFastSequenceDim = False
+#            Y, labelY = self.getSweepArray(selectRange=plotrange,   # range to return the sweep array
+#                                          selectFastSequenceDim = selectFastSequenceDim,    # get axis for fast sequence or not
+#                                          choice = plotDims[1][1],       # choice of the sweep array (number or name)
+#                                          )
+#        # Apply factor
+#        X = np.multiply(X, factors[0]) # Apply factor for x
+#        Y = np.multiply(Y, factors[1]) # Apply factor for y        
+#
+#        if transpose:
+#            Z = Z.T
+#            T = X
+#            X = Y
+#            Y = T
+#            t = labelX; labelX = labelY; labelY = t
+#            if mode == 'pcolormesh':
+#                X = X.T
+#                Y = Y.T
+#            
+#        # Get plot limits for X, Y and Z
+#        if mode == 'imshow':
+#            xini = X[0]; xfin = X[-1];
+#            yini = Y[0]; yfin = Y[-1];
+#        elif mode == 'pcolormesh':
+#            xini = X[0,0]; xfin = X[-1,-1];
+#            yini = Y[0,0]; yfin = Y[-1,-1];
+#        
+#        if z_ax_range == []:                                                   # Obtain limits of z.
+#            zmin = np.min(Z.flatten()); zmax = np.max(Z.flatten())
+#        else:
+#            zmin = z_ax_range[0]; zmax = z_ax_range[1];
+#            
+#        # plot
+#        if mode == 'imshow':
+#            # imshow
+#            cax = ax.imshow(np.fliplr(np.flipud(Z)).T, extent=(xfin,xini,yfin,yini),origin='lower',
+#                      interpolation='nearest', aspect='auto', cmap=plt.get_cmap(colormap),
+#                      vmin=zmin, vmax=zmax)
+#        elif mode == 'pcolormesh':
+#            #pcolormesh used for plotting the vector sweep data
+#            cax = ax.pcolormesh(X, Y, Z, cmap=plt.get_cmap(colormap),
+#                      vmin=zmin, vmax=zmax)
+#        
+#        """ Add colorbar, set label and ticks """
+#        if showColorbar:
+#            cbar = fig.colorbar(cax)
+#            if zlabel == '':  cbar.set_label(labelZ, rotation=270, labelpad=20)
+#            else:             cbar.set_label(zlabel, rotation=270, labelpad=20)
+#            if zticks==[]:
+#                if z_tick_freq > 0:
+#                    cbar.ax.set_ticks(np.linspace(zmin,zmax,z_tick_freq))
+#            else:
+#                cbar.ax.set_ticks(zticks)
+#            #cbar.ax.tick_params(labelsize=ticklabelsize) 
+#        
+#        """ set various plotting settings """       
+#        if xlabel=='':     ax.set_xlabel(labelX)  
+#        else:              ax.set_xlabel(xlabel)
+#        if ylabel=='':     ax.set_ylabel(labelY)
+#        else:              ax.set_ylabel(ylabel)
+#            
+#        """ set tick  and their label size """
+#        if xticks==[]:
+#            if xtickFreq > 0:
+#                ax.set_xticks(np.linspace(xini,xfin,xtickFreq))
+#        else:
+#            ax.set_xticks(xticks)
+#        if yticks==[]:
+#            if ytickFreq > 0:
+#                ax.set_yticks(np.linspace(yini,yfin,ytickFreq))
+#        else:
+#            ax.set_yticks(yticks)
+#        ax.tick_params(axis='both', which='major')
+#        """ set axis ranges """
+#        if not x_ax_range == []:
+#            ax.set_xlim(x_ax_range[0], x_ax_range[1])
+#        if not y_ax_range == []:
+#            ax.set_ylim(y_ax_range[0], y_ax_range[1])
+#            
+#        """ Flip axes """
+#        if flipX:
+#            ax.invert_xaxis()
+#        
+#        if flipY:
+#            ax.invert_yaxis()
+#        
+#        if showGrid == True:     ax.grid()                                     # If chosen, show grid.
+#        if tight:   plt.tight_layout()
+#        # Image line slice
+#        if lineSlice:
+#            fig2 = plt.figure('Image slice')
+#            fig2.clf()
+#            axS = fig2.add_subplot(111)
+#            LnTr = LineSlice(cax, axS, Z, X, Y)
+        
+if __name__=='__main__':
+
+    flist = []
+    plist = []
+    for f in sorted(glob.glob('*.h5')):
+        fname = f
+        path = os.getcwd()
+        print('Current Directory: '+str(path))
+        print('File: ' + str(f))
+        flist.append(f)
+        
+    """ for test only select first file in cwd flist[0]"""
+    data = spec(fname = flist[0],path = path)
+    data.read()
+#    print('Sweeps:')
+#    print(data.sweepnamelist)
+#    print('Readouts:')
+#    print(data.readoutnamelist)
+        
+    """
+    Test 1D plotting on hdf5 files
+    """
+    for i,unit in enumerate(data.readouts['units']):
+        #readoutlist to be completed
+        name = data.reads[i]
+        print('Readout %i: %s in (%s)' %(i, data.reads[i], unit))
+        data.plot1D(figNo=i, # Number of the figure in case ax is not given
+               #ax='', # ax to be plotted data
+               #clear = True, # clear the existing plot in the 'ax'
+               counter=True,
+               #showLegend=True, showTitle=True, showGrid=False,
+               #title = '', # set title
+               #plotAxis = 0, # plot along 
+               #plotrange=[], # plot range ex.) [slice(0,100), slice(None), Ellipsis, 0]
+               readouts = [i], # select plot readout by name or number
+               #xaxis = 4, #0, 1, 2 or 'name' of axis
+               #xoffsets=[], yoffsets=[],
+               #xfactor=1, yfactor=1,
+               xlabel='time (minutes)', ylabel='',
+               #xaxisRange = [], yaxisRange = [],
+               #xtickFreq = 0, ytickFreq = 0,
+               #xticks=[], yticks=[],
+               #markers=['P'], markersize=3,
+               #mode = ['standard', 'vector'][0],
+               )
     pass
