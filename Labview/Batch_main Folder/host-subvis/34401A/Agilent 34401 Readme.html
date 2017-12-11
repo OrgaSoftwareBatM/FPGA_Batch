@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<title>Instrument Driver Readme</title>
+  <style type="text/css">
+  dt { float: left; margin-right: 5px; }
+  </style>
+</head>
+<body>
+<h1> Agilent 34401 Instrument Driver Readme</h1>
+<p>To rate this driver, go to the driver download page on the <a href="http://www.ni.com/idnet">Instrument Driver Network</a>.</p>
+<h2>1. Overview</h2>
+<dl>
+<dt>Instrument Driver Technology:</dt><dd> LabVIEW Plug and Play (project-style)</dd>
+<dt>Manufacturer:</dt><dd> Agilent Technologies</dd>
+<dt>Supported Language(s):</dt><dd> LabVIEW 8.0</dd>
+<dt>Supported Model(s):</dt><dd> Agilent Technologies 34401A, 34410A, 34411A, L4411A</dd>
+<dt>Model(s) Tested:</dt><dd> Agilent Technologies 34401A, 34410A, 34411A</dd>
+<dt>Interface(s):</dt><dd> GPIB, Serial (34401A); GPIB, USB, Ethernet (34410A, 34411A, L4411A)</dd>
+<dt>Firmware Revision Tested:</dt><dd> 8.5.2, 11.5.2, 2.03-2.03-0.09-43-6</dd>
+</dl>
+<dl>
+<dt>Certified:</dt><dd> Yes</dd>
+<dt>NI Supported:</dt><dd> Yes</dd>
+<dt>Source Code Available:</dt><dd> Yes</dd>
+<dt>Driver Revision:</dt><dd> 6.4.3
+<dt>Original Release Date:</dt><dd> 6/29/2005</dd>
+<dt>Current Revision Date:</dt><dd> 1/2/2014</dd>
+</dl>
+<h2>2. Required Software</h2>
+<p>Some software components need to be installed before using this instrument driver. The minimum versions of these components are listed below, and can be downloaded from the Download Site.</p>
+<li>VISA 5.0 or later</li>
+<li>LabVIEW 8.2 or later</li>
+
+<p> For LabVIEW 8.2 and LabVIEW 2009
+Refer to the <i>LabVIEW Help</i> for more information about software requirements. You access the <i>LabVIEW Help</i> by selecting <i>Help»Search the LabVIEW Help</i>.</p>
+<p> For LabVIEW 2010 or later
+Refer to the <i>LabVIEW Help</i> for more information about software requirements. You access the <i>LabVIEW Help</i> by selecting <i>Help»LabVIEW Help</i>.</p>
+<h2>3. Known Issues</h2>
+<p>To report issues or provide feedback about this instrument driver, please send an email to <a href="mailto:instrument.drivers@ni.com">instrument.drivers@ni.com</a>.</p>
+<ul>
+<li>In older firmware, the instruments did not support a VXI-11 abort for Ethernet.  This type of abort is sent by NI-VISA when the Abort button is selected in LabVIEW.  If the abort is not acknowledged by the instrument, the VI will appear to hang.  It is always best to terminate a VI using a stop button provided in the user interface.</li>
+<li>In the 34410, using a manual trigger delay with a software trigger may take longer than the configured timing.</li>
+<li>On the 34410 and 34411, when software triggering is used for taking multiple samples, a manual trigger delay is set, and a sample time interval is used, a timing violation error will occur.</li>
+<li>Buffer overflow errors can occur if data is not read from the instrument's memory buffer fast enough.  This issue can be resolved by increasing the trigger delay or sample interval to reduce the measurement speed, or by using a different interface bus.</li>
+<li>Using the 34401 on an operating system that does not support DTR/DSR flow control (ex. Linux) requires the user to modify the connection from the PC to the instrument.  Basically, this requires the user to tie a pin to logic true and lower the baud rate.  See the 34401 manual for more details.</li>
+</ul>
+</p>
+<font face="Times New Roman" size="3"><p></p>
+<h2>4. Revision History</h2>
+<p>The latest version of this and other LabVIEW and LabWindows/CVI instrument drivers can be downloaded at the <a href="http://www.ni.com/idnet">Instrument Driver Network</a>.<br>
+<li>REV 5.0.0, 6/29/05</li>
+<li>Modified by: Rob Hammond, National Instruments</li>
+<li>Created new driver from hp34401a version 4.4.5 to be shipped with LabVIEW 8.0.</li>
+<br>
+<li>REV 5.0.1, 10/28/05</li>
+<li>Modified by: Jason Hobbs, National Instruments</li>
+<li>Read (Math).vi - Added Error Query VI</li>
+<li>Read (Math).vi, Configure Integration.vi, Configure Aperture.vi - Updated format string to include decimal point specifier (%.;) </li>
+<br>
+<li>REV 6.0.0, 5/09/06</li>
+<li>Modified by: Michael Lin, National Instruments</li>
+<li>New VIs:</li>
+<ul>
+<li>Configure Offset Compensation.vi</li>
+<li>Configure Temperature.vi</li>
+<li>Configure Temperature (RTD).vi</li>
+<li>Configure Temperature (Thermistor).vi</li>
+<li>Read (Transient).vi</li>
+<li>Initiate Measurement.vi</li>
+<li>Fetch Measurement.vi</li>
+<li>Fetch Measurement (Fetch).vi</li>
+<li>Fetch Measurement (Read).vi</li>
+<li>Fetch Measurement (Fast Read).vi</li>
+<li>Save-Recall Instrument Settings.vi</li>
+<li>Query Questionable Data Register.vi</li>
+<li>Agilent 34401 Read Transient Measurement.vi</li>
+<li>Agilent 34401 Acquire and Chart - Pretriggered.vi</li>
+<li>Agilent 34401 Acquire and Chart - External Triggered.vi</li>
+<li>Agilent 34401 Read Temperature Measurement (RTD).vi</li>
+</ul>
+<li>Modified VIs:<li>
+<ul>
+<li>Initialize.vi: updated VI to support the Agilent 34410/34411.</li>
+<li>Configure Measurement.vi: updated VI to include temperature and capacitance configurations; expanded ranges for the Agilent 34410/34411; added custom error handling.</li>
+<li>Configure Aperture.vi: updated VI to include temperature configuration for the Agilent 34410/34411; the VI will now provide a custom error if an invalid selection is made.</li>
+<li>Configure Integration.vi: updated VI to include temperature configuration; expanded ranges for the Agilent 34410/34411; the VI will now provide an error if an invalid selection is made.</li>
+<li>Configure Math.vi: now stores math buffer settings to extended user data.</li>
+<li>Configure Multipoint.vi: updated VI to include sample interval option for the Agilent 34410/34411; added pretrigger sample option for the Agilent 34411.</li>
+<li>Configure Trigger.vi: updated VI to include options to set trigger level and trigger slope for the Agilent 34410/34411; added custom error handling; now stores trigger source settings to extended user data.</li>
+<li>Read.vi: added Read (Transient).vi to polymorphic VI.</li>
+<li>Read (Single Point).vi: updated to use the Initiate Measurement and Fetch Measurement VIs.</li>
+<li>Read (Multiple Points).vi: updated to use the Initiate Measurement and Fetch Measurement VIs.</li>
+<li>Read (Math).vi: updated VI to include standard deviation and peak-to-peak outputs for the Agilent 34410/34411; updated VI to use the Initiate Measurement and Fetch Measurement VIs</li>
+<li>System Options.vi: added support to display custom message text to the instrument front panel display.</li>
+<li>Control Mode.vi: now only supports serial interface.</li>
+<li>Error Query.vi: added logic to query for errors in the event of max time error.</li>
+<li>Close.vi: added Query Questionable Data.vi to check the questionable data register.</li>
+<li>VI Tree.vi: updated Tree to include new VIs and exclude obsolete VIs.</li>
+<li>Agilent 34401 Acquire and Graph - SW Triggered.vi: added enable auto range and manual range controls; added stop button to allow user to halt triggering.</li>
+<li>Agilent 34401 Acquire and Chart - Triggered.vi: added enable auto range and manual range controls; added stop button to allow user to halt execution.</li>
+</ul>
+<li>Obsoleted VIs:</li>
+<ul>
+<li>Initiate.vi</li>
+<li>Initiate (Internal Buffer).vi</li>
+<li>Initiate (Output Buffer).vi</li>
+<li>Fetch.vi</li>
+<li>Fetch (Internal Buffer).vi</li>
+<li>Fetch (Output Buffer).vi</li>
+</ul>
+<br>
+<li>REV 6.1.0, 6/21/06</li>
+<li>Modified by: Jim Piotrowski, National Instruments</li>
+<li>New VIs:</li>
+<ul>
+<li>Query Questionable Data Register.vi: moved from Private to Public\Data\Low Level and is now available to users.</li>
+<li>Read STB.vi: private VI to workaround issue with USB interface not working with VISA Read STB primitive.</li>
+</ul>
+<li>Modified VIs:</li>
+<ul>
+<li>Error Query.vi: now calls new private Read STB.vi to workaround issue with USB.</li>
+<li>Read (Single).vi: calls Query Questionable Data Register to check for questionable data warnings from instrument</li>
+<li>Read (Multiple).vi: calls Query Questionable Data Register to check for questionable data warnings from instrument</li>
+<li>Read (Transient).vi: calls Query Questionable Data Register to check for questionable data warnings from instrument</li>
+<li>Read (Math).vi: calls Query Questionable Data Register to check for questionable data warnings from instrument</li>
+<li>Default Instrument Setup.vi: updated to enable appropriate Questionable Data Register flags.</li>
+<li>Configure Multipoint.vi: Updated format string to include decimal point specifier (%.;)</li>
+<li>Initialize.vi: added logic to set Flow Control to None in event of an error setting it to DTR/DSR; this is needed for some operating systems (ex. Linux).</li>
+</ul>
+<br>
+<li>REV 6.1.1, 9/4/06</li>
+<li>Modified by: Jim Piotrowski, National Instruments</li>
+<li>Extended User Data.vi: fixed so that errors going into the VI aren't overwritten</li>
+<br>
+<li>REV 6.2, 4/1/07</li>
+<li>Modified by: Jason Hobbs, National Instruments</li>
+<li>Initialize.vi: removed redundant Error Query call in  the Close if Error case structure; added Error Query  call to the Default Instrument Setup case when Reset is  disabled. Updated ID Query logic to support L4411 model.
+<br>
+<li>REV 6.3, 6/20/07</li>
+<li>Modified by: Vesna Jadric, National Instruments</li>
+<li>Revision Query.vi  updated to include a workaround for the issue with Revision Query VI not working with the LabVIEW Run-Time Engine.</li>
+<br>
+<li>REV 6.4, 3/18/08</li>
+<li>Modified by: Nathan Tacha, National Instruments</li>
+<li>Initialize.vi: removed "Mark" and "Space" parity options from the serial configuration settings</li>
+<li>Agilent 34401.lvlib documentation updated to show support for L4411A</li>
+<br>
+<li>REV 6.4.1, 4/02/08</li>
+<li>Modified by: Nathan Tacha, National Instruments</li>
+<li>Read Single Measurement.vi & Read Multiple Measurements.vi: removed "Mark" and "Space" parity options from the serial configuration settings</li>
+<br>
+<li>REV 6.4.2, 11/10/10</li>
+<li>Modified by: JP, National Instruments</li>
+<li>Added example Read Math Measurement</li>
+<br>
+<li>REV 6.4.3, 1/2/2014</li>
+<li>Modified by: Stephen Schwahn, National Instruments</li>
+<li>Configure Measurement.vi: Multiplied all numbers in the inner case statement by a factor of 10 to fix display issue</li>
+<li>Configure Multipoint.vi: Added documentation note about model support regarding pretrigger and multitrigger settings.</li>
+<li>Control Mode.vi: Added documentation note about a known hardware issue regarding Remote with Lock to remote transitions.</li>
+<li>All Examples had controls regenerated to update documentation/consistency and all Text Ring/Boolean constants that are part of driver has labels showing and digital displays removed.</li>
+<br>
+<!---For new updates use format below to document modifications>
+<li>REV x.x.x.x. mm/dd/yy</li>
+<li>Modified by:xx, National Instruments </li>
+<li></li>
+<li></li>
+<li></li>
+<br>
+<--->
+</body>
+</html>

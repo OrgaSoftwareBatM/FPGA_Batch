@@ -13,7 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import rc
 import matplotlib.gridspec as gridspec
-from DataStructure.LoadGDS import structurefromGDS
+#from DataStructure.LoadGDS import structurefromGDS
 import textwrap
 from cycler import cycler
 from DataStructure.ImageSlice import LineSlice

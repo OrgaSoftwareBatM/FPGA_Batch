@@ -129,7 +129,6 @@
 13: Lock-in (signal recovery, sweep)
 14: wait time (ms)
 15: ATM delay line
-16: RF_Attn
 
 -----------------------------------
 [Readout instruments]
@@ -173,12 +172,25 @@ Doubles[0] = Conversion factor
 Strings[0] = Name
 Strings[1] = GPIB Address [ex. 0:17]
 Strings[2] = Unit
-uint64s[0] = Range (V) [0: 10 V, 1: 1 V, 2: 0.1 V, else: 10 V]
-uint64s[1] = Digits [0: 4, 1: 5, 2: 6, 3: 7, else: 7]
-uint64s[2] = NPLC [0: 100, 1: 10, 2: 1, 3: 0.2, 4: 0.02, else: 1]
-uint64s[3] = NPLC fast [0: 100, 1: 10, 2: 1, 3: 0.2, 4: 0.02, else: 1]
-uint64s[4] = average
+
+uint64s[0] = Function [	0: DC Voltage
+			1: AC Voltage
+			2: 2 - Wire Resistance
+			3: 4 - Wire Resistance
+			4: DC Current
+			5: AC Current
+			6: Frequency
+			7: Period
+			8: Continuity
+			9: Diode Checking
+			10: VDC:VDC Ratio
+			11: Temperature
+			12: Capacitance]
+uint64s[1] = average
 Doubles[0] = conversion factor
+Doubles[1] = Manual Range [10 V, 1 V, 0.1 V, else: autoRange]
+Doubles[2] = Manual Digits Resolution  [4, 5, 6, 7, else: 5.5]
+
 
 - Lock-in (signal recovery) (12)
 
@@ -558,14 +570,3 @@ Doubles[1] = lower limit of delay [ps]
 	Bit3: Velocity Initial [default 100000]
 	Bit4: Velocity Maximum [default 100000]
 	Bit5: Initialize to 0 position
-
-
-- RF_Attn (16) (e.g LDA 602 Vaunix)
-
-Strings[0] = Name
-Strings[1] = USB address (=1)
-Strings[2] = Unit (dB)
-Doubles[0] = Attenuation (dB)
-Doubles[1] = Upper limit (dB) (63dB - datasheet)
-Doubles[2] = Lower limit (dB) (0dB - datasheet)
-Doubles[3] = Insertion Loss (dB) (typ. 5.5dB @300MHz)

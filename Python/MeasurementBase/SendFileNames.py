@@ -7,7 +7,7 @@ import time
 #Wodan
 
 # vipath = """C:\\Users\\manip.batm\\Desktop\\FPGA_Batch_1_7_3\\Batch_main Folder\\FileLauncher.vi"""
-vipath = """C:\\Users\\manip.batm\\Desktop\\FPGA_Batch_1_7_3\\FPGA_Batch_1_5_EVERTON\Batch_main Folder\\Filelauncher.vi"""
+vipath = """C:\\Users\\manip.batm\\Documents\\GitHub\\FPGA_Batch\\Labview\\Batch_main Folder\\Filelauncher.vi"""
 # vipath = """C:\\Users\\manip.batm\\Desktop\\FPGA_Batch_1_7_3\\fpga_batch_1_7.lvproj"""
 #vipath = 'C:\\LabviewProgs\\FPGA_Batch_1_7_3_1\\Batch_main Folder'
 
