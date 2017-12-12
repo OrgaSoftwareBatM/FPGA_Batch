@@ -36,30 +36,69 @@ class fastRamp():
         self.ms_per_point = 1      # integration time (fastseq divider)
         self.step_wait = 1         # ms wait after every fastseq
         self.sweep_dim = []
+
         
     def ramp_DAC(self,name,start,stop,dim,init_at=None):
-         if name not in [self.DAC[key].name for key in self.DAC.keys()]:
-             print ('Error adding parameter ' + name + ' - unknown parameter')
-             return 0
-         elif dim == 0:     # adding to the fastseq
-             channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
-             if channel_id not in self.fs.uint64s[4:20]:
-                 print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
-                 return 0
-             self.fast_ramp[name] = [start,stop,channel_id]
-            #  print(name)
-         else:      # adding to sweep_param
-             self.sweep_param[name] = [start,stop,dim]
-             
-         if init_at is not None:
-            if dim == 0 :
-                 self.init_val[name] = 0.
-            else :
-                self.init_val[name] = init_at
-         else:  # unless specified, param is initialized at starting value
-             self.init_val[name] = start
-         return 1
+        """ 
+        Upadate the fast_ramp and sweep_param dictionnaries with a new ramp on the DAC output "name", 
+        from "start" to "stop" Volts, initialized at the value "init_at" Volts. 
+
+        It first checks if the name parameter belong to the DAC available outputs.
+        If so, update the fast_ramp & sweep_list dictionnary according to start, stop, and dim parameters.
+        When dim = 0, the ramp is a "fast_ramp" (FPGA), otherwise dim tells you which dimension is swept.
+        An initial_value can be set (init_at). If not specified, then init_at = start.
+
+        INPUT :
+            - [string]  name    : Label of the DAC-output that you want to ramp
+            - [float]   start   : Ramp's starting position
+            - [float]   stop    : Ramp's ending position 
+            - [int]     dim     : On which dimension this ramp is included (0 = FastRamp !) 
+            - [float]   init_at : Initial position before starting the ramp (if None then set to "start")
+
+        OUTPUT :
+            - [int]     Worked? : Return 1 if it worked well, 0 elsewhere 
+        """
+
+        ######################################################################################################
+        ## Is this ramp illegal, fast or slow ? 
+        ######################################################################################################
+
+        # Check if name belongs to the available DAC output
+        if name not in [self.DAC[key].name for key in self.DAC.keys()]:
+            print ('Error adding parameter ' + name + ' - unknown parameter')
+            return 0
+
+        # If it is a Fast-Seq (dim=0), check if this DAC-output can be used for Fast-Seq 
+        # Then, set fast_ramp parameters (start, stop, channel_id)
+        elif dim == 0:     
+            channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
+            if channel_id not in self.fs.uint64s[4:20]:
+                print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
+                return 0
+            self.fast_ramp[name] = [start,stop,channel_id]
+
+        # Elsewhere it's a slow ramp (sweep_param)
+        # Set slow_ramp parameters (start, stop, dimension)
+        else:      
+            self.sweep_param[name] = [start,stop,dim]
+
+
+        ######################################################################################################
+        ## Set initial_move position
+        ######################################################################################################
+            
+        if init_at is not None:
+            # if dim == 0 :
+            #     self.init_val[name] = 0.
+            # else :
+            #     self.init_val[name] = init_at
+            self.init_val[name] = init_at
+        else:  # unless specified, param is initialized at starting value
+            self.init_val[name] = start
+
+        return 1 # Everything went well
         
+
     def add_wait(self,name,index,ms,axis):
         if axis == 0:     # adding to the fastseq
             print ('Error adding wait to the fastseq dim')
@@ -86,20 +125,38 @@ class fastRamp():
         self.sweep_list.append(sweep)  
         return 1
     
+
     def build_fastramp(self):
-         self.fast_channels = []
-         start = []
-         stop = []
-         for name in self.fast_ramp.keys():
-             start.append(self.fast_ramp[name][0]-self.init_val[name])
-             stop.append(self.fast_ramp[name][1]-self.init_val[name])
-             self.fast_channels.append(self.fast_ramp[name][2])
+        """ 
+        Build the fast_ramp and sweep_param dictionnaries with a new ramp on the DAC output "name", 
+        from "start" to "stop" Volts, initialized at the value "init_at" Volts. 
+
+        It first checks if the name parameter belong to the DAC available outputs.
+        If so, update the fast_ramp & sweep_list dictionnary according to start, stop, and dim parameters.
+        When dim = 0, the ramp is a "fast_ramp" (FPGA), otherwise dim tells you which dimension is swept.
+        An initial_value can be set (init_at). If not specified, then init_at = start.
+
+        INPUT :
+            - None 
+
+        OUTPUT :
+            - None 
+        """
         
-         self.fs.uint64s[0] = int(2222*self.ms_per_point)	# set divider
-         self.fs.sequence = fsg.createRamp(points=self.sweep_dim[0],
-                                           fast_channels=self.fast_channels,
-                                           initial=start,
-                                           final=stop)
+        self.fast_channels = []
+        start = []
+        stop = []
+        for name in self.fast_ramp.keys():
+            start.append(self.fast_ramp[name][0]-self.init_val[name])
+            stop.append(self.fast_ramp[name][1]-self.init_val[name])
+            self.fast_channels.append(self.fast_ramp[name][2])
+        
+        # Set the fast_seq divider. A value equal to 2222 means 1 point per ms.
+        self.fs.uint64s[0] = int(2222*self.ms_per_point)	
+        self.fs.sequence = fsg.createRamp(points=self.sweep_dim[0],
+                                          fast_channels=self.fast_channels,
+                                          initial=start,
+                                          final=stop)
     def build_sweep(self):
         for key in self.sweep_param.keys():
             start,stop,axis = self.sweep_param[key]
@@ -107,7 +164,7 @@ class fastRamp():
             sweep = mc.single_sweep(name = key,
                                     parameter = 0,
                                     ar = arr,
-                                    dataType = 'float', # for CMD use dt=h5py.special_dtype(vlen=bytes)
+                                    dataType = 'float', 
                                     creationMethod = 'Linear',
                                     sweep_dim = axis, # sweep dimension 0: array sweep, 1: sweep along 1st dim, 2: sweep along 2nd dim, ....
                                     )
@@ -189,9 +246,9 @@ class fastRamp():
 
         bool_send_files = False
 
+        ######################################################################################################
         ## Authorization Part
-        ################################
-
+        ######################################################################################################
         if ask :
             """ If ask, then user need to confirm sending """
 
@@ -206,10 +263,9 @@ class fastRamp():
 
             bool_send_files = True
 
-
+        ######################################################################################################
         ## Sending Part
-        ################################
-
+        ######################################################################################################
         if bool_send_files :
             print ('Sending to Labview')
             sendFiles(fileList=[self.exp_path])
@@ -217,20 +273,22 @@ class fastRamp():
 
 
 
-##########################
+######################################################################################################
 ###	 CHOOSE FILE NAME
-##########################
+######################################################################################################
 #folder = os.getcwd()+'\\test'
 folder = 'C:\\Utilisateurs\\manip.batm\\Mes Documents\\GitHub\\FPGA_Batch\\Python'
 
 folder = '.'
 prefix = 'classificationTest_'
 
+
+
+######################################################################################################
+###	 CONF. EXPERIMENT  			
+######################################################################################################
 Map = fastRamp(folder,prefix)
 
-##########################
-###	 FASTSEQ + CONF FILE   			
-##########################
 Map.initial_wait = 100      # ms before everything
 Map.ms_per_point = 0.2      # integration time (fastseq divider)
 Map.step_wait = 1.          # ms wait after every fastseq
@@ -249,7 +307,7 @@ Map.ramp_DAC(   name    = '0:0',
                 start   = -0.25,
                 stop    =  0.25,
                 dim     =  0,
-                init_at =  None)
+                init_at =  -0.)
 
 Map.ramp_DAC(   name    = '0:1', 
                 start   = -1.,
@@ -257,6 +315,10 @@ Map.ramp_DAC(   name    = '0:1',
                 dim     =  1,
                 init_at = None)
 
+
+######################################################################################################
+###	BUILD FILE AND SEND TO LABVIEW 
+######################################################################################################
 Map.build_fastramp()
 Map.build_sweep()
 Map.build_files()
