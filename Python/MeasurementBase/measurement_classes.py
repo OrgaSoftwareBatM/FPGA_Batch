@@ -10,14 +10,17 @@ import os
 from PyQt5 import QtWidgets
 from configparser import ConfigParser
 import sys
-sys.path.insert(0,'..') # import parent directory
+sys.path.insert(0,'') # import parent directory
+sys.path.insert(0,'..') # import current directory
 
 """ Fridge specific parameters """
 config = ConfigParser()
-config.read('../Fridge_settings.ini')
-FPGA_address = config.get('FPGA', 'address')
+ans=config.read('Fridge_settings.ini')
+print(ans)
+FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
-for key in list(config['Instruments'].keys()):
+keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn']
+for key in keys:
     addressList[key] = config.get('Instruments',key)
     
 
