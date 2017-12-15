@@ -734,6 +734,8 @@ class spec():
         if mode == 'standard':
             if useCounter:
                 X = np.arange(dims[plotAxis])[plotrange[plotAxis]]
+                X = np.multiply(X, xfactor) # Apply factor for x
+                print('apply X factor')
                 labelX = 'Counter (points)'
             else:
                 X, labelX = self.getAxis(dim = plotAxis,
