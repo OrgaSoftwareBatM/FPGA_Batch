@@ -191,6 +191,32 @@ Doubles[0] = conversion factor
 Doubles[1] = Manual Range [10 V, 1 V, 0.1 V, else: autoRange]
 Doubles[2] = Manual Digits Resolution  [4, 5, 6, 7, else: 5.5]
 
+- Agilent 3458 (22)
+
+Strings[0] = Name
+Strings[1] = GPIB Address [ex. 0:22]
+Strings[2] = Unit
+
+uint64s[0] = Function [	0: DC Voltage
+			1: AC Voltage
+			2: 2 - Wire Resistance
+			3: 4 - Wire Resistance
+			4: DC Current
+			5: AC Current
+			6: Frequency
+			7: Period
+			8: Continuity
+			9: Diode Checking
+			10: VDC:VDC Ratio
+			11: Temperature
+			12: Capacitance]
+uint64s[1] = average
+Doubles[0] = conversion factor
+Doubles[1] = Manual Range [10 V, 1 V, 0.1 V, else: autoRange]
+Doubles[2] = Manual Digits Resolution  [4, 5, 6, 7, else: 5.5]
+
+
+
 
 - Lock-in (signal recovery) (12)
 
