@@ -23,7 +23,7 @@ init_param_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100'
 # global List of instruments
 ginst_list = ['ADC','K2000','34401A','None','DAC','DAC_Lock_in','RF','AWG','None','fast sequence']
 ginst_list+= ['Fast seuqnce slot','command line','DSP_Lock_in','DSP_Lock_in_sweep','ms2wait','ATMDelayLine']
-ginst_list += ['RF_Attn']
+ginst_list += ['RF_Attn','None','None','None','None','None','A3548']
 
 class FileNameCheck(QtWidgets.QWidget):
     def __init__(self,
@@ -1090,6 +1090,103 @@ class inst_setup_UI(QtWidgets.QWidget):
             hb.addWidget(label)
             hb.addWidget(item)
             self.ly.addLayout(hb)
+	          
+        elif kind == 22:
+            # A3458
+            if self.item == 0:
+                self.item = A3458()
+            name_list = ['name','GPIB address','unit']
+            value_list = [self.item.strings[0], self.item.strings[1],self.item.strings[2]]
+            for i in range(3):
+                label = QtWidgets.QLabel(name_list[i])
+                item = QtWidgets.QLineEdit()
+                item.setText(value_list[i])
+                self.UIs.append(item)
+                hb = QtWidgets.QHBoxLayout()
+                hb.addWidget(label)
+                hb.addWidget(item)
+                self.ly.addLayout(hb)
+                
+            name_list = ['Function']
+            value_list = [['0: DC Voltage','1: AC Voltage','2: 2 - Wire Resistance','3: 4 - Wire Resistance','4: DC Current','5: AC Current','6: Frequency','7: Period','8: Continuity','9: Diode Checking','10: VDC:VDC Ratio','11: Temperature','12: Capacitance']]
+            index_list = [self.item.uint64s[0]]
+            for i in range(1):
+                label = QtWidgets.QLabel(name_list[i])
+                item = QtWidgets.QComboBox()
+                item.addItems(value_list[i])
+                item.setCurrentIndex(index_list[i])
+                self.UIs.append(item)
+                hb = QtWidgets.QHBoxLayout()
+                hb.addWidget(label)
+                hb.addWidget(item)
+                self.ly.addLayout(hb)
+            label = QtWidgets.QLabel('Average')
+            item = QtWidgets.QSpinBox()
+            item.setRange(0,10000)
+            item.setValue(self.item.uint64s[1])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
+			
+            label = QtWidgets.QLabel('Auto Range')
+            item = QtWidgets.QSpinBox()
+            item.setRange(0,10000)
+            item.setValue(self.item.uint64s[2])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
+            
+            label = QtWidgets.QLabel('Manual Resolution')
+            item = QtWidgets.QSpinBox()
+            item.setRange(0,10000)
+            item.setValue(self.item.uint64s[3])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
+            
+            label = QtWidgets.QLabel('Frequency Source')
+            item = QtWidgets.QSpinBox()
+            item.setRange(0,10000)
+            item.setValue(self.item.uint64s[4])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
+            
+            label = QtWidgets.QLabel('Trigger Type')
+            item = QtWidgets.QSpinBox()
+            item.setRange(0,10000)
+            item.setValue(self.item.uint64s[5])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
+            
+            label = QtWidgets.QLabel('conversion factor')
+            item = QFloatLineEdit()
+            item.set_value(self.item.doubles[0])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
+            
+            label = QtWidgets.QLabel('Manual Range')
+            item = QFloatLineEdit()
+            item.set_value(self.item.doubles[1])
+            self.UIs.append(item)
+            hb = QtWidgets.QHBoxLayout()
+            hb.addWidget(label)
+            hb.addWidget(item)
+            self.ly.addLayout(hb)
             
         elif kind == 3:
             pass
@@ -1979,6 +2076,20 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.doubles[0] = self.UIs[5].get_value()
             item.doubles[1] = self.UIs[6].get_value()
             item.doubles[2] = self.UIs[7].get_value()
+        
+        elif kind == 22:
+            item = A3458()
+            item.strings[0] = self.UIs[0].text()
+            item.strings[1] = self.UIs[1].text()
+            item.strings[2] = self.UIs[2].text()
+            item.uint64s[0] = self.UIs[3].currentIndex()
+            item.uint64s[1] = self.UIs[4].value()
+            item.uint64s[2] = self.UIs[5].value()
+            item.uint64s[3] = self.UIs[6].value()
+            item.uint64s[4] = self.UIs[7].value()
+            item.uint64s[5] = self.UIs[8].value()
+            item.doubles[0] = self.UIs[9].get_value()
+            item.doubles[1] = self.UIs[10].get_value()            
             
         elif kind == 3:
             #Lecroy

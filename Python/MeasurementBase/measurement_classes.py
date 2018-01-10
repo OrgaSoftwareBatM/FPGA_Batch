@@ -19,7 +19,7 @@ ans=config.read('Fridge_settings.ini')
 print(ans)
 FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
-keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn']
+keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn','A3458']
 for key in keys:
     addressList[key] = config.get('Instruments',key)
     
@@ -36,13 +36,14 @@ init_position_dt = np.dtype({'names':['Name','kind','Value'],'formats':['S100','
 flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 # list of kind for readout instruments and sweep instruments
-readout_kind = [0,1,2,3,12]
+readout_kind = [0,1,2,3,12,22]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 # list of class name ordered by 'kind' number
 classList = ['ADC','K2000','K34401A','dummy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
-classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn']
+classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn','dummy','dummy','dummy','dummy']
+classList+= ['dummy','A3458']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
-readConfigForExpFile+= [False,False,False,False,False,False,False]
+readConfigForExpFile+= [False,False,False,False,False,False,False,False,False,False,False,False]
 
 """
 --------- Place to be changed when you add a new instruments -----------------------
@@ -640,7 +641,32 @@ class K34401A(readout_inst):
         
     def getNamesAndUnits(self):
         return [[self.strings[0]], [self.strings[2]]]
+		
+# class for 3458
+class A3458(readout_inst):
+    def __init__(self,
+                 name='V',
+                 GPIB_address = addressList['A3458'],
+                 unit = 'mV',
+                 Function = [0,1,2,3,4,5,6,7,8,9,10,11,12][0],
+#                0: DC Voltage 1: AC Voltage 2: 2 - Wire Resistance 3: 4 - Wire Resistance 4: DC Current 5: AC Current,...
+                 average = 1,
+                 AutoRange = 1,
+                 FrequSource = 3,
+                 TrigType = 0,
+                 conversion_factor = 1.0,
+                 Range = [10.0, 1.0 , 0.1][0], #else: autoRange
+                 Digits = 4 #else: 8.5
+                 ):
+        super(A3458, self).__init__()
+        self.kind = 22
+        self.name = name
+        self.strings = [name, GPIB_address, unit]
+        self.uint64s = [Function, average, AutoRange, Digits, FrequSource, TrigType]
+        self.doubles = [conversion_factor, Range]
         
+    def getNamesAndUnits(self):
+        return [[self.strings[0]], [self.strings[2]]]
         
 # class for DSP lock-in amplifier as a readout instrument            
 class DSP_lockIn(readout_inst):
