@@ -36,12 +36,12 @@ init_position_dt = np.dtype({'names':['Name','kind','Value'],'formats':['S100','
 flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 # list of kind for readout instruments and sweep instruments
-readout_kind = [0,1,2,3,12,22]
+readout_kind = [0,1,2,3,12]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 # list of class name ordered by 'kind' number
-classList = ['ADC','K2000','K34401A','dummy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
+classList = ['ADC','K2000','K34401A','A3458','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
 classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn','dummy','dummy','dummy','dummy']
-classList+= ['dummy','A3458']
+classList+= ['dummy','dummy']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
 readConfigForExpFile+= [False,False,False,False,False,False,False,False,False,False,False,False]
 
@@ -659,7 +659,7 @@ class A3458(readout_inst):
                  Digits = 4 #else: 8.5
                  ):
         super(A3458, self).__init__()
-        self.kind = 22
+        self.kind = 3
         self.name = name
         self.strings = [name, GPIB_address, unit]
         self.uint64s = [Function, average, AutoRange, Digits, FrequSource, TrigType]

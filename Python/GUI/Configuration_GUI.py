@@ -21,9 +21,9 @@ pathSep = QtCore.QDir.separator()
 init_param_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})
 
 # global List of instruments
-ginst_list = ['ADC','K2000','34401A','None','DAC','DAC_Lock_in','RF','AWG','None','fast sequence']
+ginst_list = ['ADC','K2000','34401A','A3458','DAC','DAC_Lock_in','RF','AWG','None','fast sequence']
 ginst_list+= ['Fast seuqnce slot','command line','DSP_Lock_in','DSP_Lock_in_sweep','ms2wait','ATMDelayLine']
-ginst_list += ['RF_Attn','None','None','None','None','None','A3548']
+ginst_list += ['RF_Attn','None','None','None','None','None','None']
 
 class FileNameCheck(QtWidgets.QWidget):
     def __init__(self,
@@ -1091,7 +1091,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             hb.addWidget(item)
             self.ly.addLayout(hb)
 	          
-        elif kind == 22:
+        elif kind == 3:
             # A3458
             if self.item == 0:
                 self.item = A3458()
@@ -2077,7 +2077,7 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.doubles[1] = self.UIs[6].get_value()
             item.doubles[2] = self.UIs[7].get_value()
         
-        elif kind == 22:
+        elif kind == 3:
             item = A3458()
             item.strings[0] = self.UIs[0].text()
             item.strings[1] = self.UIs[1].text()
@@ -2091,9 +2091,9 @@ class inst_setup_UI(QtWidgets.QWidget):
             item.doubles[0] = self.UIs[9].get_value()
             item.doubles[1] = self.UIs[10].get_value()            
             
-        elif kind == 3:
-            #Lecroy
-            item = 0
+#        elif kind == 3:
+#            #Lecroy
+#            item = 0
         elif kind == 4:
             item = DAC()
             item.strings[0] = self.UIs[0].text()
@@ -2708,7 +2708,7 @@ class config_main(QtWidgets.QWidget):
                 self.config.list.append(UI.setup.item)
             #write file
             self.config.write()
-        
+
 if __name__=='__main__':
     app = QtWidgets.QApplication(sys.argv)
 #    fs = FastSQequenceUI()

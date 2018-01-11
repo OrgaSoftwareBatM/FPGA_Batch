@@ -28,7 +28,7 @@ inst_combo_width = 80
 numberOfDigitsTobeReadForInitialPosition = 5
 
 # list of kind for readout instruments and sweep instruments
-readout_kind = [0,1,2,3,12,22]
+readout_kind = [0,1,2,3,12]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
 
 #-------create parameter list for bool setup-------------

@@ -191,7 +191,7 @@ Doubles[0] = conversion factor
 Doubles[1] = Manual Range [10 V, 1 V, 0.1 V, else: autoRange]
 Doubles[2] = Manual Digits Resolution  [4, 5, 6, 7, else: 5.5]
 
-- Agilent 3458 (22)
+- Agilent 3458 (3)
 
 Strings[0] = Name
 Strings[1] = GPIB Address [ex. 0:22]
