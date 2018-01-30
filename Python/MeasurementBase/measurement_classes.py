@@ -10,12 +10,13 @@ import os
 from PyQt5 import QtWidgets
 from configparser import ConfigParser
 import sys
-sys.path.insert(0,'') # import parent directory
-sys.path.insert(0,'..') # import current directory
+sys.path.append(os.getcwd())
+sys.path.append(os.pardir)
 
 """ Fridge specific parameters """
 config = ConfigParser()
-ans=config.read('Fridge_settings.ini')
+ans=config.read('..\\Fridge_settings.ini')
+#ans=config.read('Fridge_settings.ini')
 print(ans)
 FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
@@ -126,8 +127,8 @@ class Experiment():
             fast_sequence = measConfig.list[inst_name_list.index('fast_sequence')]
             fast_seq_data = fast_sequence.sequence
             if measConfig.ramp == True:
-                # fast sequence size - 2 (trigger and jump) + start ramp at
-                data_size = [fast_seq_data[1,:].shape[0]-2+fast_sequence.uint64s[20]]+self.dim
+                # fast sequence size - 2 (trigger and jump) - start ramp at
+                data_size = [fast_seq_data[1,:].shape[0]-2-fast_sequence.uint64s[20]]+self.dim
             else:
                 data_size = [fast_sequence.uint64s[2]]+self.dim
         else:

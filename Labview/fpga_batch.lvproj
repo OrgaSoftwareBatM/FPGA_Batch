@@ -411,7 +411,7 @@
 			<Item Name="Vaunix LDA.lvlib" Type="Library" URL="../Batch_main Folder/host-subvis/RF_attenuator/Vaunix LDA.lvlib"/>
 			<Item Name="VNX_atten.dll" Type="Document" URL="../Batch_main Folder/host-subvis/RF_attenuator/VNX_atten.dll"/>
 			<Item Name="RF_Attn_move.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF_attenuator/RF_Attn_move.vi"/>
-			<Item Name="fpga-clean1_sbRIO9612RIO0_FPGAMAINlock-in_yfKnsFOl7ZY.lvbitx" Type="Document" URL="../FPGA Bitfiles/fpga-clean1_sbRIO9612RIO0_FPGAMAINlock-in_yfKnsFOl7ZY.lvbitx"/>
+			<Item Name="fpgabatch18_sbRIO9612RIO0_FPGAMAINMerlin_-1tLGtxjYvQ.lvbitx" Type="Document" URL="../FPGA Bitfiles/fpgabatch18_sbRIO9612RIO0_FPGAMAINMerlin_-1tLGtxjYvQ.lvbitx"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>

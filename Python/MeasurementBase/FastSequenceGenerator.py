@@ -13,9 +13,18 @@ def array2rampSequence(array=np.zeros((2,301))):
     ramp_array[:,0]=[101,0] #Lower all the trigger
     ramp_array[:,1:asize-1]=array[:,:]
     ramp_array[:,asize-1] = [103,asize-1] # Jump to own
-    
     return ramp_array
-    
+
+def array2rampSequence2(array=np.zeros((2,301))):
+    asize = array.shape[1]+4
+    ramp_array = np.zeros((2,asize),dtype=np.double)
+    ramp_array[:,0]=[101,15] #reset all the trigger
+    ramp_array[:,1]=[102,0] #timing
+    ramp_array[:,2]=[101,0] #Lower all the trigger
+    ramp_array[:,3:asize-1]=array[:,:]
+    ramp_array[:,asize-1] = [103,asize-1] # Jump to own
+    return ramp_array
+  
 def createRamp(points=301,
                fast_channels=[0],
                initial=[0],
@@ -31,7 +40,7 @@ def createRamp(points=301,
         array[0,i:seq_size-no_channels+1+i:no_channels]=channel
         array[1,i:seq_size-no_channels+1+i:no_channels]=np.linspace(initial[i],final[i],num=points,dtype=np.double)
         
-    rarray = array2rampSequence(array=array)
+    rarray = array2rampSequence2(array=array)
     
     return rarray
     
