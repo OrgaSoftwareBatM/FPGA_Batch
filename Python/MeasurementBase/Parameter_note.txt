@@ -569,3 +569,21 @@ Doubles[0] = Attenuation (dB)
 Doubles[1] = Upper limit (dB) (63dB - datasheet)
 Doubles[2] = Lower limit (dB) (0dB - datasheet)
 Doubles[3] = Insertion Loss (dB) (typ. 5.5dB @300MHz)
+
+
+- RF_Synth (16) (Windfreak SynthNV or SynthHD)
+
+Strings[0] = Name
+Strings[1] = COM address
+Strings[2] = Unit
+uint64s[0] = Channel [for dual output : 0 for channel A, 1 for channel B]
+uint64s[1] = Control parameter [0:freq,1:power,2:phase,3:ouput_on]
+uint64s[2] = Output on [0:off, 1:on]
+uint64s[3] = Trigger mode [0:no trigger, 1:trigger sets RF on/off status]
+Doubles[0] = Frequency (GHz)
+Doubles[1] = Power (dBm)
+Doubles[2] = Phase (deg) (0 - 360)
+Doubles[3] = Frequency upper limit
+Doubles[4] = Frequency lower limit
+Doubles[5] = Power upper limit
+Doubles[6] = Power lower limit

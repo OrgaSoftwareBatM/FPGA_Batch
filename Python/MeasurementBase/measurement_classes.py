@@ -20,7 +20,7 @@ ans=config.read('..\\Fridge_settings.ini')
 print(ans)
 FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
-keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn']
+keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn','RF_Synth']
 for key in keys:
     addressList[key] = config.get('Instruments',key)
     
@@ -37,13 +37,13 @@ init_position_dt = np.dtype({'names':['Name','kind','Value'],'formats':['S100','
 flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 # list of kind for readout instruments and sweep instruments
-readout_kind = [0,1,2,3,12]
-sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16]
+readout_kind = [0,1,2,3,12,17]
+sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16,18]
 # list of class name ordered by 'kind' number
 classList = ['ADC','K2000','K34401A','dummy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
-classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn']
+classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn','FPGA_ADC','RF_Synth']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
-readConfigForExpFile+= [False,False,False,False,False,False,False]
+readConfigForExpFile+= [False,False,False,False,False,False,False,False,False]
 
 """
 --------- Place to be changed when you add a new instruments -----------------------
@@ -860,7 +860,46 @@ class RS_RF(sweep_inst):
     
     def getUnit(self):
         return self.strings[2]
-  
+
+class RF_Synth(sweep_inst):
+    def __init__(self,
+                 name='RF_Synth',
+                 GPIBAddress=addressList['RF_Synth'],
+                 Unit='GHz',
+                 channel = 0, # 0: channel A, else: channel B (for dual output synth)
+                 controlParam = 0, # selection of control parameter, which is used to get the initial value of the parameter
+                 frequency=0.2, # GHz
+                 power=-30, # dBm
+                 phase=0., # deg
+                 output_on = 1, # boolean
+                 trig_mode = 1, # 0: none, 1: ON/OFF on trigger
+                 freq_ul=13.6, # frequency upper limit
+                 freq_ll=0.054, # frequency lower limit
+                 power_ul=13.6, # power upper limit
+                 power_ll=0.054, # power lower limit
+                 ):
+        super(RF_Synth, self).__init__()
+        self.kind = 18
+        self.name = name
+        self.strings = [name, GPIBAddress, Unit]
+        self.uint64s = [channel, controlParam, output_on, trigger_mode]
+                 power_ul=13.6, # power upper limit
+        self.doubles = [frequency, power, phase, freq_ul, freq_ll, power_ul, power_ll]
+        
+    def getLimits(self):
+        if self.uint64s[1] == 0:
+            return [self.doubles[3], self.doubles[4]]
+        elif self.uint64s[1] == 1:
+            return [self.doubles[5], self.doubles[6]]
+        else:
+            return [[], []]
+        
+    def getParameter(self):
+        return self.uint64s[1]
+    
+    def getUnit(self):
+        return self.strings[2]
+
 class AWG(sweep_inst):
     def __init__(self,
                  name = 'AWG',
