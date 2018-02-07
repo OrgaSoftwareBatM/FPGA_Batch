@@ -15,7 +15,7 @@ def array2rampSequence(array=np.zeros((2,301))):
     ramp_array[:,asize-1] = [103,asize-1] # Jump to own
     return ramp_array
 
-def array2rampSequence2(array=np.zeros((2,301))):
+def array2rampSequence2(array=np.zeros((2,301))):# Baptiste
     asize = array.shape[1]+4
     ramp_array = np.zeros((2,asize),dtype=np.double)
     ramp_array[:,0]=[101,15] #reset all the trigger
@@ -40,7 +40,7 @@ def createRamp(points=301,
         array[0,i:seq_size-no_channels+1+i:no_channels]=channel
         array[1,i:seq_size-no_channels+1+i:no_channels]=np.linspace(initial[i],final[i],num=points,dtype=np.double)
         
-    rarray = array2rampSequence2(array=array)
+    rarray = array2rampSequence(array=array) 
     
     return rarray
     
