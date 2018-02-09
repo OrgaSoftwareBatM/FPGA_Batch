@@ -883,7 +883,6 @@ class RF_Synth(sweep_inst):
         self.name = name
         self.strings = [name, GPIBAddress, Unit]
         self.uint64s = [channel, controlParam, output_on, trigger_mode]
-                 power_ul=13.6, # power upper limit
         self.doubles = [frequency, power, phase, freq_ul, freq_ll, power_ul, power_ll]
         
     def getLimits(self):
