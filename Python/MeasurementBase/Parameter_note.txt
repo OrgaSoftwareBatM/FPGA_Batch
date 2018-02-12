@@ -571,7 +571,7 @@ Doubles[2] = Lower limit (dB) (0dB - datasheet)
 Doubles[3] = Insertion Loss (dB) (typ. 5.5dB @300MHz)
 
 
-- RF_Synth (16) (Windfreak SynthNV or SynthHD)
+- RF_Synth (18) (Windfreak SynthNV or SynthHD)
 
 Strings[0] = Name
 Strings[1] = COM address
