@@ -11,7 +11,7 @@ import MeasurementBase.measurement_classes as mc
 
 # Merlin parameters
 FPGA_address = '192.168.137.11'
-addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:19','AWG':'192.168.0.4', 'ATMDelayLine':'COM3'}
+addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:19','AWG':'192.168.0.4', 'ATMDelayLine':'COM3', 'RF_Synth':'COM5'}
     
 def DAC_ADC_config():
     ##########################
@@ -98,7 +98,7 @@ def RF_config():
     ### RF SYNTH FOR REFLECTO
     ##########################
     RF = {}
-    RF['RF0_freq'] = mc.RF_Synth(name='RF0_freq',
+    RF['RF0_{freq}'] = mc.RF_Synth(name='RF0_{freq}',
                 GPIBAddress=addressList['RF_Synth'],
                 Unit='GHz',
                 channel = 0, # 0: channel A, else: channel B (for dual output synth)
@@ -110,11 +110,11 @@ def RF_config():
                 trig_mode = 0, # 0: none, 1: ON/OFF on trigger
                 freq_ul=13.6, # frequency upper limit
                 freq_ll=0.054, # frequency lower limit
-                power_ul=15, # power upper limit
+                power_ul=20., # power upper limit
                 power_ll=-60, # power lower limit
                 )
 
-    RF['RF0_power'] = mc.RF_Synth(name='RF0_power',
+    RF['RF0_{power}'] = mc.RF_Synth(name='RF0_{power}',
                 GPIBAddress=addressList['RF_Synth'],
                 Unit='dB',
                 channel = 0, # 0: channel A, else: channel B (for dual output synth)
@@ -126,11 +126,11 @@ def RF_config():
                 trig_mode = 0, # 0: none, 1: ON/OFF on trigger
                 freq_ul=13.6, # frequency upper limit
                 freq_ll=0.054, # frequency lower limit
-                power_ul=15, # power upper limit
+                power_ul=20., # power upper limit
                 power_ll=-60, # power lower limit
                 )
 
-    RF['RF1_freq'] = mc.RF_Synth(name='RF1_freq',
+    RF['RF1_{freq}'] = mc.RF_Synth(name='RF1_{freq}',
                 GPIBAddress=addressList['RF_Synth'],
                 Unit='GHz',
                 channel = 1, # 0: channel A, else: channel B (for dual output synth)
@@ -142,11 +142,11 @@ def RF_config():
                 trig_mode = 0, # 0: none, 1: ON/OFF on trigger
                 freq_ul=13.6, # frequency upper limit
                 freq_ll=0.054, # frequency lower limit
-                power_ul=15, # power upper limit
+                power_ul=20., # power upper limit
                 power_ll=-60, # power lower limit
                 )
 
-    RF['RF1_power'] = mc.RF_Synth(name='RF1_power',
+    RF['RF1_{power}'] = mc.RF_Synth(name='RF1_{power}',
                 GPIBAddress=addressList['RF_Synth'],
                 Unit='dB',
                 channel = 1, # 0: channel A, else: channel B (for dual output synth)
@@ -158,7 +158,7 @@ def RF_config():
                 trig_mode = 0, # 0: none, 1: ON/OFF on trigger
                 freq_ul=13.6, # frequency upper limit
                 freq_ll=0.054, # frequency lower limit
-                power_ul=15, # power upper limit
+                power_ul=20., # power upper limit
                 power_ll=-60, # power lower limit
                 )
     return RF

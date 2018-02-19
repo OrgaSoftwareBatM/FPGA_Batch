@@ -9,11 +9,13 @@ import os,sys
 import numpy as np
 sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
+import ctypes 
+MessageBoxW = ctypes.windll.user32.MessageBoxW
 import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from GUI.Experiment_GUI import arrayGenerator
-from Bermousque_config import DAC_ADC_config
+from Bermousque_config_reflecto import DAC_ADC_config,RF_config
         
 def find_unused_name(folder,prefix):
     findex = 0
@@ -32,6 +34,7 @@ class RT_fastseq():
         self.findex,self.config_path,self.exp_path = find_unused_name(folder,prefix)
         
         self.DAC,self.fs,self.ADC = DAC_ADC_config()  
+        self.RF = RF_config()  
         self.fs_slots = {}
         
         self.init_val = {}     # dict of [values]
@@ -42,7 +45,40 @@ class RT_fastseq():
         self.initial_wait = 100    # ms before everything
         self.ms_per_point = 1      # integration time (RT_avg/ADC_freq)
         self.step_wait = 1         # ms wait after every fastseq
-        self.sweep_dim = [] 
+        self.sweep_dim = []         
+        
+    def ramp_DAC(self,name,start,stop,dim,init_at=None):
+         if name not in [self.DAC[key].name for key in self.DAC.keys()]:
+             print ('Error adding parameter ' + name + ' - unknown parameter')
+             return 0
+         elif dim == 0:
+             print ('Error adding parameter ' + name + ' - dim 0 not useable')
+             return 0
+         else:      # adding to sweep_param
+             self.sweep_param[name] = [start,stop,dim]
+             
+         if init_at is not None:
+             self.init_val[name] = init_at
+         else:  # unless specified, param is initialized at starting value
+             self.init_val[name] = start
+         return 1
+    
+    def ramp_RF(self,name,start,stop,dim,init_at=None):
+        """ Ramps RF freq/power on dimension dim>0 """
+        if dim==0:
+             print ('Error adding parameter ' + name + ' - dim 0 not useable')
+             return 0
+        if name not in [self.RF[key].name for key in self.RF.keys()]:
+            print ('Error adding parameter ' + name + ' - unknown parameter')
+            return 0
+        else:      # adding to sweep_param
+            self.sweep_param[name] = [start,stop,dim]
+            
+        if init_at is not None:
+            self.init_val[name] = init_at
+        else:  # unless specified, param is initialized at starting value
+            self.init_val[name] = start
+        return 1
         
     def ramp_slot(self,slotNo,name,start,stop,dim,init_at=None):
         if dim==0:
@@ -76,23 +112,6 @@ class RT_fastseq():
         else:  # unless specified, param is initialized at starting value
             self.init_val[name] = start
         return 1
-        
-        
-    def ramp_DAC(self,name,start,stop,dim,init_at=None):
-         if name not in [self.DAC[key].name for key in self.DAC.keys()]:
-             print ('Error adding parameter ' + name + ' - unknown parameter')
-             return 0
-         elif dim == 0:
-             print ('Error adding parameter ' + name + ' - dim 0 not useable')
-             return 0
-         else:      # adding to sweep_param
-             self.sweep_param[name] = [start,stop,dim]
-             
-         if init_at is not None:
-             self.init_val[name] = init_at
-         else:  # unless specified, param is initialized at starting value
-             self.init_val[name] = start
-         return 1
     
     def build_seq(self):
          self.fast_channels = []
@@ -120,6 +139,16 @@ class RT_fastseq():
     def build_sweep(self):
         for key in self.sweep_param.keys():
             start,stop,axis = self.sweep_param[key]
+#            if key=='t_{meta}':
+#                arr = arrayGenerator(dims = self.sweep_dim[1:], axis=axis-1, initial = start, final = stop, method = 'log10')
+#                sweep = mc.single_sweep(name = key,
+#                                        parameter = 0,
+#                                        ar = arr,
+#                                        dataType = 'float', # for CMD use dt=h5py.special_dtype(vlen=bytes)
+#                                        creationMethod = 'log10',
+#                                        sweep_dim = axis, # sweep dimension 0: array sweep, 1: sweep along 1st dim, 2: sweep along 2nd dim, ....
+#                                        )
+#            else:
             arr = arrayGenerator(dims = self.sweep_dim[1:], axis=axis-1, initial = start, final = stop, method = 'Linear')
             sweep = mc.single_sweep(name = key,
                                     parameter = 0,
@@ -130,6 +159,8 @@ class RT_fastseq():
                                     )
             if key in self.fs_slots.keys():
                 sweep.param = self.fs_slots[key].getParameter() # adding slot n°
+            elif key in self.RF.keys():
+                sweep.param = self.RF[key].getParameter()
             self.sweep_list.append(sweep)
             
     def txt_summary(self):
@@ -173,6 +204,7 @@ class RT_fastseq():
         
         self.inst_list = [self.fs,self.ADC]+[self.DAC[key] for key in self.DAC.keys()]
         self.inst_list += [self.fs_slots[key] for key in self.fs_slots.keys()]
+        self.inst_list += [self.RF[key] for key in self.RF.keys()]
         self.conf = mc.MeasConfig(filepath=self.config_path,
         			initial_wait = self.initial_wait,
         			wait_before_meas = 1,	# useless
@@ -190,6 +222,8 @@ class RT_fastseq():
         for (name,val) in self.init_val.items():
             if name in self.fs_slots.keys():
                 param = self.fs_slots[name].getParameter() # adding slot n°
+            elif name in self.RF.keys():
+                param = self.RF[name].uint64s[1]
             else:
                 param = 0
             init_move.append((name,param,val))
@@ -208,11 +242,14 @@ class RT_fastseq():
 				Experimental_bool_list = [return_to_init, True],
 				Initial_move = init_move)
         
+        
         out = self.exp.write(fpath=self.exp_path)
         if out==0:
             print(self.exp_path + ' created') 
-            ans = input('SEND THIS MAP? (Y/N)    ')
-            if ans in ['y','Y']:
+            ans = MessageBoxW(None, comment, 'Send Map?', 1)
+            # ans = input('SEND THIS MAP? (Y/N)    ')
+            # if ans in ['y','Y']:
+            if ans == 1:
                 print ('Sending to Labview')
                 sendFiles(fileList=[self.exp_path])
             else:

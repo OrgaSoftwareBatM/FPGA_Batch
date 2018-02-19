@@ -6,7 +6,8 @@ Created on Sat Jan 20 20:41:04 2018
 """
 # from __future__ import str
 import os,sys
-from ctypes.windll.user32 import MessageBoxW
+import ctypes 
+MessageBoxW = ctypes.windll.user32.MessageBoxW
 import numpy as np
 sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
@@ -53,24 +54,40 @@ class StabilityDiagram():
         
     def ramp_DAC(self,name,start,stop,dim,init_at=None):
         """ Ramps one DAC output on dimension dim. If dim==0, the fastramp is used. """
-         if name not in [self.DAC[key].name for key in self.DAC.keys()]:
-             print ('Error adding parameter ' + name + ' - unknown parameter')
+        if name not in [self.DAC[key].name for key in self.DAC.keys()]:
+            print ('Error adding parameter ' + name + ' - unknown parameter')
+            return 0
+        elif dim == 0:     # adding to the fastseq
+            channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
+            if channel_id not in self.fs.uint64s[4:20]:
+                print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
+                return 0
+            self.fast_ramp[name] = [start,stop,self.fs.uint64s[4:20].index(channel_id)]
+        else:      # adding to sweep_param
+            self.sweep_param[name] = [start,stop,dim]
+            
+        if init_at is not None:
+            self.init_val[name] = init_at
+        else:  # unless specified, param is initialized at starting value
+            self.init_val[name] = start
+        return 1
+    
+    def ramp_RF(self,name,start,stop,dim,init_at=None):
+        """ Ramps RF freq/power on dimension dim>0 """
+        if dim==0:
+             print ('Error adding parameter ' + name + ' - dim 0 not useable')
              return 0
-         elif dim == 0:     # adding to the fastseq
-             channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
-             if channel_id not in self.fs.uint64s[4:20]:
-                 print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
-                 return 0
-             self.fast_ramp[name] = [start,stop,self.fs.uint64s[4:20].index(channel_id)]
-         else:      # adding to sweep_param
-             self.sweep_param[name] = [start,stop,dim]
-             
-         if init_at is not None:
-             self.init_val[name] = init_at
-         else:  # unless specified, param is initialized at starting value
-             self.init_val[name] = start
-
-         return 1
+        if name not in [self.RF[key].name for key in self.RF.keys()]:
+            print ('Error adding parameter ' + name + ' - unknown parameter')
+            return 0
+        else:      # adding to sweep_param
+            self.sweep_param[name] = [start,stop,dim]
+            
+        if init_at is not None:
+            self.init_val[name] = init_at
+        else:  # unless specified, param is initialized at starting value
+            self.init_val[name] = start
+        return 1
         
     def ramp_slot(self,slotNo,name,start,stop,dim,init_at=None):
         """ Moves a sequence slot in dimension dim. """
@@ -142,52 +159,52 @@ class StabilityDiagram():
 
     def build_pre_ramp_seq(self):
         """ Inserts a custom sequence before the map begins """
-         seq = []
-         for name,val in self.sequence:
-             if name=='Trigger':
-                 seq.append([101,int(val,2)])   # convert to bitwise value
-             elif name=='Timing':
-                 seq.append([102,val])
-             elif name=='Jump':
-                 seq.append([103,val])
-             elif name=='End':
-                 seq.append([100,0])
-             else:
-                 channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
-                 if channel_id not in self.fs.uint64s[4:20]:
-                     print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
-                     return 0  
-                 else:
-                     pos = self.fs.uint64s[4:20].index(channel_id)
-                     seq.append([pos,val])
-         self.pre_ramp_seq = np.array(seq).T
-         return 1
+        seq = []
+        for name,val in self.sequence:
+            if name=='Trigger':
+                seq.append([101,int(val,2)])   # convert to bitwise value
+            elif name=='Timing':
+                seq.append([102,val])
+            elif name=='Jump':
+                seq.append([103,val])
+            elif name=='End':
+                seq.append([100,0])
+            else:
+                channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
+                if channel_id not in self.fs.uint64s[4:20]:
+                    print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
+                    return 0  
+                else:
+                    pos = self.fs.uint64s[4:20].index(channel_id)
+                    seq.append([pos,val])
+        self.pre_ramp_seq = np.array(seq).T
+        return 1
      
     def build_fastramp(self):
         """ Create the fastseq for the FPGA """
-         self.fast_channels = []
-         start = []
-         stop = []
-         for name in self.fast_ramp.keys():
-             start.append(self.fast_ramp[name][0]-self.init_val[name])
-             stop.append(self.fast_ramp[name][1]-self.init_val[name])
-             self.fast_channels.append(self.fast_ramp[name][2])
-         if self.pre_ramp_seq == []:
-             self.fs.sequence = fsg.createRamp(points=self.sweep_dim[0],
-                                       fast_channels=self.fast_channels,
-                                       initial=start,
-                                       final=stop)
-             self.fs.uint64s[20] = 4
-         else:
-             N = np.size(self.pre_ramp_seq,1)
-             ramp = fsg.createRamp(points=self.sweep_dim[0],
-                           fast_channels=self.fast_channels,
-                           initial=start,
-                           final=stop)
-             self.fs.sequence = np.concatenate((self.pre_ramp_seq,ramp[:,1:]),1)
-             self.fs.sequence[1,-1] = len(self.fs.sequence[1,:])-1  # update jump
-             self.fs.uint64s[20] = N-1
-             
+        self.fast_channels = []
+        start = []
+        stop = []
+        for name in self.fast_ramp.keys():
+            start.append(self.fast_ramp[name][0]-self.init_val[name])
+            stop.append(self.fast_ramp[name][1]-self.init_val[name])
+            self.fast_channels.append(self.fast_ramp[name][2])
+        if self.pre_ramp_seq == []:
+           self.fs.sequence = fsg.createRamp(points=self.sweep_dim[0],
+                                      fast_channels=self.fast_channels,
+                                      initial=start,
+                                      final=stop)
+           self.fs.uint64s[20] = 4
+        else:
+            N = np.size(self.pre_ramp_seq,1)
+            ramp = fsg.createRamp(points=self.sweep_dim[0],
+                          fast_channels=self.fast_channels,
+                          initial=start,
+                          final=stop)
+            self.fs.sequence = np.concatenate((self.pre_ramp_seq,ramp[:,1:]),1)
+            self.fs.sequence[1,-1] = len(self.fs.sequence[1,:])-1  # update jump
+            self.fs.uint64s[20] = N-1
+            
     def build_sweep(self):
         """ Create value arrays for every instrument moved in Map (dim>0) """
         for key in self.sweep_param.keys():
@@ -202,6 +219,8 @@ class StabilityDiagram():
                                     )
             if key in self.fs_slots.keys():
                 sweep.param = self.fs_slots[key].getParameter() # adding slot n°
+            elif key in self.RF.keys():
+                sweep.param = self.RF[key].getParameter()
             self.sweep_list.append(sweep)
             
     def txt_summary(self):
@@ -228,6 +247,7 @@ class StabilityDiagram():
         self.inst_list = [self.fs,self.ADC]+[self.DAC[key] for key in self.DAC.keys()]
         self.inst_list += [self.waits[key] for key in self.waits.keys()]
         self.inst_list += [self.fs_slots[key] for key in self.fs_slots.keys()]
+        self.inst_list += [self.RF[key] for key in self.RF.keys()]
         self.conf = mc.MeasConfig(filepath=self.config_path,
         			initial_wait = self.initial_wait,
         			wait_before_meas = 1,	# useless
@@ -246,6 +266,8 @@ class StabilityDiagram():
         for (name,val) in self.init_val.items():
             if name in self.fs_slots.keys():
                 param = self.fs_slots[name].getParameter() # adding slot n°
+            elif name in self.RF.keys():
+                param = self.RF[name].uint64s[1]
             else:
                 param = 0
             init_move.append((name,param,val))
@@ -267,7 +289,7 @@ class StabilityDiagram():
         out = self.exp.write(fpath=self.exp_path)
         if out==0:
             print(self.exp_path + ' created') 
-            ans = MessageBoxW(None, 'Send Map?', comment, 0)
+            ans = MessageBoxW(None, comment, 'Send Map?', 1)
             # ans = input('SEND THIS MAP? (Y/N)    ')
             # if ans in ['y','Y']:
             if ans == 1:
