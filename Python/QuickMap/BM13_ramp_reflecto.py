@@ -151,10 +151,19 @@ class StabilityDiagram():
         return 1
     
     def update_timings(self):
+        sampling_rate = self.ADC.uint64s[2]
         """ Modifies the ADC and fastseq settings for the current Map"""
-        self.ADC.uint64s[7] = int(self.sweep_dim[0]) # set sample count
+        RT_avg = self.ms_per_point/1000.*sampling_rate/self.ADC.uint64s[1]
+        if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
+            print ('Rounding integrated points to '+str(int(RT_avg)))
+        RT_avg = int(RT_avg)
+        self.ADC.uint64s[3] = 1 # Turning on real time
+        self.ADC.uint64s[4] = RT_avg
+        self.ADC.uint64s[7] = self.sweep_dim[0]*RT_avg
+        if self.ADC.uint64s[6] < self.sweep_dim[0]*RT_avg:   # Buffer too small
+            print ('ADC buffer size had to be increased to '+str(self.sweep_dim[0]*RT_avg))
+            self.ADC.uint64s[6] = self.sweep_dim[0]*RT_avg
         self.fs.uint64s[2] = int(self.sweep_dim[0])	 # set sample count
-        self.ADC.uint64s[4] = int(self.ADC.uint64s[2]/self.ADC.uint64s[1]*self.ms_per_point/1000.) # sampling rate per channel * time per point
         self.fs.uint64s[0] = int(2222*self.ms_per_point)	# set divider
 
     def build_pre_ramp_seq(self):
@@ -162,7 +171,7 @@ class StabilityDiagram():
         seq = []
         for name,val in self.sequence:
             if name=='Trigger':
-                seq.append([101,int(val,2)])   # convert to bitwise value
+                seq.append([101,int(val[::-1],2)])   # convert to bitwise value
             elif name=='Timing':
                 seq.append([102,val])
             elif name=='Jump':
@@ -267,7 +276,7 @@ class StabilityDiagram():
             if name in self.fs_slots.keys():
                 param = self.fs_slots[name].getParameter() # adding slot n°
             elif name in self.RF.keys():
-                param = self.RF[name].uint64s[1]
+                param = self.RF[name].getParameter()
             else:
                 param = 0
             init_move.append((name,param,val))

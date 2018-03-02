@@ -11,7 +11,7 @@ import MeasurementBase.measurement_classes as mc
 
 # Merlin parameters
 FPGA_address = '192.168.137.11'
-addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:19','AWG':'192.168.0.4', 'ATMDelayLine':'COM3', 'RF_Synth':'COM5'}
+addressList = {'K2000':'0:17','K34401A':'0:17','DSP_lockIn':'0:12','RS_RF':'0:18','AWG':'192.168.0.4', 'ATMDelayLine':'COM3', 'RF_Synth':'COM5'}
     
 def DAC_ADC_config():
     ##########################
@@ -76,19 +76,19 @@ def DAC_ADC_config():
     ##########################
     ADC = mc.ADC(name='ADC',
     		unit='V',
-    		Range={'+/-0.2V':0, '+/-1V':1, '+/-5V':5, '+/-10V':10}['+/-10V'],
+    		Range={'+/-0.2V':0, '+/-1V':1, '+/-5V':5, '+/-10V':10}['+/-0.2V'],
     		NofChannels=2,
     		NameList='ADC0;ADC1',
     		UnitList='nA;nA',
-    		ConversionList='100;100',
-    		samplingRate=250000,
+    		ConversionList='100',
+    		samplingRate=200000,
     		Realtime=1,
-    		RTaverage=250,
+    		RTaverage=200,
     		InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
     		BufferSize=1000000,
     		SamplePerChannel=1,
     		ramp_trigger_input = 0,
-    		fast_seq_trigger_input = 1,
+    		fast_seq_trigger_input = 0,
     		)
     
     return DAC,fs,ADC
@@ -161,4 +161,70 @@ def RF_config():
                 power_ul=20., # power upper limit
                 power_ll=-60, # power lower limit
                 )
+
+#    RF['SAW_{freq}'] = mc.RS_RF(name='SAW_{freq}',
+#                 GPIBAddress=addressList['RS_RF'],
+#                 Unit='GHz',
+#                 frequency=2.644, # GHz
+#                 power=25, # dBm
+#                 pulse_period = 200, #us
+#                 pulse_width = 0.1, #us
+#                 pulse_delay = 1., #us
+#                 pulse_modulation = 1, # boolean
+#                 output_on = 1, # boolean
+#                 pulse_source = 0, # boolean, 0: internal, 1: external
+#                 pulse_mode = 0, # 0: single, 1: double, 2: train
+#                 trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
+#                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+#                 external_impedance = 0, # 0: 10 kohm, else: 50 ohm
+#                 frequency_ul=6.001, # GHz upper limit
+#                 frequency_ll=9e-6, # GHz lower limit
+#                 power_ul=30, # dBm upper limit
+#                 power_ll=-145, # dBm lower limit
+#                 controlParam = 0, # selection of control parameter, which is used to get the initial value of the parameter
+#                 )
+#
+#    RF['SAW_{power}'] = mc.RS_RF(name='SAW_{power}',
+#                 GPIBAddress=addressList['RS_RF'],
+#                 Unit='dBm',
+#                 frequency=2.644, # GHz
+#                 power=25, # dBm
+#                 pulse_period = 200, #us
+#                 pulse_width = 0.1, #us
+#                 pulse_delay = 1., #us
+#                 pulse_modulation = 1, # boolean
+#                 output_on = 1, # boolean
+#                 pulse_source = 0, # boolean, 0: internal, 1: external
+#                 pulse_mode = 0, # 0: single, 1: double, 2: train
+#                 trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
+#                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+#                 external_impedance = 0, # 0: 10 kohm, else: 50 ohm
+#                 frequency_ul=6.001, # GHz upper limit
+#                 frequency_ll=9e-6, # GHz lower limit
+#                 power_ul=30, # dBm upper limit
+#                 power_ll=-145, # dBm lower limit
+#                 controlParam = 1, # selection of control parameter, which is used to get the initial value of the parameter
+#                 )
+#
+#    RF['SAW_{width}'] = mc.RS_RF(name='SAW_{width}',
+#                 GPIBAddress=addressList['RS_RF'],
+#                 Unit='ns',
+#                 frequency=2.644, # GHz
+#                 power=25, # dBm
+#                 pulse_period = 200, #us
+#                 pulse_width = 0.1, #us
+#                 pulse_delay = 1., #us
+#                 pulse_modulation = 1, # boolean
+#                 output_on = 1, # boolean
+#                 pulse_source = 0, # boolean, 0: internal, 1: external
+#                 pulse_mode = 0, # 0: single, 1: double, 2: train
+#                 trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
+#                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+#                 external_impedance = 0, # 0: 10 kohm, else: 50 ohm
+#                 frequency_ul=6.001, # GHz upper limit
+#                 frequency_ll=9e-6, # GHz lower limit
+#                 power_ul=30, # dBm upper limit
+#                 power_ll=-145, # dBm lower limit
+#                 controlParam = 3, # selection of control parameter, which is used to get the initial value of the parameter
+#                 )
     return RF

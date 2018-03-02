@@ -223,7 +223,7 @@ class RT_fastseq():
             if name in self.fs_slots.keys():
                 param = self.fs_slots[name].getParameter() # adding slot n°
             elif name in self.RF.keys():
-                param = self.RF[name].uint64s[1]
+                param = self.RF[name].getParameter()
             else:
                 param = 0
             init_move.append((name,param,val))
