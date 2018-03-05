@@ -105,7 +105,9 @@
 				<Item Name="RS_RF_init.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_init.vi"/>
 				<Item Name="RS_RF_move.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_move.vi"/>
 				<Item Name="RS_RF_query.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_query.vi"/>
+				<Item Name="RS_RF_query_LAN.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_query_LAN.vi"/>
 				<Item Name="RS_RF_send_command.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_send_command.vi"/>
+				<Item Name="RS_RF_send_command_LAN.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_send_command_LAN.vi"/>
 			</Item>
 			<Item Name="RF_Synth" Type="Folder">
 				<Item Name="RF_Synth_commands.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF_Synth/RF_Synth_commands.vi"/>
@@ -422,18 +424,17 @@
 			<Item Name="RF_Attn_move.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF_attenuator/RF_Attn_move.vi"/>
 			<Item Name="fpgabatch18_sbRIO9612RIO0_FPGAMAINMerlin_-1tLGtxjYvQ.lvbitx" Type="Document" URL="../FPGA Bitfiles/fpgabatch18_sbRIO9612RIO0_FPGAMAINMerlin_-1tLGtxjYvQ.lvbitx"/>
 			<Item Name="niFpgaWaitOnOcc.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaWaitOnOcc.vi"/>
-			<Item Name="niLvFpga_Close_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Close_sbRIO-9612.vi"/>
-			<Item Name="niLvFpgaFormatErrorSource.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaFormatErrorSource.vi"/>
-			<Item Name="niLvFpgaWhatHappensToTopLevelVI.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaWhatHappensToTopLevelVI.ctl"/>
-			<Item Name="niFpgaNodeNameForErrorReporting.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaNodeNameForErrorReporting.ctl"/>
-			<Item Name="niLvFpgaAdjustHostInterfaceError.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaAdjustHostInterfaceError.vi"/>
 			<Item Name="niLvFpga_Run_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Run_sbRIO-9612.vi"/>
+			<Item Name="niLvFpgaFormatErrorSource.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaFormatErrorSource.vi"/>
 			<Item Name="niLvFpgaErrorClusterFromErrorCode.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaErrorClusterFromErrorCode.vi"/>
 			<Item Name="nirviErrorClusterFromErrorCode.vi" Type="VI" URL="/&lt;vilib&gt;/RVI Host/nirviSupport.llb/nirviErrorClusterFromErrorCode.vi"/>
 			<Item Name="nirviWhatTheDeviceIsDoing.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/ClientSDK/nirviWhatTheDeviceIsDoing.ctl"/>
 			<Item Name="nirio_resource_hc.ctl" Type="VI" URL="/&lt;vilib&gt;/userdefined/High Color/nirio_resource_hc.ctl"/>
 			<Item Name="niLvFpga_Open_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Open_sbRIO-9612.vi"/>
 			<Item Name="nirviCommon.vi" Type="VI" URL="/&lt;vilib&gt;/express/rvi/timingcommon/nirviCommon.vi"/>
+			<Item Name="niLvFpgaWhatHappensToTopLevelVI.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaWhatHappensToTopLevelVI.ctl"/>
+			<Item Name="niFpgaNodeNameForErrorReporting.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaNodeNameForErrorReporting.ctl"/>
+			<Item Name="niLvFpgaAdjustHostInterfaceError.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaAdjustHostInterfaceError.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>
