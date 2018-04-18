@@ -1,25 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jan 20 20:41:04 2018
+Created on Fri Aug 11 19:46:45 2017
 
 @author: manip.batm
 """
-# from __future__ import str
+
 import os,sys
-import ctypes 
-MessageBoxW = ctypes.windll.user32.MessageBoxW
 import numpy as np
 sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
+import ctypes 
+MessageBoxW = ctypes.windll.user32.MessageBoxW
 import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from GUI.Experiment_GUI import arrayGenerator
-from BM13_config_CD2_1 import DAC_ADC_config,RF_config
-
-
+from Bermousque_config_reflecto import DAC_ADC_config,RF_config
+        
 def find_unused_name(folder,prefix):
-    """ Finds a config and exp file names that don't exist """
     findex = 0
     exists = True
     while exists:
@@ -29,7 +27,7 @@ def find_unused_name(folder,prefix):
     	exists = os.path.isfile(config_path) or os.path.isfile(exp_path)
     return findex,config_path,exp_path
 
-class StabilityDiagram():
+class RT_fastseq():
     def __init__(self,folder=os.getcwd(),prefix='test'):
         self.folder = folder
         self.prefix = prefix
@@ -37,40 +35,33 @@ class StabilityDiagram():
         
         self.DAC,self.fs,self.ADC = DAC_ADC_config()  
         self.RF = RF_config()  
-        self.waits = {}
         self.fs_slots = {}
         
         self.init_val = {}     # dict of [values]
-        self.fast_ramp = {}    # dict of [start,stop,fast_channel]
         self.sweep_param = {}  # dict of [start,stop,dim]
+        self.sequence = []
         self.sweep_list = []
-        self.sequence = []  # full sequence (with ramp)
-        self.pre_ramp_seq = []
         
         self.initial_wait = 100    # ms before everything
-        self.ms_per_point = 1      # integration time (fastseq divider)
+        self.ms_per_point = 1      # integration time (RT_avg/ADC_freq)
         self.step_wait = 1         # ms wait after every fastseq
-        self.sweep_dim = []
+        self.sweep_dim = []         
         
     def ramp_DAC(self,name,start,stop,dim,init_at=None):
-        """ Ramps one DAC output on dimension dim. If dim==0, the fastramp is used. """
-        if name not in [self.DAC[key].name for key in self.DAC.keys()]:
-            print ('Error adding parameter ' + name + ' - unknown parameter')
-            return 0
-        elif dim == 0:     # adding to the fastseq
-            channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
-            if channel_id not in self.fs.uint64s[4:20]:
-                print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
-                return 0
-            self.fast_ramp[name] = [start,stop,self.fs.uint64s[4:20].index(channel_id)]
-        else:      # adding to sweep_param
-            self.sweep_param[name] = [start,stop,dim]
-            
-        if init_at is not None:
-            self.init_val[name] = init_at
-        else:  # unless specified, param is initialized at starting value
-            self.init_val[name] = start
-        return 1
+         if name not in [self.DAC[key].name for key in self.DAC.keys()]:
+             print ('Error adding parameter ' + name + ' - unknown parameter')
+             return 0
+         elif dim == 0:
+             print ('Error adding parameter ' + name + ' - dim 0 not useable')
+             return 0
+         else:      # adding to sweep_param
+             self.sweep_param[name] = [start,stop,dim]
+             
+         if init_at is not None:
+             self.init_val[name] = init_at
+         else:  # unless specified, param is initialized at starting value
+             self.init_val[name] = start
+         return 1
     
     def ramp_RF(self,name,start,stop,dim,init_at=None):
         """ Ramps RF freq/power on dimension dim>0 """
@@ -90,7 +81,6 @@ class StabilityDiagram():
         return 1
         
     def ramp_slot(self,slotNo,name,start,stop,dim,init_at=None):
-        """ Moves a sequence slot in dimension dim. """
         if dim==0:
              print ('Error adding parameter ' + name + ' - dim 0 not useable')
              return 0
@@ -122,102 +112,43 @@ class StabilityDiagram():
         else:  # unless specified, param is initialized at starting value
             self.init_val[name] = start
         return 1
-        
-    def add_wait(self,name,index,ms,axis):
-        """ Adds a custom wait everytime the index of the axis is at a given value """
-        if axis == 0:     # adding to the fastseq
-            print ('Error adding wait to the fastseq dim')
-            return 0
-        wait = mc.mswait(name=name,
-                         unit = 'ms',
-                         ulimit = 100000,
-                         llimit = 0)
-        self.waits[name] = wait
-        
-        dims = self.sweep_dim[1:]
-        ax = axis-1
-        arr = np.zeros(dims,dtype=np.int)
-        arr = np.swapaxes(arr, 0, ax)
-        arr[index,:] = ms
-        arr = np.swapaxes(arr, 0, ax)
-        sweep = mc.single_sweep(name = name,
-                                    parameter = 0,
-                                    ar = arr,
-                                    dataType = 'float', # for CMD use dt=h5py.special_dtype(vlen=bytes)
-                                    creationMethod = '1_pos',
-                                    sweep_dim = axis, # sweep dimension 0: array sweep, 1: sweep along 1st dim, 2: sweep along 2nd dim, ....
-                                    )
-        self.sweep_list.append(sweep)  
-        return 1
     
-    def update_timings(self):
-        sampling_rate = self.ADC.uint64s[2]
-        """ Modifies the ADC and fastseq settings for the current Map"""
-        RT_avg = self.ms_per_point/1000.*sampling_rate/self.ADC.uint64s[1]
-        if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
-            print ('Rounding integrated points to '+str(int(RT_avg)))
-        RT_avg = int(RT_avg)
-        self.ADC.uint64s[3] = 1 # Turning on real time
-        self.ADC.uint64s[4] = RT_avg
-        self.ADC.uint64s[7] = self.sweep_dim[0]*RT_avg
-        if self.ADC.uint64s[6] < self.sweep_dim[0]*RT_avg:   # Buffer too small
-            print ('ADC buffer size had to be increased to '+str(self.sweep_dim[0]*RT_avg))
-            self.ADC.uint64s[6] = self.sweep_dim[0]*RT_avg
-        self.fs.uint64s[2] = int(self.sweep_dim[0])	 # set sample count
-        self.fs.uint64s[0] = int(2222*self.ms_per_point)	# set divider
-
-    def build_pre_ramp_seq(self):
-        """ Inserts a custom sequence before the map begins """
-        seq = []
-        for name,val in self.sequence:
-            if name=='Trigger':
-                seq.append([101,int(val[::-1],2)])   # convert to bitwise value
-            elif name=='Timing':
-                seq.append([102,val])
-            elif name=='Jump':
-                seq.append([103,val])
-            elif name=='End':
-                seq.append([100,0])
-            else:
-                channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
-                if channel_id not in self.fs.uint64s[4:20]:
-                    print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
-                    return 0  
-                else:
-                    pos = self.fs.uint64s[4:20].index(channel_id)
-                    seq.append([pos,val])
-        self.pre_ramp_seq = np.array(seq).T
-        return 1
+    def build_seq(self):
+         self.fast_channels = []
+         seq = []
+         for name,val in self.sequence:
+             if name=='Trigger':
+                 seq.append([101,int(val[::-1],2)])   # convert to bitwise value
+             elif name=='Timing':
+                 seq.append([102,val])
+             elif name=='Jump':
+                 seq.append([103,val])
+             elif name=='End':
+                 seq.append([100,0])
+             else:
+                 channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
+                 if channel_id not in self.fs.uint64s[4:20]:
+                     print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
+                     return 0  
+                 else:
+                     pos = self.fs.uint64s[4:20].index(channel_id)
+                     seq.append([pos,val])
+         self.fs.sequence = np.array(seq).T
+         return 1
      
-    def build_fastramp(self):
-        """ Create the fastseq for the FPGA """
-        self.fast_channels = []
-        start = []
-        stop = []
-        for name in self.fast_ramp.keys():
-            start.append(self.fast_ramp[name][0]-self.init_val[name])
-            stop.append(self.fast_ramp[name][1]-self.init_val[name])
-            self.fast_channels.append(self.fast_ramp[name][2])
-        if self.pre_ramp_seq == []:
-           self.fs.sequence = fsg.createRamp(points=self.sweep_dim[0],
-                                      fast_channels=self.fast_channels,
-                                      initial=start,
-                                      final=stop)
-           self.fs.uint64s[20] = 4
-        else:
-            N = np.size(self.pre_ramp_seq,1)
-            ramp = fsg.createRamp(points=self.sweep_dim[0],
-                          fast_channels=self.fast_channels,
-                          initial=start,
-                          final=stop)
-            self.fs.sequence = np.concatenate((self.pre_ramp_seq,ramp[:,1:]),1)
-            self.fs.sequence[1,-1] = len(self.fs.sequence[1,:])-1  # update jump
-            self.fs.uint64s[20] = N-1
-            
     def build_sweep(self):
-        """ Create value arrays for every instrument moved in Map (dim>0) """
         for key in self.sweep_param.keys():
             start,stop,axis = self.sweep_param[key]
+#            if key=='t_{meta}':
+#                arr = arrayGenerator(dims = self.sweep_dim[1:], axis=axis-1, initial = start, final = stop, method = 'log10')
+#                sweep = mc.single_sweep(name = key,
+#                                        parameter = 0,
+#                                        ar = arr,
+#                                        dataType = 'float', # for CMD use dt=h5py.special_dtype(vlen=bytes)
+#                                        creationMethod = 'log10',
+#                                        sweep_dim = axis, # sweep dimension 0: array sweep, 1: sweep along 1st dim, 2: sweep along 2nd dim, ....
+#                                        )
+#            else:
             arr = arrayGenerator(dims = self.sweep_dim[1:], axis=axis-1, initial = start, final = stop, method = 'Linear')
             sweep = mc.single_sweep(name = key,
                                     parameter = 0,
@@ -233,28 +164,45 @@ class StabilityDiagram():
             self.sweep_list.append(sweep)
             
     def txt_summary(self):
-        """ Prints a summary for approval before starting the map """
-        txt = '--- Fast ramp ---' + os.linesep
+        txt = '--- Init ---' + os.linesep
+        for key,val in self.init_val.items():
+            txt += str(key)+'\t'+str(val) + os.linesep
+        txt += '--- Fast seq ---' + os.linesep
         txt += '%d points, %f ms per point' % (self.sweep_dim[0],self.ms_per_point)
         txt += os.linesep
-        for name in self.fast_ramp.keys():
-            txt += name + ' on channel %d : ' % (self.fast_ramp[name][2])
-            txt += 'offset %f, from %f to %f' % (self.init_val[name],self.fast_ramp[name][0],self.fast_ramp[name][1])
-            txt += os.linesep
+        for i,line in enumerate(self.sequence):
+            txt += '%d.\t%s\t%s'%(i,line[0],str(line[1]))+os.linesep
         txt += '--- Step dimensions ---' + os.linesep
         txt += '%s points, wait %f ms' % (self.sweep_dim[1:],self.step_wait)
         txt += os.linesep
-        for name in self.sweep_param.keys():
-            txt += 'dim %d : %s from %f to %f' % (self.sweep_param[name][2],name,self.sweep_param[name][0],self.sweep_param[name][1])
+        for key,p in self.sweep_param.items():
+            if key in self.fs_slots.keys():
+                slotNo = self.fs_slots[key].getParameter()
+                txt += 'dim %d : %s on slot %d from %f to %f' % (p[2],key,slotNo,p[0],p[1])
+            else:
+                txt += 'dim %d : %s from %f to %f' % (p[2],key,p[0],p[1])
             txt += os.linesep
         return txt
         
+    def reconfig_ADC(self,sampling_rate=250000):
+        RT_avg = self.ms_per_point/1000.*sampling_rate/self.ADC.uint64s[1]
+        if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
+            print ('Rounding integrated points to '+str(int(RT_avg)))
+        RT_avg = int(RT_avg)
+        self.ADC.uint64s[2] = sampling_rate
+        self.ADC.uint64s[3] = 1 # Turning on real time
+        self.ADC.uint64s[4] = RT_avg
+        self.ADC.uint64s[7] = self.sweep_dim[0]*RT_avg
+        self.fs.uint64s[2] = self.sweep_dim[0]
+        if self.ADC.uint64s[6] < self.sweep_dim[0]*RT_avg:   # Buffer too small
+            print ('ADC buffer size had to be increased to '+str(self.sweep_dim[0]*RT_avg))
+            self.ADC.uint64s[6] = self.sweep_dim[0]*RT_avg
+            
     def build_files(self):
-        """ Creates config and exp files """
         comment = self.txt_summary()
         print (comment)
+        
         self.inst_list = [self.fs,self.ADC]+[self.DAC[key] for key in self.DAC.keys()]
-        self.inst_list += [self.waits[key] for key in self.waits.keys()]
         self.inst_list += [self.fs_slots[key] for key in self.fs_slots.keys()]
         self.inst_list += [self.RF[key] for key in self.RF.keys()]
         self.conf = mc.MeasConfig(filepath=self.config_path,
@@ -263,10 +211,9 @@ class StabilityDiagram():
         			integration_time = 10,	# useless
         			wait_after_step_move = self.step_wait,
         			fastSweep = True,
-        			ramp = True,
+        			ramp = False,
         			listOfInst = self.inst_list,
-        			fastChannelNameList=list(self.fast_ramp.keys()))
-
+        			fastChannelNameList=[])
         self.conf.write()
         print(self.config_path + ' created')
         
@@ -295,6 +242,7 @@ class StabilityDiagram():
 				Experimental_bool_list = [return_to_init, True],
 				Initial_move = init_move)
         
+        
         out = self.exp.write(fpath=self.exp_path)
         if out==0:
             print(self.exp_path + ' created') 
@@ -306,3 +254,47 @@ class StabilityDiagram():
                 sendFiles(fileList=[self.exp_path])
             else:
                 print ('Sending aborted')
+
+
+###########################
+####	 CHOOSE FILE NAME
+###########################
+##folder = os.getcwd()+'\\test'
+#folder = 'C:\\Partage\\FPGA_Batch_1_7_3_1\\Test'
+#prefix = 'trigger_2_test_'
+##findex,config_path,exp_path = find_unused_name(folder,prefix)
+#Map = RT_fastseq(folder,prefix)
+#
+###########################
+####	 FASTSEQ + CONF FILE   			
+###########################
+#Map.initial_wait = 100    # ms before everything
+#Map.ms_per_point = 1.      # integration time (RT_avg/ADC_freq)
+#Map.step_wait = 1         # ms wait after every fastseq
+#
+#Map.init_val['0:0'] = -0.1
+#
+#Map.sequence.append(['Trigger','1111'])
+#Map.sequence.append(['Timing',1])
+#Map.sequence.append(['Trigger','1000'])
+#Map.sequence.append(['0:0',0.])
+#Map.sequence.append(['Timing',5])
+#Map.sequence.append(['0:0',0.2])
+#Map.sequence.append(['Timing',20])
+#Map.sequence.append(['0:0',0.])
+#Map.sequence.append(['Timing',10])
+#Map.sequence.append(['Jump',len(Map.sequence)])
+#
+#Map.sweep_dim = [31,201,11]
+##Map.ramp_DAC('0:0',-0.3,0.2,0)
+##Map.ramp_DAC('0:1',0.2,-0.2,1)
+##Map.ramp_DAC('0:2',-0.4,-0.5,2)
+#Map.ramp_slot(5,'Vload',0.2,0.4,1)
+#Map.ramp_slot(6,'Tload',10,20,2)
+#
+#
+#Map.reconfig_ADC(sampling_rate=250e3)
+#Map.build_seq()
+#Map.build_sweep()
+#Map.build_files()
+

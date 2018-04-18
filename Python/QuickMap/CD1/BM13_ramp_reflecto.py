@@ -15,7 +15,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from GUI.Experiment_GUI import arrayGenerator
-from BM13_config_CD2_1 import DAC_ADC_config,RF_config
+from Bermousque_config_reflecto import DAC_ADC_config,RF_config
 
 
 def find_unused_name(folder,prefix):
