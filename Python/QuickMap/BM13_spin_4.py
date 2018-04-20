@@ -46,8 +46,8 @@ Map.init_val['TC'] = -1.3
 Map.init_val['BC'] = -1.15
 
 ### REFLECTO
-Map.init_val['RF0_{freq}'] = 0.2012
-Map.init_val['RF0_{power}'] = -30.
+Map.init_val['RF0_{freq}'] = 0.2028
+Map.init_val['RF0_{power}'] = 15.
 Map.init_val['RF1_{freq}'] = 0.142
 Map.init_val['RF1_{power}'] = -30.
 
@@ -72,7 +72,7 @@ Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['LH3',-0.01]) # empty
 Map.sequence.append(['Timing',0.1])
 
-Map.sequence.append(['LH2',0.055]) # load
+Map.sequence.append(['LH2',0.048]) # load
 Map.sequence.append(['Timing',0.1])
 
 Map.sequence.append(['LH3',-0.11]) # wait
@@ -86,10 +86,10 @@ Map.sequence.append(['Timing',5.])
 
 Map.sequence.append(['Jump',len(Map.sequence)])
 
-Map.sweep_dim = [26,151,3,50]
+Map.sweep_dim = [26,201,3]
 Map.init_val['LD1'] = -0.7075
 Map.init_val['LD2'] = -0.82
-Map.ramp_slot(3,'dLH2_{load}',0.025,0.07,1)
+#Map.ramp_slot(3,'dLH2_{load}',0.025,0.07,1)
 #Map.ramp_slot(1,'dLH3_{load}',-0.01,0.01,2)
 #Map.ramp_slot(6,'t_{load}',0.1,0.1,2)
 

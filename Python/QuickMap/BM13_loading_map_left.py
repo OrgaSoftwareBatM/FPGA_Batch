@@ -47,9 +47,9 @@ Map.init_val['BC'] = -1.15
 
 ### REFLECTO
 Map.init_val['RF0_{freq}'] = 0.2012
-Map.init_val['RF0_{power}'] = -30.
+Map.init_val['RF0_{power}'] = 10.
 Map.init_val['RF1_{freq}'] = 0.142
-Map.init_val['RF1_{power}'] = -30.
+Map.init_val['RF1_{power}'] = 10.
 
 ### RS
 Map.init_val['SAW_{freq}'] = 2.644
@@ -69,9 +69,9 @@ Map.step_wait = 0        # ms wait after every fastseq
 ##########################
 Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['Timing',0.1])
-Map.sequence.append(['Trigger','1011'])
+Map.sequence.append(['Trigger','1010'])
 
-Map.sequence.append(['LH2',0.015])  # init
+Map.sequence.append(['LH2',-0.015])  # init
 Map.sequence.append(['LH3',-0.02])
 Map.sequence.append(['Timing',0.1])
 Map.sequence.append(['LH3',-0.02])

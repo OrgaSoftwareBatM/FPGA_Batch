@@ -100,6 +100,12 @@
 				<Item Name="K2000_read_meas-register.vi" Type="VI" URL="../Batch_main Folder/host-subvis/K2000/K2000_read_meas-register.vi"/>
 				<Item Name="K2000_wait_get_array.vi" Type="VI" URL="../Batch_main Folder/host-subvis/K2000/K2000_wait_get_array.vi"/>
 			</Item>
+			<Item Name="LeCroy6Zi" Type="Folder">
+				<Item Name="Lecroy_init.vi" Type="VI" URL="../Batch_main Folder/host-subvis/LeCroy6Zi/Lecroy_init.vi"/>
+				<Item Name="Lecroy_read.vi" Type="VI" URL="../Batch_main Folder/host-subvis/LeCroy6Zi/Lecroy_read.vi"/>
+				<Item Name="Lecroy_fast_wait&amp;get_trace.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Lecroy_fast_wait&amp;get_trace.vi"/>
+				<Item Name="Lecroy_fast_fetch_wfm.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Lecroy_fast_fetch_wfm.vi"/>
+			</Item>
 			<Item Name="RS_RF" Type="Folder">
 				<Item Name="RS_RF_commands.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_commands.vi"/>
 				<Item Name="RS_RF_init.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF/RS_RF_init.vi"/>
@@ -142,8 +148,6 @@
 			<Item Name="Plot_build_legend.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Plot_build_legend.vi"/>
 			<Item Name="Read.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Read.vi"/>
 			<Item Name="Read_fastseq.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Read_fastseq.vi"/>
-			<Item Name="SaveArray2H5.vi" Type="VI" URL="../Batch_main Folder/host-subvis/SaveArray2H5.vi"/>
-			<Item Name="SaveData2H5.vi" Type="VI" URL="../Batch_main Folder/host-subvis/SaveData2H5.vi"/>
 		</Item>
 		<Item Name="Batch_main.vi" Type="VI" URL="../Batch_main Folder/Batch_main.vi"/>
 		<Item Name="Batch_main_with_graph.vi" Type="VI" URL="../Batch_main Folder/Batch_main_with_graph.vi"/>
@@ -383,6 +387,7 @@
 				<Item Name="H5T.lvlib" Type="Library" URL="/&lt;vilib&gt;/addons/h5labview2/type/H5T.lvlib"/>
 				<Item Name="H5P.lvlib" Type="Library" URL="/&lt;vilib&gt;/addons/h5labview2/props/H5P.lvlib"/>
 				<Item Name="h5o_type.ctl" Type="VI" URL="/&lt;vilib&gt;/addons/h5labview2/base/h5o_type.ctl"/>
+				<Item Name="Waveform Scale and Offset.vi" Type="VI" URL="/&lt;vilib&gt;/Waveform/WDTOps.llb/Waveform Scale and Offset.vi"/>
 			</Item>
 			<Item Name="cluster2array.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/cluster2array.vi"/>
 			<Item Name="DelayGetInfo.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ATMDelayLine/DelayGetInfo.vi"/>
@@ -423,18 +428,11 @@
 			<Item Name="VNX_atten.dll" Type="Document" URL="../Batch_main Folder/host-subvis/RF_attenuator/VNX_atten.dll"/>
 			<Item Name="RF_Attn_move.vi" Type="VI" URL="../Batch_main Folder/host-subvis/RF_attenuator/RF_Attn_move.vi"/>
 			<Item Name="fpgabatch18_sbRIO9612RIO0_FPGAMAINMerlin_-1tLGtxjYvQ.lvbitx" Type="Document" URL="../FPGA Bitfiles/fpgabatch18_sbRIO9612RIO0_FPGAMAINMerlin_-1tLGtxjYvQ.lvbitx"/>
-			<Item Name="niFpgaWaitOnOcc.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaWaitOnOcc.vi"/>
-			<Item Name="niLvFpga_Run_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Run_sbRIO-9612.vi"/>
-			<Item Name="niLvFpgaFormatErrorSource.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaFormatErrorSource.vi"/>
-			<Item Name="niLvFpgaErrorClusterFromErrorCode.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaErrorClusterFromErrorCode.vi"/>
-			<Item Name="nirviErrorClusterFromErrorCode.vi" Type="VI" URL="/&lt;vilib&gt;/RVI Host/nirviSupport.llb/nirviErrorClusterFromErrorCode.vi"/>
-			<Item Name="nirviWhatTheDeviceIsDoing.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/ClientSDK/nirviWhatTheDeviceIsDoing.ctl"/>
-			<Item Name="nirio_resource_hc.ctl" Type="VI" URL="/&lt;vilib&gt;/userdefined/High Color/nirio_resource_hc.ctl"/>
-			<Item Name="niLvFpga_Open_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Open_sbRIO-9612.vi"/>
-			<Item Name="nirviCommon.vi" Type="VI" URL="/&lt;vilib&gt;/express/rvi/timingcommon/nirviCommon.vi"/>
-			<Item Name="niLvFpgaWhatHappensToTopLevelVI.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaWhatHappensToTopLevelVI.ctl"/>
-			<Item Name="niFpgaNodeNameForErrorReporting.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaNodeNameForErrorReporting.ctl"/>
-			<Item Name="niLvFpgaAdjustHostInterfaceError.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaAdjustHostInterfaceError.vi"/>
+			<Item Name="LeCroy Wave Series.lvlib" Type="Library" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/LeCroy Wave Series/LeCroy Wave Series.lvlib"/>
+			<Item Name="Lecroy_wait_acq-complete.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/low level/Lecroy_wait_acq-complete.vi"/>
+			<Item Name="Lecroy_get_descriptor.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Driver/Lecroy_get_descriptor.vi"/>
+			<Item Name="Lecroy_trigger.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Driver/Lecroy_trigger.vi"/>
+			<Item Name="Lecroy_get_wfm.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Driver/Lecroy_get_wfm.vi"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>

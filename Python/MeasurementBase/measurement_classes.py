@@ -697,6 +697,36 @@ class DSP_lockIn(readout_inst):
         
     def getNamesAndUnits(self):
         return [self.strings[3].split(';'), self.strings[4].split(';')]
+    
+# class for Lecroy8Zi
+recording_time_list = ['100ns','200ns','500ns','1us','2us','5us','10us','20us','50us','100us','200us','500us','1ms','2ms','5ms','10ms','20ms','50ms','100ms','200ms','500ms','1s']
+mem_size_list = [500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000]
+class Lecroy(readout_inst):
+    def __init__(self,
+                 name='Lecroy',
+                 Adress='192.168.137.1',
+                 NameList='ADC0;ADC1',
+                 UnitList='V;V',
+                 SourceList='0;1', #[C1,C2,C3,C4,M1,M2,M3,M4,F1,F2,F3,F4,F5,F6,F7,F8,OTHER]
+                 ConversionList='1.0;1.0',
+                 NChannels=2,
+                 RecordingTime=12, #['100ns','200ns','500ns','1us','2us','5us','10us','20us','50us','100us','200us','500us','1ms','2ms','5ms','10ms','20ms','50ms','100ms','200ms','500ms','1s']
+                 MemorySize=1, #[500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000]
+                 SegmentMode=0,
+                 NSegment=1,
+                 TriggerSource=4, #C1,C2,C3,C4,EXT,EXT10
+                 TriggerMode=3, #Stop,Single,Normal,Auto
+                 ):
+        super(ADC, self).__init__()
+        self.kind = 0
+        self.name = name
+        self.strings = [name, Adress, NameList, UnitList, SourceList, ConversionList]
+        self.uint64s = [NChannels, RecordingTime, MemorySize, SegmentMode, NSegment, TriggerSource, TriggerMode]
+        self.doubles = [0.,0.]
+        
+    def getNamesAndUnits(self):
+        return [self.strings[4].split(';'), self.strings[5].split(';')] # return [list of names, list of units]
+    
 
 """-------------------------------------------------------------------------
 ----------------------------------------------------------------------------

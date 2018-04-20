@@ -69,7 +69,7 @@ Map.step_wait = 0        # ms wait after every fastseq
 ##########################
 Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['Timing',0.1])
-Map.sequence.append(['Trigger','1011'])
+Map.sequence.append(['Trigger','1010'])
 
 Map.sequence.append(['LH2',0.03])  # load 2 electrons
 Map.sequence.append(['LH3',0.03])
@@ -89,8 +89,8 @@ Map.sequence.append(['Timing',4.])
 
 Map.sequence.append(['LP2',-0.])    # Metastable
 Map.sequence.append(['LH1',-0.])  
-Map.sequence.append(['LH2',0.15])
-Map.sequence.append(['LH3',-0.15])
+Map.sequence.append(['LH2',-0.05])
+Map.sequence.append(['LH3',0.1])
 Map.sequence.append(['TC',0.])
 Map.sequence.append(['BC',-0.])
 Map.sequence.append(['LV1',0.])
@@ -120,8 +120,8 @@ Map.sweep_dim = [51,101,101]
 
 #Map.ramp_slot(17,'dLP2_{meta}',-0.3,-0.3,1)
 #Map.ramp_slot(18,'dLH1_{meta}',-0.3,0.3,1)
-Map.ramp_slot(19,'dLH2_{meta}',-0.05,0.1,2)
-Map.ramp_slot(20,'dLH3_{meta}',-0.1,0.05,1)
+#Map.ramp_slot(19,'dLH2_{meta}',-0.05,0.1,2)
+#Map.ramp_slot(20,'dLH3_{meta}',-0.1,0.05,1)
 #Map.ramp_slot(21,'dTC_{meta}',-0.3,0.3,2)
 #Map.ramp_slot(22,'dBC_{meta}',-0.3,0.3,2)
 #Map.ramp_slot(23,'dLV1_{meta}',-0.3,0.3,1)
