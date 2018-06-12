@@ -1,0 +1,10 @@
+Windows IP Configuration
+
+
+Ethernet adapter Ethernet:
+
+   Connection-specific DNS Suffix  . : neel.local grenoble.cnrs.fr
+   Link-local IPv6 Address . . . . . : fe80::3c30:135f:8e62:2a86%6
+   IPv4 Address. . . . . . . . . . . : 147.173.67.158
+   Subnet Mask . . . . . . . . . . . : 255.255.240.0
+   Default Gateway . . . . . . . . . : 147.173.79.254
