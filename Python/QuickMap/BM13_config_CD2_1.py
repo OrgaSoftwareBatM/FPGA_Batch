@@ -43,7 +43,7 @@ def DAC_ADC_config():
         if key in ['Lbias','Rbias']:
             limits = [-0.5,0.5]
         else:
-            limits = [-2.,0.]
+            limits = [-2.2,0.]
         panel = DAC_id[key][0]
         channel = DAC_id[key][1]
         DAC[key] = mc.DAC(name = key,
@@ -66,7 +66,7 @@ def DAC_ADC_config():
     		triggerLength = 300, # Trigger length for ramp mode
     		SampleCount = 200, # Number of points for fast sequence mode
     		send_all_points = 0,
-    		fast_channels = [0,2,3,4,5,6,8,10,11,12,13,14,16,17,18,19],
+    		fast_channels = [1,2,3,4,5,6,8,10,11,12,13,14,16,17,18,19],
     		start_ramp_at = 2,
     		upper_limit = 2,
     		lower_limit = -2,
@@ -85,7 +85,7 @@ def DAC_ADC_config():
     		ConversionList='1000;1000',
     		samplingRate=200000,
     		Realtime=1,
-    		RTaverage=100,
+    		RTaverage=200,
     		InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
     		BufferSize=1000000,
     		SamplePerChannel=1,

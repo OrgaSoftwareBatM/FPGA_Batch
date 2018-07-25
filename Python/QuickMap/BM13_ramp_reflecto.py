@@ -234,7 +234,10 @@ class StabilityDiagram():
             
     def txt_summary(self):
         """ Prints a summary for approval before starting the map """
-        txt = '--- Fast ramp ---' + os.linesep
+        txt = '--- Pre-ramp seq ---' + os.linesep
+        for i,line in enumerate(self.sequence):
+            txt += '%d.\t%s\t%s'%(i,line[0],str(line[1]))+os.linesep
+        txt += '--- Fast ramp ---' + os.linesep
         txt += '%d points, %f ms per point' % (self.sweep_dim[0],self.ms_per_point)
         txt += os.linesep
         for name in self.fast_ramp.keys():

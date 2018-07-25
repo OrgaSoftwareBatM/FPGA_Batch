@@ -130,6 +130,9 @@ class RT_fastseq():
                  if channel_id not in self.fs.uint64s[4:20]:
                      print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
                      return 0  
+                 elif self.init_val[name]+val<-2 or self.init_val[name]+val>0:
+                     print ('Error setting slot ' + str(len(seq)) + ' - DAC output out of boundaries')
+                     return 0  
                  else:
                      pos = self.fs.uint64s[4:20].index(channel_id)
                      seq.append([pos,val])
@@ -139,7 +142,7 @@ class RT_fastseq():
     def build_sweep(self):
         for key in self.sweep_param.keys():
             start,stop,axis = self.sweep_param[key]
-            if key=='t_{wait,log}':
+            if ',log' in key:
                 arr = arrayGenerator(dims = self.sweep_dim[1:], axis=axis-1, initial = start, final = stop, method = 'log10')
                 sweep = mc.single_sweep(name = key,
                                         parameter = 0,
@@ -159,9 +162,18 @@ class RT_fastseq():
                                         )
             if key in self.fs_slots.keys():
                 sweep.param = self.fs_slots[key].getParameter() # adding slot n°
+                if self.sequence[sweep.param][0] != 'Timing':
+                    DACname = self.sequence[sweep.param][0]
+                    if self.init_val[DACname]+start<-2.2 or self.init_val[DACname]+start>0:
+                        print ('Error setting slot ' + key + ' - DAC output out of boundaries')
+                        return 0 
+                    elif self.init_val[DACname]+stop<-2.2 or self.init_val[DACname]+stop>0:
+                        print ('Error setting slot ' + key + ' - DAC output out of boundaries')
+                        return 0 
             elif key in self.RF.keys():
                 sweep.param = self.RF[key].getParameter()
             self.sweep_list.append(sweep)
+        return 1
             
     def txt_summary(self):
         txt = '--- Init ---' + os.linesep
@@ -246,7 +258,10 @@ class RT_fastseq():
         out = self.exp.write(fpath=self.exp_path)
         if out==0:
             print(self.exp_path + ' created') 
-            ans = MessageBoxW(None, comment, 'Send Map?', 1)
+            if len(comment)>1000:
+                ans = MessageBoxW(None, comment[:1000], 'Send Map?', 1)
+            else:
+                ans = MessageBoxW(None, comment, 'Send Map?', 1)
             # ans = input('SEND THIS MAP? (Y/N)    ')
             # if ans in ['y','Y']:
             if ans == 1:

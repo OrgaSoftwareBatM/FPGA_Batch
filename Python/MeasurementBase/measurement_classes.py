@@ -27,8 +27,8 @@ for key in keys:
 
 """ parameters """
 compress_sweep = True
-compress_data = True
-compression_level = 9
+compress_data = False
+compression_level = 0
 save_config2ExpFile = True
 # special data type for structured array in numpy
 init_move_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})

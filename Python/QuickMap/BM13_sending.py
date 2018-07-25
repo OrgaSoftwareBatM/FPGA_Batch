@@ -18,8 +18,8 @@ Map = RT_fastseq(folder,prefix)
 ###	 INITIAL VALUES
 ##########################
 ### BIAS
-Map.init_val['Lbias'] = 0.2
-Map.init_val['Rbias'] = 0.2
+Map.init_val['Lbias'] = 0.
+Map.init_val['Rbias'] = 0.
 
 ### LEFT
 Map.init_val['LD1'] = -0.695
@@ -46,10 +46,10 @@ Map.init_val['TC'] = -1.3
 Map.init_val['BC'] = -1.15
 
 ### REFLECTO
-Map.init_val['RF0_{freq}'] = 0.2012
-Map.init_val['RF0_{power}'] = -30.
-Map.init_val['RF1_{freq}'] = 0.142
-Map.init_val['RF1_{power}'] = -30.
+Map.init_val['RF0_{freq}'] = 0.2028
+Map.init_val['RF0_{power}'] = 15.
+Map.init_val['RF1_{freq}'] = 0.1390
+Map.init_val['RF1_{power}'] = 12.
 
 ### RS
 Map.init_val['SAW_{freq}'] = 2.644

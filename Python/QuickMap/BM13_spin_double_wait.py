@@ -52,9 +52,9 @@ Map.init_val['RF1_{freq}'] = 0.1390
 Map.init_val['RF1_{power}'] = 12.
 
 ### RS
-Map.init_val['SAW_{freq}'] = 2.79
+Map.init_val['SAW_{freq}'] = 2.644
 Map.init_val['SAW_{power}'] = -30.
-Map.init_val['SAW_{width}'] = 0.30
+Map.init_val['SAW_{width}'] = 0.1
 Map.init_val['SAW_{delay}'] = 0.1
 
 ##########################
@@ -72,45 +72,51 @@ Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['LH3',-0.01]) # empty
 Map.sequence.append(['Timing',0.1])
 
-Map.sequence.append(['LH2',0.05]) # load
+Map.sequence.append(['LH2',0.055]) # load
 Map.sequence.append(['Timing',0.1])
 
-Map.sequence.append(['LH3',-0.35]) # wait
-Map.sequence.append(['LH2',0.05])
-Map.sequence.append(['LV2',-0.])
-Map.sequence.append(['Timing',1.])
-Map.sequence.append(['Trigger','1101'])
-Map.sequence.append(['LV2',-0.])
+Map.sequence.append(['LH3',-0.1]) # wait 1
+Map.sequence.append(['Timing',2.])
 
-Map.sequence.append(['Trigger','1001'])
-Map.sequence.append(['LH2',0.058])  
+Map.sequence.append(['LH3',-0.2]) # wait 2
+Map.sequence.append(['Timing',15.])
+
+Map.sequence.append(['LH3',-0.1]) # wait 3
+Map.sequence.append(['Timing',1.])
+
+Map.sequence.append(['Trigger','1011'])
+Map.sequence.append(['LH2',0.0560])  
 Map.sequence.append(['LH3',-0.03])
 Map.sequence.append(['Timing',5.])
 
 Map.sequence.append(['Jump',len(Map.sequence)])
 
-Map.sweep_dim = [100,31,250]
+Map.sweep_dim = [100,21,3,250]
 Map.init_val['LD1'] = -0.69
 Map.init_val['LD2'] = -0.832
 #Map.ramp_slot(3,'dLH2_{load}',0.03,0.09,1)
-#Map.ramp_slot(1,'dLH3_{load}',-0.03,0.03,2)
-#Map.ramp_slot(6,'t_{load}',0.,0.2,1)
+#Map.ramp_slot(1,'dLH3_{load}',-0.01,0.01,2)
+#Map.ramp_slot(6,'t_{load}',0.1,0.1,2)
 
-Map.ramp_slot(5,'dLH3_{wait}',-0.35,-0.35,1)
-#Map.ramp_slot(7,'dLH2_{wait}',-0.3,0.3,2)
-#Map.ramp_slot(9,'dLV1_{wait}',-0.3,0.15,2)
-#Map.ramp_slot(10,'dLH1_{wait}',-0.15,0.15,2)
-#Map.ramp_slot(8,'t_{wait,log}',0.1,10.,2)
-Map.ramp_slot(8,'t_{wait}',0.,15.,1)
+#Map.ramp_slot(5,'dLH3_{wait,1}',-0.1,-0.4,1)
+#Map.ramp_slot(6,'t_{wait,1,log}',0.2,20.,2)
+#Map.ramp_slot(6,'t_{wait,1}',0.,15.,2)
 
-#Map.ramp_slot(10,'dLH2_{meas}',0.0535,0.0535,2)
-#Map.ramp_slot(12,'dLH2_{meas}',0.015,0.075,1)
+#Map.ramp_slot(7,'dLH3_{wait,2}',-0.1,-0.4,1)
+Map.ramp_slot(8,'t_{wait,2,log}',0.2,20.,2)
+#Map.ramp_slot(8,'t_{wait,2}',0.,15.,1)
+
+#Map.ramp_slot(9,'dLH3_{wait,3}',-0.1,-0.4,1)
+#Map.ramp_slot(10,'t_{wait,3,log}',0.1,10.,2)
+Map.ramp_slot(10,'t_{wait,3}',0.,15.,1)
+
+#Map.ramp_slot(12,'dLH2_{meas}',0.0535,0.0535,2)
+#Map.ramp_slot(12,'dLH2_{meas}',0.03,0.06,1)
 
 
 #Map.ramp_DAC('LD1',-0.6,-0.9,2)
-#Map.ramp_DAC('LD2',-0.75,-0.9,2)
+#Map.ramp_DAC('LD2',-0.75,-0.9,1)
 #Map.ramp_RF('SAW_{freq}',2.5,2.8,2)
-#Map.ramp_RF('SAW_{power}',-30.,25.,2)
 
 Map.reconfig_ADC(sampling_rate=200e3)
 Map.build_seq()
