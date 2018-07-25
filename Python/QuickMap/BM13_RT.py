@@ -11,12 +11,13 @@ sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
 import ctypes 
 MessageBoxW = ctypes.windll.user32.MessageBoxW
+from shutil import copy2
 import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from GUI.Experiment_GUI import arrayGenerator
 from BM13_config_CD2_1 import DAC_ADC_config,RF_config
-        
+
 def find_unused_name(folder,prefix):
     findex = 0
     exists = True
@@ -24,14 +25,15 @@ def find_unused_name(folder,prefix):
     	findex += 1
     	config_path = folder+'\\'+prefix+'config_'+str(findex)+'.h5'
     	exp_path = folder+'\\'+prefix+ 'exp_'+str(findex)+'.h5'
+    	awg_path = folder+'\\'+prefix+ 'awg_'+str(findex)+'.h5'
     	exists = os.path.isfile(config_path) or os.path.isfile(exp_path)
-    return findex,config_path,exp_path
+    return findex,config_path,exp_path,awg_path
 
 class RT_fastseq():
     def __init__(self,folder=os.getcwd(),prefix='test'):
         self.folder = folder
         self.prefix = prefix
-        self.findex,self.config_path,self.exp_path = find_unused_name(folder,prefix)
+        self.findex,self.config_path,self.exp_path,self.awg_path = find_unused_name(folder,prefix)
         
         self.DAC,self.fs,self.ADC = DAC_ADC_config()  
         self.RF = RF_config()  
@@ -46,6 +48,8 @@ class RT_fastseq():
         self.ms_per_point = 1      # integration time (RT_avg/ADC_freq)
         self.step_wait = 1         # ms wait after every fastseq
         self.sweep_dim = []         
+        self.use_AWG = False
+        self.AWG_status_path = ''
         
     def ramp_DAC(self,name,start,stop,dim,init_at=None):
          if name not in [self.DAC[key].name for key in self.DAC.keys()]:
@@ -254,62 +258,23 @@ class RT_fastseq():
 				Experimental_bool_list = [return_to_init, True],
 				Initial_move = init_move)
         
-        
+
         out = self.exp.write(fpath=self.exp_path)
         if out==0:
             print(self.exp_path + ' created') 
+
+            # fast implementation, check for AWG use
+            if self.use_AWG:
+                src = self.AWG_status_path
+                dest = self.awg_path
+                copy2(self.AWG_status_path,self.awg_path)
+
             if len(comment)>1000:
                 ans = MessageBoxW(None, comment[:1000], 'Send Map?', 1)
             else:
                 ans = MessageBoxW(None, comment, 'Send Map?', 1)
-            # ans = input('SEND THIS MAP? (Y/N)    ')
-            # if ans in ['y','Y']:
             if ans == 1:
                 print ('Sending to Labview')
                 sendFiles(fileList=[self.exp_path])
             else:
                 print ('Sending aborted')
-
-
-###########################
-####	 CHOOSE FILE NAME
-###########################
-##folder = os.getcwd()+'\\test'
-#folder = 'C:\\Partage\\FPGA_Batch_1_7_3_1\\Test'
-#prefix = 'trigger_2_test_'
-##findex,config_path,exp_path = find_unused_name(folder,prefix)
-#Map = RT_fastseq(folder,prefix)
-#
-###########################
-####	 FASTSEQ + CONF FILE   			
-###########################
-#Map.initial_wait = 100    # ms before everything
-#Map.ms_per_point = 1.      # integration time (RT_avg/ADC_freq)
-#Map.step_wait = 1         # ms wait after every fastseq
-#
-#Map.init_val['0:0'] = -0.1
-#
-#Map.sequence.append(['Trigger','1111'])
-#Map.sequence.append(['Timing',1])
-#Map.sequence.append(['Trigger','1000'])
-#Map.sequence.append(['0:0',0.])
-#Map.sequence.append(['Timing',5])
-#Map.sequence.append(['0:0',0.2])
-#Map.sequence.append(['Timing',20])
-#Map.sequence.append(['0:0',0.])
-#Map.sequence.append(['Timing',10])
-#Map.sequence.append(['Jump',len(Map.sequence)])
-#
-#Map.sweep_dim = [31,201,11]
-##Map.ramp_DAC('0:0',-0.3,0.2,0)
-##Map.ramp_DAC('0:1',0.2,-0.2,1)
-##Map.ramp_DAC('0:2',-0.4,-0.5,2)
-#Map.ramp_slot(5,'Vload',0.2,0.4,1)
-#Map.ramp_slot(6,'Tload',10,20,2)
-#
-#
-#Map.reconfig_ADC(sampling_rate=250e3)
-#Map.build_seq()
-#Map.build_sweep()
-#Map.build_files()
-
