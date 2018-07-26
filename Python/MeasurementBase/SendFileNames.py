@@ -1,15 +1,11 @@
 import win32com.client  # Python ActiveX Client
 import time
-##Melusine measurement PC
-#vipath = 'C:\\Documents and Settings\\Bauerle\\Mes documents\\takada\\Labview\\FPGA_Batch_1_4\\Batch_main Folder\\FileLauncher.vi'
-##Melusine analysis PC
-#vipath = 'E:\\Takada\\Program\\Labview\\FPGA_Batch_1_4\\Batch_main Folder\\FileLauncher.vi'
-#Wodan
+from configobj import ConfigObj
 
-# vipath = """C:\\Users\\manip.batm\\Desktop\\FPGA_Batch_1_7_3\\Batch_main Folder\\FileLauncher.vi"""
 vipath = """C:\\Partage\\FPGA_Batch\\Labview\\Batch_main Folder\\FileLauncher.vi"""
-# vipath = """C:\\Users\\manip.batm\\Desktop\\FPGA_Batch_1_7_3\\fpga_batch_1_7.lvproj"""
-#vipath = 'C:\\LabviewProgs\\FPGA_Batch_1_7_3_1\\Batch_main Folder'
+# Import parameters
+# config_file = ConfigObj('..\\Fridge_settings.ini')
+# vipath = config_file['Paths']['file_launcher']
 
 def sendFiles(vipath=vipath,
               fileList = []):

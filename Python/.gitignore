@@ -1,5 +1,7 @@
 *.pyc
 
-Fridge_settings.ini
+.vscode
 
-GUI/log.h5
+*.h5
+
+Fridge_settings.ini

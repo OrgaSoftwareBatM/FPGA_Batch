@@ -5,4 +5,4 @@ Created on Fri Nov  6 20:02:40 2015
 @author: shintaro
 """
 
-__all__=['FastSequenceGenerator','measurement_classes','SendFileNames']
+__all__=['ArrayGenerator','FastSequenceGenerator','measurement_classes','SendFileNames']
