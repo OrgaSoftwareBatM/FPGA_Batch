@@ -7,6 +7,14 @@ Created on Fri Aug 11 19:46:45 2017
 import os,sys
 sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
+
+from _logs.logs import LOG_Manager
+import logging
+log = LOG_Manager()
+# log.start(level_console=logging.DEBUG)
+log.start(level_console=logging.INFO)
+# log.start(level_console=logging.CRITICAL)
+
 import ctypes 
 MessageBoxW = ctypes.windll.user32.MessageBoxW
 import numpy as np
@@ -17,13 +25,6 @@ from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
 from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
-
-from _logs.logs import LOG_Manager
-import logging
-log = LOG_Manager()
-log.start(level_console=logging.DEBUG)
-# log.start(level_console=logging.INFO)
-# log.start(level_console=logging.CRITICAL)
 
 class RT_fastseq():
     def __init__(self,folder=os.getcwd(),prefix='test'):

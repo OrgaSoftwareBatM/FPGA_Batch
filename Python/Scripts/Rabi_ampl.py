@@ -3,15 +3,9 @@ import os, sys
 sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
 import numpy as np
-from AWG.AWG_fast_send import AWG_fast_send
 from AWG.AWG_map import AWG_map
+from AWG.AWG_fast_send import AWG_fast_send
 import AWG.Waveform_elements as WE
-
-from _logs.logs import LOG_Manager
-import logging
-log = LOG_Manager()
-# log.start(level_console=logging.CRITICAL)
-log.start(level_console=logging.DEBUG)
 
 Map = AWG_map(sweep_dim=[11,3,4],waveform_duration=2000)
 

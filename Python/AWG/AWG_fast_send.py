@@ -5,6 +5,7 @@ from _logs.logs import LOG_Manager
 import logging
 log = LOG_Manager()
 # log.start(level_console=logging.DEBUG)
+# log.start(level_console=logging.CRITICAL)
 log.start(level_console=logging.INFO)
 
 import os, sys

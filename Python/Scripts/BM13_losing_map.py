@@ -14,8 +14,9 @@ from QuickMap.QuickMap_RT import RT_fastseq
 ##########################
 # folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
 folder = 'C:\\Users\\manip.batm\\Documents\\GitKraken\\FPGA_Batch\\Python\\h5'
-prefix = 'RT_losing_'
+prefix = 'RT_losing'
 Map = RT_fastseq(folder,prefix)
+Map.use_AWG = True
 
 ##########################
 ###	 TIMINGS 			

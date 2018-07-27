@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-
-
 from _logs.logs import LOG_Manager
 import logging
 log = LOG_Manager()
-log.start(level_console=logging.DEBUG)
-# log.start(level_console=logging.INFO)
+# log.start(level_console=logging.DEBUG)
+log.start(level_console=logging.INFO)
 # log.start(level_console=logging.CRITICAL)
 
 import os, sys
@@ -60,8 +58,8 @@ class AWG_map():
             indexes = np.unravel_index(i,self.sweep_dim,'F')
             indexes = [k for k in indexes]
             self.waveforms[:,:,i] = self.build(indexes)
-        
-        log.send(level="debug",
+
+        log.send(level="info",
                     context="AWG_map.build_all",
                     message=os.linesep+self.__str__())
 

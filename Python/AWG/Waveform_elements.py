@@ -1,8 +1,8 @@
 from _logs.logs import LOG_Manager
 import logging
 log = LOG_Manager()
-# log.start(level_console=logging.DEBUG)
-log.start(level_console=logging.CRITICAL)
+log.start(level_console=logging.INFO)
+# log.start(level_console=logging.CRITICAL)
 
 import os, sys
 sys.path.append(os.getcwd())
