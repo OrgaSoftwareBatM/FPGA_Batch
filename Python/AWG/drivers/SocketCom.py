@@ -182,31 +182,52 @@ class SocketCom(object):
                      message=msg)
             raise ValueError(msg)
 
-        if isinstance(msg, basestring):
+        if isinstance(msg, str): 
             # Check the authorizations
             if runtype.get("awg_tcpip_enabled") and\
                     (self.TCP_IP not in runtype.get("awg_non_authorized_ip")):
-                self.s.send(msg+self.msgEnd)
+                self.s.send((msg+self.msgEnd).encode('utf-8'))
                 # Log
                 log.send(level="debug_com",
                          context="SocketCom.send_message",
                          message="{}".format(msg))
-        else:
+        elif isinstance(msg, bytes):
+            # Check the authorizations
+            if runtype.get("awg_tcpip_enabled") and\
+                    (self.TCP_IP not in runtype.get("awg_non_authorized_ip")):
+                self.s.send((msg+self.msgEnd.encode('utf-8')))
+                # Log
+                log.send(level="debug_com",
+                         context="SocketCom.send_message",
+                         message="{}".format(msg))
+        else:   # assume it's a list
             try:
-                fullMsg = ''
-                for msgPart in msg:
-                    fullMsg = fullMsg + msgPart + self.delimiter
-                fullMsg.rstrip(self.delimiter)
-
-                # Check the authorizations
-                if runtype.get("awg_tcpip_enabled") and\
-                        (self.TCP_IP not in \
-                        runtype.get("awg_non_authorized_ip")):
-                    self.s.send(fullMsg+self.msgEnd)
-                    # Log
-                    log.send(level="debug_com",
-                             context="SocketCom.send_message",
-                             message="{}".format(msg))
+                if isinstance(fullMsg[0],str):
+                    fullMsg = ''
+                    for msgPart in msg:
+                        fullMsg = fullMsg + msgPart + self.delimiter
+                    fullMsg.rstrip(self.delimiter)
+                    # Check the authorizations
+                    if runtype.get("awg_tcpip_enabled") and\
+                            (self.TCP_IP not in runtype.get("awg_non_authorized_ip")):
+                        self.s.send((fullMsg+self.msgEnd).encode('utf-8'))
+                        # Log
+                        log.send(level="debug_com",
+                                context="SocketCom.send_message",
+                                message="{}".format(fullMsg))
+                else:
+                    fullMsg = u''
+                    for msgPart in msg:
+                        fullMsg = fullMsg + msgPart + self.delimiter.encode('utf-8')
+                    fullMsg.rstrip(self.delimiter.encode('utf-8'))
+                    # Check the authorizations
+                    if runtype.get("awg_tcpip_enabled") and\
+                            (self.TCP_IP not in runtype.get("awg_non_authorized_ip")):
+                        self.s.send(fullMsg+self.msgEnd.encode('utf-8'))
+                        # Log
+                        log.send(level="debug_com",
+                                context="SocketCom.send_message",
+                                message="{}".format(fullMsg))
 
             except TypeError:
                 msg = 'TypeError occourred on message text, please ensure \
@@ -239,7 +260,7 @@ class SocketCom(object):
             cont = 1
             dat = ''
             while cont:
-                dat = dat + self.s.recv(self.BUFFER_SIZE)
+                dat = dat + self.s.recv(self.BUFFER_SIZE).decode()
                 if dat.endswith(self.msgEnd):
                     cont = 0
             msg = dat.rstrip(self.msgEnd)
