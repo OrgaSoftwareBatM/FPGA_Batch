@@ -316,7 +316,7 @@ class StabilityDiagram():
                                         ar = arr,
                                         dataType = 'float', # for CMD use dt=h5py.special_dtype(vlen=bytes)
                                         creationMethod = self.sweep_param[key]['method'],
-                                        sweep_dim = axis)
+                                        sweep_dim = axis+1)
             else: 
                 log.send(level='debug',
                             context='StabilityDiagram.build_sweep',
@@ -330,7 +330,7 @@ class StabilityDiagram():
                     [ul,ll] = self.DAC[DAC_name].getLimits()
                     V0 = self.init_val[DAC_name]
                     if any([V0+dV<ll or V0+dV>ul for dV in [start,stop]]):
-                        log.send(level='debug',
+                        log.send(level='critical',
                                     context='StabilityDiagram.build_sweep',
                                     message='{} on slot {} would be out of limits.'.format(DAC_name,sweep.param))
                         return 0

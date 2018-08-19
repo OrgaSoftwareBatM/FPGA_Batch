@@ -17,7 +17,6 @@ sys.path.append(os.pardir)
 config = ConfigParser()
 ans=config.read('..\\Fridge_settings.ini')
 #ans=config.read('Fridge_settings.ini')
-print(ans)
 FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
 keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn','RF_Synth']
@@ -40,7 +39,7 @@ flexible_str_dt = h5py.special_dtype(vlen=bytes)
 readout_kind = [0,1,2,3,12,17]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16,18]
 # list of class name ordered by 'kind' number
-classList = ['ADC','K2000','K34401A','dummy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
+classList = ['ADC','K2000','K34401A','LeCroy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
 classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn','FPGA_ADC','RF_Synth']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
 readConfigForExpFile+= [False,False,False,False,False,False,False,False,False]
@@ -701,7 +700,7 @@ class DSP_lockIn(readout_inst):
 # class for Lecroy8Zi
 recording_time_list = ['100ns','200ns','500ns','1us','2us','5us','10us','20us','50us','100us','200us','500us','1ms','2ms','5ms','10ms','20ms','50ms','100ms','200ms','500ms','1s']
 mem_size_list = [500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000]
-class Lecroy(readout_inst):
+class LeCroy(readout_inst):
     def __init__(self,
                  name='Lecroy',
                  Adress='192.168.137.1',
@@ -714,18 +713,17 @@ class Lecroy(readout_inst):
                  MemorySize=1, #[500,1000,2500,5000,10000,25000,50000,100000,250000,500000,1000000,2500000,5000000,10000000,25000000]
                  SegmentMode=0,
                  NSegment=1,
-                 TriggerSource=4, #C1,C2,C3,C4,EXT,EXT10
-                 TriggerMode=3, #Stop,Single,Normal,Auto
+                 NStep=1,
                  ):
-        super(ADC, self).__init__()
-        self.kind = 0
+        super(LeCroy, self).__init__()
+        self.kind = 3
         self.name = name
         self.strings = [name, Adress, NameList, UnitList, SourceList, ConversionList]
-        self.uint64s = [NChannels, RecordingTime, MemorySize, SegmentMode, NSegment, TriggerSource, TriggerMode]
+        self.uint64s = [NChannels, RecordingTime, MemorySize, SegmentMode, NSegment, NStep]
         self.doubles = [0.,0.]
         
     def getNamesAndUnits(self):
-        return [self.strings[4].split(';'), self.strings[5].split(';')] # return [list of names, list of units]
+        return [self.strings[2].split(';'), self.strings[3].split(';')] # return [list of names, list of units]
     
 
 """-------------------------------------------------------------------------

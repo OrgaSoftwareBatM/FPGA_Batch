@@ -68,7 +68,7 @@ def DAC_ADC_config():
     		triggerLength = 300, # Trigger length for ramp mode
     		SampleCount = 200, # Number of points for fast sequence mode
     		send_all_points = 0,
-    		fast_channels = [1,2,3,4,5,6,8,10,11,12,13,14,16,17,18,19],
+    		fast_channels = [0,2,3,4,5,6,9,10,11,12,13,14,16,17,18,19],
     		start_ramp_at = 2,
     		upper_limit = 2,
     		lower_limit = -2,

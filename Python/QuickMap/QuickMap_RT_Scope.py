@@ -24,6 +24,7 @@ import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
 from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
+from QuickMap.BM13_config_LeCroy import LeCroy_config
 from QuickMap.find_unused_name import find_unused_name
 
 class RT_fastseq():
@@ -32,7 +33,8 @@ class RT_fastseq():
         self.prefix = prefix
         self.findex, self.config_path, self.exp_path = find_unused_name(folder, prefix, search_adjacent_folders=True)
         
-        self.DAC, self.fs, self.ADC = DAC_ADC_config()  
+        self.DAC, self.fs, self.ADC = DAC_ADC_config() 
+        self.Scope = LeCroy_config()
         self.RF = RF_config()  
         self.waits = {}
         self.fs_slots = {}
@@ -303,25 +305,39 @@ class RT_fastseq():
         return txt[:-len(os.linesep)]
 
     def update_timings(self):
-        """ Modifies the ADC and fastseq settings for the current Map"""
-        sampling_rate_per_channel = self.ADC.uint64s[2] / self.ADC.uint64s[1]
-        RT_avg = self.ms_per_point / 1000. * sampling_rate_per_channel
-        if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
-            log.send(level='info',
+#        """ Modifies the ADC and fastseq settings for the current Map"""
+#        sampling_rate_per_channel = self.ADC.uint64s[2] / self.ADC.uint64s[1]
+#        RT_avg = self.ms_per_point / 1000. * sampling_rate_per_channel
+#        if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
+#            log.send(level='info',
+#                        context='RT_fastseq.update_timings',
+#                        message='rounding integrated points to {}'.format(int(RT_avg)))
+#        RT_avg = int(RT_avg)
+#        self.ADC.uint64s[3] = 1 # Turning on real time
+#        self.ADC.uint64s[4] = RT_avg
+#        sample_count = self.sweep_dim[0] * RT_avg # total sample count per sweep
+#        self.ADC.uint64s[7] = sample_count
+#        if self.ADC.uint64s[6] < sample_count:   # Buffer too small
+#            log.send(level='info',
+#                        context='RT_fastseq.update_timings',
+#                        message='ADC buffer size had to be increased to {}'.format(sample_count))
+#            self.ADC.uint64s[6] = sample_count
+        self.fs.uint64s[2] = self.sweep_dim[0] # set FPGA sample count   
+        if self.sweep_dim[0] > 65000: 
+            log.send(level='critical',
                         context='RT_fastseq.update_timings',
-                        message='rounding integrated points to {}'.format(int(RT_avg)))
-        RT_avg = int(RT_avg)
-        self.ADC.uint64s[3] = 1 # Turning on real time
-        self.ADC.uint64s[4] = RT_avg
-        sample_count = self.sweep_dim[0] * RT_avg # total sample count per sweep
-        self.ADC.uint64s[7] = sample_count
-        if self.ADC.uint64s[6] < sample_count:   # Buffer too small
-            log.send(level='info',
-                        context='RT_fastseq.update_timings',
-                        message='ADC buffer size had to be increased to {}'.format(sample_count))
-            self.ADC.uint64s[6] = sample_count
-        self.fs.uint64s[2] = int(self.sweep_dim[0])	 # set sample count
-        
+                        message='too many segments for the scope.')
+            return 0
+        elif self.sweep_dim[0] * self.sweep_dim[1] <= 65000: 
+            Nstep = self.sweep_dim[1]
+        else:
+            multiples = [k for k in range(1,self.sweep_dim[1]) if self.sweep_dim[1] % k == 0]
+            multiples = [m for m in multiples if self.sweep_dim[0] * m <= 65000]
+            Nstep = max(multiples) 
+            
+        Nstep = 1 #disabled for now
+        self.Scope.uint64s[4] = self.sweep_dim[0]*Nstep # set scope segment number 
+        self.Scope.uint64s[5] = Nstep # Nstep    
         log.send(level='debug',
                     context='RT_fastseq.update_timings',
                     message='done.')
@@ -333,7 +349,7 @@ class RT_fastseq():
                     context='RT_fastseq.build_sweep',
                     message=os.linesep + comment)
 
-        self.inst_list = [self.fs, self.ADC]
+        self.inst_list = [self.fs, self.Scope]
         self.inst_list += [self.DAC[key] for key in self.DAC.keys()]
         self.inst_list += [self.waits[key] for key in self.waits.keys()]
         self.inst_list += [self.fs_slots[key] for key in self.fs_slots.keys()]

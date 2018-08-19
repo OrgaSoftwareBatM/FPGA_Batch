@@ -7,7 +7,7 @@ from AWG.AWG_map import AWG_map
 from AWG.AWG_fast_send import AWG_fast_send
 import AWG.Waveform_elements as WE
 
-Map = AWG_map(sweep_dim=[11,3,4],waveform_duration=2000)
+Map = AWG_map(sweep_dim=[11,6],waveform_duration=2000)
 
 pulse = WE.Pulse(name = 'Pulse1_RP1',\
                  channel = 'awg_RP1',\
@@ -16,7 +16,7 @@ pulse = WE.Pulse(name = 'Pulse1_RP1',\
                  unit = 'ns',\
                  Delay = 10.,\
                  )
-pulse.ramp_parameter('Pulse1_RP1_ampl','Amplitude',0.,-2.,3)
+pulse.ramp_parameter('Pulse1_RP1_ampl','Amplitude',0.,-2.,1)
 Map.add_object(pulse)
 
 rabi = WE.Rabi(name = 'Rabi1_RP2',\
@@ -30,8 +30,8 @@ rabi = WE.Rabi(name = 'Rabi1_RP2',\
                 Texch = 10,\
                 unit = 'ns',\
                 )
-rabi.ramp_parameter('Rabi1_Texch','Texch',10,20,2)
-rabi.ramp_parameter('Rabi1_Vexch','Vexch',0.5,1.,3)
+rabi.ramp_parameter('Rabi1_Texch','Texch',10,20,1)
+rabi.ramp_parameter('Rabi1_Vexch','Vexch',0.5,1.,2)
 Map.add_object(rabi)
 
 Map.build_all()

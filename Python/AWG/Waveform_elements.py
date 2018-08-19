@@ -8,9 +8,10 @@ import os, sys
 sys.path.append(os.getcwd())
 sys.path.append(os.pardir)
 import numpy as np
-import matplotlib.pyplot as plt
+import h5py
 
 sampling_rate = 1.2 # GHz
+flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 class Pulse():
     def __init__(self, name, channel, Amplitude=0.8, Duration=100, Delay=25, unit='pts'):
@@ -59,7 +60,7 @@ class Pulse():
 
         if 'Duration' in self.varied_parameters.keys():
             sweep_infos = self.varied_parameters['Duration']
-            amplitude = self.calc_value(sweep_infos['start'],sweep_infos['stop'],sweep_infos['dim'],indexes,sweep_dim)
+            duration = self.calc_value(sweep_infos['start'],sweep_infos['stop'],sweep_infos['dim'],indexes,sweep_dim)
         else:
             duration = self.Duration
             
@@ -108,16 +109,22 @@ class Pulse():
             return 0
         
         grp = h5file.create_group(self.name)
-        for key in ['name','channel','unit','Amplitude','Duration','Delay']:
+        grp.attrs['name'] = self.name
+        grp.attrs['channel'] = self.channel
+        grp.attrs['unit'] = self.unit
+        sweep_list = [self.varied_parameters[key]['name'] for key in self.varied_parameters.keys()]
+        grp.attrs.create('sweep_list', data=sweep_list, dtype=flexible_str_dt)
+        for key in ['Amplitude','Duration','Delay']:
             grp.attrs[key] = getattr(self, key)
             if key in self.varied_parameters:
                 sweep_infos = self.varied_parameters[key]
                 val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']-1])
                 val_list = val_list.reshape((len(val_list),1))
-                dset = grp.create_dataset(key, data=val_list)
+                dset = grp.create_dataset(sweep_infos['name'], data=val_list)
                 dset.attrs['parameter'] = key 
-                for key2 in ['name','type','start','stop','dim']:
+                for key2 in ['type','start','stop','dim']:
                     dset.attrs[key2] = sweep_infos[key2] 
+                dset.attrs['unit'] = self.unit if key in ['Duration','Delay'] else 'V'
         return 1
 
 class Rabi():
@@ -245,19 +252,25 @@ class Rabi():
     def update_h5(self, h5file, sweep_dim):
         if h5file.get(self.name) != None:
             log.send(level="critical",
-                        context="Pulse.update_h5",
+                        context="Rabi.update_h5",
                         message="group {} already exists in h5 file".format(self.name))
             return 0
         
         grp = h5file.create_group(self.name)
-        for key in ['name','channel','unit','Vramp','V11','Vexch','Delay','Tramp','T11','Texch']:
+        grp.attrs['name'] = self.name
+        grp.attrs['channel'] = self.channel
+        grp.attrs['unit'] = self.unit
+        sweep_list = [self.varied_parameters[key]['name'] for key in self.varied_parameters.keys()]
+        grp.attrs.create('sweep_list', data=sweep_list, dtype=flexible_str_dt)
+        for key in ['Vramp','V11','Vexch','Delay','Tramp','T11','Texch']:
             grp.attrs[key] = getattr(self, key)
             if key in self.varied_parameters:
                 sweep_infos = self.varied_parameters[key]
                 val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']-1])
                 val_list = val_list.reshape((len(val_list),1))
-                dset = grp.create_dataset(key, data=val_list)
+                dset = grp.create_dataset(sweep_infos['name'], data=val_list)
                 dset.attrs['parameter'] = key 
-                for key2 in ['name','type','start','stop','dim']:
-                    dset.attrs[key2] = sweep_infos[key2] 
+                for key2 in ['type','start','stop','dim']:
+                    dset.attrs[key2] = sweep_infos[key2]
+                dset.attrs['unit'] = self.unit if key in ['Delay','Tramp','T11','Texch'] else 'V'
         return 1

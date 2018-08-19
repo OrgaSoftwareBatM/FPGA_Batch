@@ -1,6 +1,5 @@
 import win32com.client  # Python ActiveX Client
 import time
-from configobj import ConfigObj
 
 vipath = """C:\\Partage\\FPGA_Batch\\Labview\\Batch_main Folder\\FileLauncher.vi"""
 # Import parameters
@@ -14,4 +13,4 @@ def sendFiles(vipath=vipath,
     VI = LabVIEW.getvireference(vipath)  # Path to LabVIEW VI
     VI._FlagAsMethod("Call")  # Flag "Call" as Method
     VI.setcontrolvalue('Files_temp', fileList)
-    print(time.time()-ini)
+#    print(time.time()-ini)

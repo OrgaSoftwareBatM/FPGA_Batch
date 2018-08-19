@@ -31,6 +31,7 @@ def AWG_fast_send(waveforms,channel_names):
         awg = DRIVER_AWG5014(settings=ini_file['0'])
         awg.load_instructions(waveforms, channel_names)
         awg.SendToInstrument()
+        awg.OutputRunON()
         log.send(level="debug",
                     context="AWG_fast_send",
                     message="done in {} s.".format(time.time()-t0))

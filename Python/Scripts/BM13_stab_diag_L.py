@@ -12,8 +12,8 @@ from QuickMap.QuickMap_ramp import StabilityDiagram
 ##########################
 ###	 CHOOSE FILE NAME
 ##########################
-# folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
-folder = 'C:\\Users\\manip.batm\\Documents\\GitKraken\\FPGA_Batch\\Python\\h5'
+folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
+#folder = 'C:\\Users\\manip.batm\\Documents\\GitKraken\\FPGA_Batch\\Python\\h5'
 prefix = 'stab'
 Map = StabilityDiagram(folder,prefix)
 
@@ -31,13 +31,13 @@ Map.step_wait = 0.       # ms wait after every fastseq
 Map.init_val['Lbias'] = 0.
 Map.init_val['Rbias'] = 0.
 ### LEFT
-Map.init_val['LD1'] = -0.6
-Map.init_val['LD2'] = -0.795
+Map.init_val['LD1'] = -0.705
+Map.init_val['LD2'] = -0.82
 Map.init_val['LV1'] = -1.45
 Map.init_val['LV2'] = -1.45
-Map.init_val['LH1'] = -1.6
-Map.init_val['LH2'] = -0.8
-Map.init_val['LH3'] = -0.6
+Map.init_val['LH1'] = -1.9
+Map.init_val['LH2'] = -0.75
+Map.init_val['LH3'] = -0.9
 Map.init_val['LP2'] = -0.85
 ### RIGHT
 Map.init_val['RD1'] = -0.763
@@ -69,34 +69,47 @@ Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['Timing',1])
 Map.sequence.append(['Trigger','0011'])
 
-#Map.sequence.append(['RH3',0.08])
-#Map.sequence.append(['RH1',0.])  # load 2 electrons
-#Map.sequence.append(['Timing',1.])
-#Map.sequence.append(['RH3',-0.3])
-#Map.sequence.append(['RH1',0.])
+Map.sequence.append(['LH3',0.27])
+Map.sequence.append(['LH2',0.08])  # load 2 electrons
+Map.sequence.append(['Timing',1.])
+Map.sequence.append(['LH3',0.15])
+Map.sequence.append(['LH2',0.1])
+Map.sequence.append(['LH1',0.])
+#Map.sequence.append(['LV2',0.])
+#Map.sequence.append(['LH1',0.])
 
 ##########################
 ###	 MAP
 ##########################
-Map.sweep_dim = [401,401,2]
+Map.sweep_dim = [1001,2]
+#Map.sweep_dim = [401,401]
+Map.init_val['LD1'] = -0.707
+Map.init_val['LD2'] = -0.83
 
-Map.ramp_DAC('RH3',-0.8,-1.25,0)
-# Map.ramp_DAC('RH3',-1.25,-0.8,0,init_at=-1.0)
-#Map.ramp_DAC('RH1',-1.6,-1.3,0,init_at=-1.75)
-Map.ramp_DAC('RH1',-1.9,-1.,1)
+#Map.ramp_DAC('LH3',-0.5,-0.8,0)
+#Map.ramp_DAC('LH3',-0.76,-0.51,0,init_at=-0.9)
+#Map.ramp_DAC('LH1',-1.45,-2.15,0,init_at=-1.75)
+#Map.ramp_DAC('LH1',-2.2,-1.,1)
+#Map.ramp_DAC('LH2',-0.85,-0.55,1)
 
-Map.ramp_DAC('RD1',-0.56,-0.725,1)
-#Map.ramp_DAC('RD2',-0.823,-0.8,1)
+#Map.ramp_DAC('LD1',-0.6,-0.9,1)
+#Map.ramp_DAC('LD1',-0.68,-0.72,1)
+#Map.ramp_DAC('LD2',-0.725,-0.725,1)
 
-#Map.ramp_slot(3,'dRH1_{load}',-0.15,0.15,1)
 
-#Map.ramp_DAC('LD1',-0.55,-1.05,0)
-#Map.ramp_DAC('LD2',-0.55,-1.05,1)
+#Map.ramp_slot(4,'dLH2_{load}',0.05,0.08,2)
+#Map.ramp_slot(7,'dLH2',0.15,0.,1)
+#Map.ramp_slot(8,'dLH1',0.4,0.7,1)
+#Map.ramp_slot(9,'dLV2',-0.15,0.15,1)
+#
+Map.ramp_DAC('LD1',-0.6,-0.9,0)
+Map.ramp_DAC('LD2',-0.83,-0.83,1)
 
 #Map.ramp_RF('RF0_{freq}',0.195,0.210,1)
 #Map.ramp_RF('RF0_{power}',15.,0.,1)
 #Map.ramp_RF('RF1_{freq}',0.120,0.145,1)
-Map.ramp_RF('RF1_{power}',0.,0.2,2)
+#Map.ramp_RF('RF1_{power}',0.,0.2,2)
+
 
 ok_for_launch = Map.build_all()
 if ok_for_launch:

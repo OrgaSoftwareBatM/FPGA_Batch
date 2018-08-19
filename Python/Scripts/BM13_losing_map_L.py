@@ -16,7 +16,7 @@ folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
 #folder = 'C:\\Users\\manip.batm\\Documents\\GitKraken\\FPGA_Batch\\Python\\h5'
 prefix = 'RT_losing'
 Map = RT_fastseq(folder,prefix)
-Map.use_AWG = True
+Map.use_AWG = False
 
 ##########################
 ###	 TIMINGS 			
@@ -31,17 +31,15 @@ Map.step_wait = 0.       # ms wait after every fastseq
 ### BIAS
 Map.init_val['Lbias'] = 0.
 Map.init_val['Rbias'] = 0.
-
 ### LEFT
-Map.init_val['LD1'] = -0.715
-Map.init_val['LD2'] = -0.830
+Map.init_val['LD1'] = -0.705
+Map.init_val['LD2'] = -0.82
 Map.init_val['LV1'] = -1.45
 Map.init_val['LV2'] = -1.45
-Map.init_val['LH1'] = -1.6
-Map.init_val['LH2'] = -0.8
-Map.init_val['LH3'] = -0.6
+Map.init_val['LH1'] = -1.9
+Map.init_val['LH2'] = -0.75
+Map.init_val['LH3'] = -0.9
 Map.init_val['LP2'] = -0.85
-
 ### RIGHT
 Map.init_val['RD1'] = -0.763
 Map.init_val['RD2'] = -1.
@@ -51,56 +49,51 @@ Map.init_val['RH1'] = -1.75
 Map.init_val['RH2'] = -0.7
 Map.init_val['RH3'] = -1.
 Map.init_val['RP2'] = -0.85
-
 ### CHANNEL
 Map.init_val['TC'] = -1.
 Map.init_val['BC'] = -1.
-
 ### REFLECTO
 Map.init_val['RF0_{freq}'] = 0.2028
 Map.init_val['RF0_{power}'] = 15.
 Map.init_val['RF1_{freq}'] = 0.1382
 Map.init_val['RF1_{power}'] = 12.
-
 ### RS
 Map.init_val['SAW_{freq}'] = 2.79
 Map.init_val['SAW_{power}'] = -30.
 Map.init_val['SAW_{width}'] = 0.05
-Map.init_val['SAW_{delay}'] = 800.
+Map.init_val['SAW_{delay}'] = 0.1
 
 ##########################
 ###	 FASTSEQ 			
 ##########################
 Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['Timing',0.1])
-Map.sequence.append(['LH3',-0.6])
-Map.sequence.append(['LH2',0.])
 Map.sequence.append(['Trigger','1011'])
 
-Map.sequence.append(['RH1',0.])  # load 2 electrons
-Map.sequence.append(['RH3',0.1])
+Map.sequence.append(['LH3',0.27])
+Map.sequence.append(['LH2',0.08])  # load 2 electrons
 Map.sequence.append(['Timing',1.])
-Map.sequence.append(['RH3',-0.3])
-Map.sequence.append(['RH1',-0.])
+Map.sequence.append(['LH3',0.15])
+Map.sequence.append(['LH2',0.1])
 
-Map.sequence.append(['RP2',+0.])     # Meas
-Map.sequence.append(['RH1',0.])  
-Map.sequence.append(['RH3',-0.3])
-Map.sequence.append(['RH2',-0.])
+Map.sequence.append(['LP2',+0.])     # Meas
+Map.sequence.append(['LH1',0.])  
+Map.sequence.append(['LH3',0.])
+Map.sequence.append(['LH2',0.1])
 Map.sequence.append(['TC',0.])
 Map.sequence.append(['BC',0.])
-Map.sequence.append(['RV1',+0.])
-Map.sequence.append(['RV2',-0.])
+Map.sequence.append(['LV1',+0.])
+Map.sequence.append(['LV2',-0.])
 Map.sequence.append(['Timing',4.])
 
-Map.sequence.append(['RH2',0.])    # Metastable
-Map.sequence.append(['RH1',0.])
-Map.sequence.append(['RH3',-0.6])
-Map.sequence.append(['Timing',1.])
+Map.sequence.append(['LH2',-0.05])    # Metastable
+Map.sequence.append(['LH1',0.])
+Map.sequence.append(['LH3',0.3])
+Map.sequence.append(['Timing',0.1])
 
-Map.sequence.append(['RH3',-0.3])      # Meas
-Map.sequence.append(['RH1',0.])
-Map.sequence.append(['RH2',0.])
+Map.sequence.append(['LH3',0.])      # Meas
+Map.sequence.append(['LH1',0.])
+Map.sequence.append(['LH2',0.1])
 Map.sequence.append(['Timing',4.])
 
 #Map.sequence.append(['Trigger','1001'])
@@ -110,19 +103,16 @@ Map.sequence.append(['Timing',4.])
 ##########################
 ###	 MAP
 ##########################
-Map.sweep_dim = [80,11,6]
-Map.init_val['RD1'] = -0.632
-Map.init_val['RD2'] = -1.
-#Map.ramp_slot(5,'dRH1_{load}',-0.2,0.,2)
-#Map.ramp_slot(6,'dRH3_{load}',0.08,0.1,2)
+Map.sweep_dim = [51,101,101,10]
+Map.init_val['LD1'] = -0.705
+Map.init_val['LD2'] = -0.801
 
+Map.ramp_slot(18,'dLH1_{meta}',-0.,0.9,2)
+#Map.ramp_slot(17,'dLH2_{meta}',0.15,-0.,2)
+Map.ramp_slot(19,'dLH3_{meta}',0.,0.3,1)
 
-#Map.ramp_slot(19,'dRH2_{meta}',-0.,-1.2,3)
-Map.ramp_slot(20,'dRH1_{meta}',+0.6,-0.3,2)
-Map.ramp_slot(21,'dRH3_{meta}',-0.6,0.3,1)
-
-#Map.ramp_DAC('RD1',-0.6,-0.81,1)
-#Map.ramp_DAC('RD2',-0.65,-1.1,2)
+#Map.ramp_DAC('LD1',-0.6,-1.05,1)
+#Map.ramp_DAC('LD2',-0.6,-1.05,1)
 #Map.ramp_RF('SAW_{freq}',2.5,3.1,1)
 #Map.ramp_RF('SAW_{power}',0.,25.,2)
 
