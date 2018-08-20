@@ -25,7 +25,6 @@
 				<Item Name="ADC_config_fastsweep.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_config_fastsweep.vi"/>
 				<Item Name="ADC_get_array.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_get_array.vi"/>
 				<Item Name="ADC_get_point.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_get_point.vi"/>
-				<Item Name="Get_ADC_conversion_factors.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/Get_ADC_conversion_factors.vi"/>
 				<Item Name="ADC_calc_samples_per_channel.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_calc_samples_per_channel.vi"/>
 			</Item>
 			<Item Name="AWG" Type="Folder">
@@ -139,6 +138,7 @@
 				<Item Name="RemainingTime.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/RemainingTime.vi"/>
 				<Item Name="Select_inst_info.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/Select_inst_info.vi"/>
 				<Item Name="Sweep_mode.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/Sweep_mode.vi"/>
+				<Item Name="SemicolonRemover.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/SemicolonRemover.vi"/>
 			</Item>
 			<Item Name="Get_values.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Get_values.vi"/>
 			<Item Name="Insts_init.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Insts_init.vi"/>
@@ -155,7 +155,6 @@
 		<Item Name="DAC_manual_ramp.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Manual_DAC_ramp/DAC_manual_ramp.vi"/>
 		<Item Name="FileLauncher.vi" Type="VI" URL="../Batch_main Folder/FileLauncher.vi"/>
 		<Item Name="Timer.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/Timer.vi"/>
-		<Item Name="Test_ADC_1.vi" Type="VI" URL="../../../Test_ADC_1.vi"/>
 		<Item Name="Dependencies" Type="Dependencies">
 			<Item Name="vi.lib" Type="Folder">
 				<Item Name="BuildHelpPath.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/BuildHelpPath.vi"/>
@@ -201,8 +200,6 @@
 				<Item Name="lib_path.vi" Type="VI" URL="/&lt;vilib&gt;/addons/h5labview2/base/lib_path.vi"/>
 				<Item Name="Longest Line Length in Pixels.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Longest Line Length in Pixels.vi"/>
 				<Item Name="LVBoundsTypeDef.ctl" Type="VI" URL="/&lt;vilib&gt;/Utility/miscctls.llb/LVBoundsTypeDef.ctl"/>
-				<Item Name="NI_AALBase.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AALBase.lvlib"/>
-				<Item Name="NI_Matrix.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/Matrix/NI_Matrix.lvlib"/>
 				<Item Name="Not Found Dialog.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/error.llb/Not Found Dialog.vi"/>
 				<Item Name="Open File+.vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Open File+.vi"/>
 				<Item Name="Read File+ (string).vi" Type="VI" URL="/&lt;vilib&gt;/Utility/file.llb/Read File+ (string).vi"/>
@@ -390,6 +387,7 @@
 				<Item Name="H5P.lvlib" Type="Library" URL="/&lt;vilib&gt;/addons/h5labview2/props/H5P.lvlib"/>
 				<Item Name="h5o_type.ctl" Type="VI" URL="/&lt;vilib&gt;/addons/h5labview2/base/h5o_type.ctl"/>
 				<Item Name="Waveform Scale and Offset.vi" Type="VI" URL="/&lt;vilib&gt;/Waveform/WDTOps.llb/Waveform Scale and Offset.vi"/>
+				<Item Name="NI_AALBase.lvlib" Type="Library" URL="/&lt;vilib&gt;/Analysis/NI_AALBase.lvlib"/>
 			</Item>
 			<Item Name="cluster2array.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/cluster2array.vi"/>
 			<Item Name="DelayGetInfo.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ATMDelayLine/DelayGetInfo.vi"/>
@@ -406,7 +404,6 @@
 			<Item Name="Get Parameter.ctl" Type="VI" URL="../Batch_main Folder/host-subvis/ATMDelayLine/Drivers/Get Parameter.ctl"/>
 			<Item Name="GetTempFilePath.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/GetTempFilePath.vi"/>
 			<Item Name="jump.ctl" Type="VI" URL="../Batch_main Folder/host-subvis/Fast_sequence/sequence slot/jump.ctl"/>
-			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
 			<Item Name="MakeWorkFile.vi" Type="VI" URL="../Batch_main Folder/host-subvis/Utilities/MakeWorkFile.vi"/>
 			<Item Name="MDrive_Close_Com.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ATMDelayLine/Drivers/MDrive_Close_Com.vi"/>
 			<Item Name="MDrive_Get_Parameter.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ATMDelayLine/Drivers/MDrive_Get_Parameter.vi"/>
@@ -435,19 +432,7 @@
 			<Item Name="Lecroy_get_descriptor.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Driver/Lecroy_get_descriptor.vi"/>
 			<Item Name="Lecroy_get_wfm.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Driver/Lecroy_get_wfm.vi"/>
 			<Item Name="Lecroy_trigger.vi" Type="VI" URL="../../../FPGA-clean_works_1.19f  - Matlab disabled/fpga-clean/host-subVIs/le croy 6050A/Driver/Lecroy_trigger.vi"/>
-			<Item Name="niFpgaWaitOnOcc.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaWaitOnOcc.vi"/>
-			<Item Name="niLvFpga_Close_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Close_sbRIO-9612.vi"/>
-			<Item Name="niLvFpgaFormatErrorSource.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaFormatErrorSource.vi"/>
-			<Item Name="niLvFpgaWhatHappensToTopLevelVI.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaWhatHappensToTopLevelVI.ctl"/>
-			<Item Name="niFpgaNodeNameForErrorReporting.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/interface/common/niFpgaNodeNameForErrorReporting.ctl"/>
-			<Item Name="niLvFpgaAdjustHostInterfaceError.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaAdjustHostInterfaceError.vi"/>
-			<Item Name="niLvFpga_Run_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Run_sbRIO-9612.vi"/>
-			<Item Name="niLvFpgaErrorClusterFromErrorCode.vi" Type="VI" URL="/&lt;vilib&gt;/rvi/errors/niLvFpgaErrorClusterFromErrorCode.vi"/>
-			<Item Name="nirviErrorClusterFromErrorCode.vi" Type="VI" URL="/&lt;vilib&gt;/RVI Host/nirviSupport.llb/nirviErrorClusterFromErrorCode.vi"/>
-			<Item Name="nirviWhatTheDeviceIsDoing.ctl" Type="VI" URL="/&lt;vilib&gt;/rvi/ClientSDK/nirviWhatTheDeviceIsDoing.ctl"/>
-			<Item Name="nirio_resource_hc.ctl" Type="VI" URL="/&lt;vilib&gt;/userdefined/High Color/nirio_resource_hc.ctl"/>
-			<Item Name="niLvFpga_Open_sbRIO-9612.vi" Type="VI" URL="/&lt;vilib&gt;/FPGAPlugInAG/sbRIO-9612/niLvFpga_Open_sbRIO-9612.vi"/>
-			<Item Name="nirviCommon.vi" Type="VI" URL="/&lt;vilib&gt;/express/rvi/timingcommon/nirviCommon.vi"/>
+			<Item Name="lvanlys.dll" Type="Document" URL="/&lt;resource&gt;/lvanlys.dll"/>
 		</Item>
 		<Item Name="Build Specifications" Type="Build"/>
 	</Item>

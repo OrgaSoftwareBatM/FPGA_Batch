@@ -304,17 +304,17 @@ class RT_fastseq():
 
     def update_timings(self):
         """ Modifies the ADC and fastseq settings for the current Map"""
-        sampling_rate_per_channel = self.ADC.uint64s[2] / self.ADC.uint64s[1]
+        sampling_rate_per_channel = self.ADC.uint64s[1] / self.ADC.uint64s[0]
         RT_avg = self.ms_per_point / 1000. * sampling_rate_per_channel
         if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
             log.send(level='info',
                         context='RT_fastseq.update_timings',
                         message='rounding integrated points to {}'.format(int(RT_avg)))
         RT_avg = int(RT_avg)
-        self.ADC.uint64s[3] = 1 # Turning on real time
-        self.ADC.uint64s[4] = RT_avg
+        self.ADC.uint64s[3] = 0 # Turning off segment mode
+        self.ADC.uint64s[2] = RT_avg
+        self.ADC.uint64s[4] = self.sweep_dim[0]
         sample_count = self.sweep_dim[0] * RT_avg # total sample count per sweep
-        self.ADC.uint64s[7] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
             log.send(level='info',
                         context='RT_fastseq.update_timings',

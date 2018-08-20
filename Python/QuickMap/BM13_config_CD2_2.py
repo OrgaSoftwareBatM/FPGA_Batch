@@ -79,21 +79,21 @@ def DAC_ADC_config():
     ###		 ADC
     ##########################
     ADC = mc.ADC(name='ADC',
-    		unit='V',
-    		Range={'+/-0.2V':0, '+/-1V':1, '+/-5V':5, '+/-10V':10}['+/-0.2V'],
-    		NofChannels=2,
-    		NameList='ADC0;ADC1',
-    		UnitList='mV;mV',
-    		ConversionList='1000;1000',
-    		samplingRate=200000,
-    		Realtime=1,
-    		RTaverage=200,
-    		InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
-    		BufferSize=1000000,
-    		SamplePerChannel=1,
-    		ramp_trigger_input = 0,
-    		fast_seq_trigger_input = 0,
-    		)
+                 SourceList='0;1',
+                 NameList='V_{RF,L};V_{RF,R}',
+                 UnitList='mV;mV',
+                 ConversionList='1000;1000',
+                 NofChannels=2,
+                 samplingRate=200000,
+                 downsampling=100,
+                 segment_mode=0,
+                 sample_count=100,
+                 InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
+                 BufferSize=1000000,
+                 SamplePerChannel=1,
+                 trigger_input = 0,
+                 minimum_value = -0.2,
+                 maximum_value = 0.2)
     
     return DAC, fs, ADC
 

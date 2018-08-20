@@ -569,31 +569,31 @@ class readout_inst(object):
 class ADC(readout_inst):
     def __init__(self,
                  name='ADC',
-                 unit='V',
-                 Range={'+/-0.2V':0, '+/-1V':1, '+/-5V':5, '+/-10V':10}['+/-10V'],
+                 SourceList='0;1',
                  NameList='ADC0;ADC1',
                  UnitList='V;V',
                  ConversionList='1.0;1.0',
                  NofChannels=2,
                  samplingRate=250000,
-                 Realtime=0,
-                 RTaverage=100,
+                 downsampling=100,
+                 segment_mode=0,
+                 sample_count=100,
                  InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
                  BufferSize=1000000,
                  SamplePerChannel=1,
-                 ramp_trigger_input = 0,
-                 fast_seq_trigger_input = 1,
-                 conversion=1.0):
+                 trigger_input = 0,
+                 minimum_value = -10.,
+                 maximum_value = +10.):
         super(ADC, self).__init__()
         self.kind = 0
         self.name = name
-        self.strings = [name, '', unit, NameList, UnitList, ConversionList]
-        self.uint64s = [Range, NofChannels, samplingRate, Realtime, RTaverage, InpConfig]
-        self.uint64s+= [BufferSize, SamplePerChannel, ramp_trigger_input, fast_seq_trigger_input]
-        self.doubles = [conversion]
+        self.strings = [name, SourceList, NameList, UnitList, ConversionList]
+        self.uint64s = [NofChannels, samplingRate, downsampling, segment_mode]
+        self.uint64s+= [sample_count, InpConfig, BufferSize, trigger_input]
+        self.doubles = [minimum_value, maximum_value]
         
     def getNamesAndUnits(self):
-        return [self.strings[3].split(';'), self.strings[4].split(';')] # return [list of names, list of units]
+        return [self.strings[2].split(';'), self.strings[3].split(';')] # return [list of names, list of units]
         
 # class for Keythley 2000    
 class K2000(readout_inst):
