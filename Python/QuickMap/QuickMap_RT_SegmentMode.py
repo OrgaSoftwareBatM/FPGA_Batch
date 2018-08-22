@@ -23,6 +23,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
+from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator
 from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
@@ -302,9 +303,9 @@ class RT_fastseq():
             txt += os.linesep
         return txt[:-len(os.linesep)]
 
-    def update_timings(self,segment_duration=1.):
+    def update_timings(self):
         """ Modifies the ADC and fastseq settings for the current Map"""
-        """ segment_duration is the acquisition time per segment in ms """
+        """ the acquisition time per segment is self.ms_per_point """
         sampling_rate_per_channel = self.ADC.uint64s[1] / self.ADC.uint64s[0]
         RT_avg = self.ms_per_point / 1000. * sampling_rate_per_channel
         if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
@@ -321,7 +322,13 @@ class RT_fastseq():
                         context='RT_fastseq.update_timings',
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
-        self.fs.uint64s[2] = int(self.sweep_dim[0])	 # set sample count
+        self.fs.uint64s[0] = 2222	# set divider to 1ms (useless)
+#        seq_time = FPGA_timing_calculator(self.sequence) # total time in ms
+#        self.fs.uint64s[2] = seq_time+1.	 # set sample count
+        self.fs.uint64s[2] = self.sweep_dim[0]	 # set sample count
+#        print (seq_time)
+#        print (self.fs.uint64s[0])
+#        print (self.fs.uint64s[2])
         
         log.send(level='debug',
                     context='RT_fastseq.update_timings',
