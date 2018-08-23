@@ -1962,7 +1962,7 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
         trig_waits = [1] * len(waveforms[0])
         goto_states = list(range(2, 2 + len(waveforms[0])))
         goto_states[-1] = 1
-        jump_tos = [0] * len(waveforms[0])
+        jump_tos = [1] * len(waveforms[0])
         awg_file = self.make_awg_file(waveforms, m1s, m2s,
                                       nreps, trig_waits,
                                       goto_states, jump_tos,
