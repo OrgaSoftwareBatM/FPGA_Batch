@@ -313,14 +313,15 @@ class RT_fastseq():
         RT_avg = int(RT_avg)
         self.ADC.uint64s[3] = 0 # Turning off segment mode
         self.ADC.uint64s[2] = RT_avg
-        self.ADC.uint64s[4] = self.sweep_dim[0]
         sample_count = self.sweep_dim[0] * RT_avg # total sample count per sweep
+        self.ADC.uint64s[4] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
             log.send(level='info',
                         context='RT_fastseq.update_timings',
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
-        self.fs.uint64s[2] = int(self.sweep_dim[0])	 # set sample count
+        self.fs.uint64s[0] = np.ceil(2222*self.ms_per_point)	# set divider
+        self.fs.uint64s[2] = sample_count # set sample count
         
         log.send(level='debug',
                     context='RT_fastseq.update_timings',
@@ -378,7 +379,7 @@ class RT_fastseq():
                                     Experimental_bool_list = [return_to_init, True],
                                     Initial_move = init_move)
         
-        out = self.exp.write(fpath=self.exp_path)
+        out = self.exp.write(fpath=self.exp_path, data_size=self.sweep_dim)
         if out==0:
             log.send(level='debug',
                         context='RT_fastseq.build_files',

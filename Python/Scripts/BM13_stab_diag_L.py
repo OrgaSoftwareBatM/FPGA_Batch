@@ -21,7 +21,7 @@ Map = StabilityDiagram(folder,prefix)
 ###	 TIMINGS 			
 ##########################
 Map.initial_wait = 10.   # ms before everything
-Map.ms_per_point = 0.5 # integration time (fastseq divider)
+Map.ms_per_point = 0.1 # integration time (fastseq divider)
 Map.step_wait = 0.       # ms wait after every fastseq
 
 ##########################
@@ -66,7 +66,7 @@ Map.init_val['SAW_{delay}'] = 0.1
 ###	 FASTSEQ 			
 ##########################
 Map.sequence.append(['Trigger','1111'])
-Map.sequence.append(['Timing',1])
+Map.sequence.append(['Timing',0])
 Map.sequence.append(['Trigger','0011'])
 
 Map.sequence.append(['LH3',0.27])
@@ -81,13 +81,13 @@ Map.sequence.append(['LH1',0.])
 ##########################
 ###	 MAP
 ##########################
-Map.sweep_dim = [1001,2]
+Map.sweep_dim = [401,401]
 #Map.sweep_dim = [401,401]
 Map.init_val['LD1'] = -0.707
 Map.init_val['LD2'] = -0.83
 
 #Map.ramp_DAC('LH3',-0.5,-0.8,0)
-#Map.ramp_DAC('LH3',-0.76,-0.51,0,init_at=-0.9)
+Map.ramp_DAC('LH3',-0.76,-0.51,0,init_at=-0.9)
 #Map.ramp_DAC('LH1',-1.45,-2.15,0,init_at=-1.75)
 #Map.ramp_DAC('LH1',-2.2,-1.,1)
 #Map.ramp_DAC('LH2',-0.85,-0.55,1)
@@ -98,12 +98,12 @@ Map.init_val['LD2'] = -0.83
 
 
 #Map.ramp_slot(4,'dLH2_{load}',0.05,0.08,2)
-#Map.ramp_slot(7,'dLH2',0.15,0.,1)
+Map.ramp_slot(7,'dLH2',0.15,0.,1)
 #Map.ramp_slot(8,'dLH1',0.4,0.7,1)
 #Map.ramp_slot(9,'dLV2',-0.15,0.15,1)
 #
-Map.ramp_DAC('LD1',-0.6,-0.9,0)
-Map.ramp_DAC('LD2',-0.83,-0.83,1)
+#Map.ramp_DAC('LD1',-0.6,-0.9,0)
+#Map.ramp_DAC('LD2',-0.83,-0.83,1)
 
 #Map.ramp_RF('RF0_{freq}',0.195,0.210,1)
 #Map.ramp_RF('RF0_{power}',15.,0.,1)

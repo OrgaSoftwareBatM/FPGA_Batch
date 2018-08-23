@@ -86,7 +86,7 @@ def DAC_ADC_config():
                  NofChannels=2,
                  samplingRate=200000,
                  downsampling=100,
-                 segment_mode=0,
+                 Analysis_type=0,
                  sample_count=100,
                  InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
                  BufferSize=1000000,

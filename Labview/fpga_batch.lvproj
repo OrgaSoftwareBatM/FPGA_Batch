@@ -26,6 +26,9 @@
 				<Item Name="ADC_get_array.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_get_array.vi"/>
 				<Item Name="ADC_get_point.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_get_point.vi"/>
 				<Item Name="ADC_calc_samples_per_channel.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_calc_samples_per_channel.vi"/>
+				<Item Name="ADC_downsampling.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_downsampling.vi"/>
+				<Item Name="ADC_treat_data.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_treat_data.vi"/>
+				<Item Name="ADC_segment.vi" Type="VI" URL="../Batch_main Folder/host-subvis/ADC/ADC_segment.vi"/>
 			</Item>
 			<Item Name="AWG" Type="Folder">
 				<Item Name="AWG_commands.vi" Type="VI" URL="../Batch_main Folder/host-subvis/AWG/AWG_commands.vi"/>

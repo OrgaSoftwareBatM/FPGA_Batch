@@ -23,7 +23,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
-from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator
+from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator, segment_timing
 from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
@@ -42,6 +42,7 @@ class RT_fastseq():
         self.sweep_param = {}  # dict of [method,start,stop,dim]
         self.sweep_list = []
         self.sequence = []  # sequence (without ramp)
+        self.segment_param = []
         
         self.initial_wait = 100    # ms before the show starts
         self.ms_per_point = 1      # integration time (RT_avg/ADC_freq)
@@ -302,33 +303,30 @@ class RT_fastseq():
                 txt += 'dim {} : {} from {} to {}'.format(self.sweep_param[name]['dim'], name, self.sweep_param[name]['start'], self.sweep_param[name]['stop'])
             txt += os.linesep
         return txt[:-len(os.linesep)]
-
+    
     def update_timings(self):
         """ Modifies the ADC and fastseq settings for the current Map"""
-        """ the acquisition time per segment is self.ms_per_point """
+        Nsegment = self.sweep_dim[0]
         sampling_rate_per_channel = self.ADC.uint64s[1] / self.ADC.uint64s[0]
-        RT_avg = self.ms_per_point / 1000. * sampling_rate_per_channel
-        if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
-            log.send(level='info',
-                        context='RT_fastseq.update_timings',
-                        message='rounding integrated points to {}'.format(int(RT_avg)))
-        RT_avg = int(RT_avg)
+        if self.segment_param==[]: # Auto detection
+            t_init,t_segment,t_read = segment_timing(self.sequence)
+            segment_delay = int(np.round(t_init*sampling_rate_per_channel/1000.))
+            segment_length = int(np.round(t_read*sampling_rate_per_channel/1000.))
+            segment_period = t_segment*sampling_rate_per_channel/1000.
+        else:
+            segment_delay,segment_length,segment_period = self.segment_param
+        
+        self.ADC.strings[5] = '{};{};{};{:3f}'.format(segment_delay,Nsegment,segment_length,segment_period)
+        sample_count = np.ceil(segment_delay + Nsegment*segment_period) # total sample count per channel
         self.ADC.uint64s[3] = 1 # Turning ON segment mode
-        self.ADC.uint64s[2] = RT_avg
-        self.ADC.uint64s[4] = self.sweep_dim[0]
-        sample_count = RT_avg # total sample count per segment
+        self.ADC.uint64s[4] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
             log.send(level='info',
                         context='RT_fastseq.update_timings',
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
-        self.fs.uint64s[0] = 2222	# set divider to 1ms (useless)
-#        seq_time = FPGA_timing_calculator(self.sequence) # total time in ms
-#        self.fs.uint64s[2] = seq_time+1.	 # set sample count
-        self.fs.uint64s[2] = self.sweep_dim[0]	 # set sample count
-#        print (seq_time)
-#        print (self.fs.uint64s[0])
-#        print (self.fs.uint64s[2])
+        self.fs.uint64s[0] = 111	# set divider to 50us (better timebase)
+        self.fs.uint64s[2] = np.ceil(sample_count/(sampling_rate_per_channel*50e-6))	 # set sample count
         
         log.send(level='debug',
                     context='RT_fastseq.update_timings',
@@ -386,7 +384,7 @@ class RT_fastseq():
                                     Experimental_bool_list = [return_to_init, True],
                                     Initial_move = init_move)
         
-        out = self.exp.write(fpath=self.exp_path)
+        out = self.exp.write(fpath=self.exp_path, data_size=self.sweep_dim)
         if out==0:
             log.send(level='debug',
                         context='RT_fastseq.build_files',

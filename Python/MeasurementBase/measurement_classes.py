@@ -83,7 +83,7 @@ class Experiment():
         self.Initial_positions = Initial_positions # use for read out only
         self.index = np.array(sweepDim) -1 # Initialize to expected final index            
     
-    def write(self, fpath = ''):
+    def write(self, fpath = '', data_size=[]):
         # Get information about instruments from config file
         measConfig = MeasConfig(filepath=self.configFile)
         measConfig.read()
@@ -125,7 +125,9 @@ class Experiment():
         if measConfig.fastSweep == True:
             fast_sequence = measConfig.list[inst_name_list.index('fast_sequence')]
             fast_seq_data = fast_sequence.sequence
-            if measConfig.ramp == True:
+            if len(data_size)>0:
+                pass
+            elif measConfig.ramp == True:
                 # fast sequence size - 2 (trigger and jump) - start ramp at
                 data_size = [fast_seq_data[1,:].shape[0]-2-fast_sequence.uint64s[20]]+self.dim
             else:
@@ -576,7 +578,7 @@ class ADC(readout_inst):
                  NofChannels=2,
                  samplingRate=250000,
                  downsampling=100,
-                 segment_mode=0,
+                 Analysis_type=0,
                  sample_count=100,
                  InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
                  BufferSize=1000000,
@@ -587,8 +589,8 @@ class ADC(readout_inst):
         super(ADC, self).__init__()
         self.kind = 0
         self.name = name
-        self.strings = [name, SourceList, NameList, UnitList, ConversionList]
-        self.uint64s = [NofChannels, samplingRate, downsampling, segment_mode]
+        self.strings = [name, SourceList, NameList, UnitList, ConversionList, '']
+        self.uint64s = [NofChannels, samplingRate, downsampling, Analysis_type]
         self.uint64s+= [sample_count, InpConfig, BufferSize, trigger_input]
         self.doubles = [minimum_value, maximum_value]
         

@@ -142,17 +142,21 @@ Strings[1] = Source list [This should be same number as 'N channels' ex) '0;2']
 Strings[2] = Name list [This should be same number as 'N channels' ex) 'a;b']
 Strings[3] = Unit list [This should be same number as 'N channels' ex) 'V;V']
 Strings[4] = Conversion factor list [This should be same number as 'N channels' ex) '1.0;1.0']
+Strings[5] = Analysis parameters
 uint64s[0] = N channels
 uint64s[1] = Samplingrate (Hz)
 uint64s[2] = Downsampling (points)
-uint64s[3] = Segment Mode (0:no, else:yes)
-uint64s[4] = Sample count (after downsampling)
+uint64s[3] = Analysis type (0:normal downsampling, else:Treat data according to Strings[5])
+uint64s[4] = Sample count per channel (total samples acquired)
 uint64s[5] = InpConfig [-1: default, 10083: RSE, 10078: NRSE, 10106: Differential, 12529: Pseudodifferential]
 uint64s[6] = Buffer size
 uint64s[7] = Trigger input [usually 0 or 1]
 Doubles[0] = Minimum value
 Doubles[1] = Maximum value
 
+[DATA ANALYSIS OPTIONS]
+0 : downsampling ()
+1 : Segment (First point ; Segment Number ; Segment Length; Segment Period)
 
 - K2000 (1)
 

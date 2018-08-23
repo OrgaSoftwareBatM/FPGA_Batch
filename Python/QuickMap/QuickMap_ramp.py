@@ -22,6 +22,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
+from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator
 from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
@@ -220,17 +221,23 @@ class StabilityDiagram():
                         context='StabilityDiagram.update_timings',
                         message='rounding integrated points to {}'.format(int(RT_avg)))
         RT_avg = int(RT_avg)
-        self.ADC.uint64s[3] = 0 # Turning off segment mode
         self.ADC.uint64s[2] = RT_avg
-        self.ADC.uint64s[4] = self.sweep_dim[0]
-        sample_count = self.sweep_dim[0] * RT_avg # total sample count per sweep
+        pre_ramp_time = FPGA_timing_calculator(self.sequence,ms_per_DAC=self.ms_per_point) # total time in ms
+        pre_ramp_pts = np.ceil(pre_ramp_time*sampling_rate_per_channel/1000.)
+        self.ADC.uint64s[3] = 1 # Turning on segment mode
+        sample_count = self.sweep_dim[0]*RT_avg + pre_ramp_pts  # total sample count per sweep
+        self.ADC.uint64s[4] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
             log.send(level='info',
                         context='StabilityDiagram.update_timings',
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
-        self.fs.uint64s[2] = int(self.sweep_dim[0])	 # set sample count
+            
+        self.fs.uint64s[2] = self.sweep_dim[0]+np.ceil(pre_ramp_time/self.ms_per_point)	 # set sample count for FPGA
         self.fs.uint64s[0] = np.ceil(2222*self.ms_per_point)	# set divider
+        
+        segment_param = [pre_ramp_pts+1,self.sweep_dim[0],RT_avg-2,RT_avg]
+        self.ADC.strings[5] = ';'.join([str(int(ai)) for ai in segment_param])
         
         log.send(level='debug',
                     context='StabilityDiagram.update_timings',
@@ -413,7 +420,7 @@ class StabilityDiagram():
                                     Experimental_bool_list = [return_to_init, True],
                                     Initial_move = init_move)
         
-        out = self.exp.write(fpath=self.exp_path)
+        out = self.exp.write(fpath=self.exp_path, data_size=self.sweep_dim)
         if out==0:
             log.send(level='debug',
                         context='StabilityDiagram.build_files',
