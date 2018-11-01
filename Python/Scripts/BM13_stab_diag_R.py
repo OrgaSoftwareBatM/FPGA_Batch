@@ -21,7 +21,7 @@ Map = StabilityDiagram(folder,prefix)
 ###	 TIMINGS 			
 ##########################
 Map.initial_wait = 10.   # ms before everything
-Map.ms_per_point = 0.5 # integration time (fastseq divider)
+Map.ms_per_point = 0.05 # integration time (fastseq divider)
 Map.step_wait = 0.       # ms wait after every fastseq
 
 ##########################
@@ -31,13 +31,13 @@ Map.step_wait = 0.       # ms wait after every fastseq
 Map.init_val['Lbias'] = 0.
 Map.init_val['Rbias'] = 0.
 ### LEFT
-Map.init_val['LD1'] = -0.6
-Map.init_val['LD2'] = -0.795
+Map.init_val['LD1'] = -0.705
+Map.init_val['LD2'] = -0.82
 Map.init_val['LV1'] = -1.45
 Map.init_val['LV2'] = -1.45
-Map.init_val['LH1'] = -1.6
-Map.init_val['LH2'] = -0.8
-Map.init_val['LH3'] = -0.6
+Map.init_val['LH1'] = -1.9
+Map.init_val['LH2'] = -0.75
+Map.init_val['LH3'] = -0.9
 Map.init_val['LP2'] = -0.85
 ### RIGHT
 Map.init_val['RD1'] = -0.763
@@ -72,29 +72,38 @@ Map.sequence.append(['Trigger','0011'])
 
 #Map.sequence.append(['RH3',0.08])
 #Map.sequence.append(['RH1',0.])  # load 2 electrons
-#Map.sequence.append(['Timing',1.])
 #Map.sequence.append(['RH3',-0.3])
-#Map.sequence.append(['RH1',0.])
+Map.sequence.append(['RH1',0.38])
+Map.sequence.append(['RH2',0.])
+#Map.sequence.append(['RV2',-0.15])
+#Map.sequence.append(['RV1',+0.15])
+Map.sequence.append(['RH3',0.073])
 
 ##########################
 ###	 MAP
 ##########################
-Map.sweep_dim = [401,401]
-Map.init_val['RD1'] = -0.763
-Map.init_val['RD2'] = -1.05
 
-Map.ramp_DAC('RH3',-0.8,-1.25,0)
-# Map.ramp_DAC('RH3',-1.25,-0.8,0,init_at=-1.0)
+Map.sweep_dim = [201,201,50]
+Map.init_val['RD1'] = -0.799
+Map.init_val['RD2'] = -1.015
+
+
+#Map.ramp_DAC('RH3',-0.7,-1.,0,init_at=-1.0)
+#Map.ramp_DAC('RH3',-0.9,-0.75,0,init_at=-1.0)
+Map.ramp_DAC('RH3',-0.918,-0.936,0,init_at=-1.0)
 #Map.ramp_DAC('RH1',-1.6,-1.3,0,init_at=-1.75)
-Map.ramp_DAC('RH1',-1.9,-1.,1)
+#Map.ramp_DAC('RH1',-1.9,-1.,1)
 
-Map.ramp_DAC('RD1',-0.56,-0.725,1)
-Map.ramp_DAC('RD2',-1.07,-1.03,0)
+
+#Map.ramp_DAC('RD1',-0.7,-0.85,1)
+#Map.ramp_DAC('RD2',-1.07,-1.03,1)
 
 #Map.ramp_slot(3,'dRH1_{load}',-0.15,0.15,1)
+Map.ramp_slot(3,'dRH1',0.365,0.395,1)
+#Map.ramp_slot(4,'dRH2',-0.3,0.3,1)
 
-#Map.ramp_DAC('LD1',-0.55,-1.05,0)
-#Map.ramp_DAC('LD2',-0.55,-1.05,1)
+#Map.ramp_DAC('RD1',-0.55,-1.05,1)
+#Map.ramp_DAC('RD2',-0.55,-1.05,0)
 
 #Map.ramp_RF('RF0_{freq}',0.195,0.210,1)
 #Map.ramp_RF('RF0_{power}',15.,0.,1)

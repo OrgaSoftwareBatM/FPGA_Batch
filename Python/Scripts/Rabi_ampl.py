@@ -7,33 +7,41 @@ from AWG.AWG_map import AWG_map
 from AWG.AWG_fast_send import AWG_fast_send
 import AWG.Waveform_elements as WE
 
-Map = AWG_map(sweep_dim=[11,6],waveform_duration=2000)
+Map = AWG_map(sweep_dim=[85,41],waveform_duration=2000)
 
-pulse = WE.Pulse(name = 'Pulse1_RP1',\
-                 channel = 'awg_RP1',\
-                 Amplitude = -2.,\
-                 Duration = 100.,\
-                 unit = 'ns',\
-                 Delay = 10.,\
-                 )
-pulse.ramp_parameter('Pulse1_RP1_ampl','Amplitude',0.,-2.,1)
-Map.add_object(pulse)
-
-rabi = WE.Rabi(name = 'Rabi1_RP2',\
-                channel = 'awg_RP2',\
-                Vramp = 0.8,\
-                V11 = 1.5,\
-                Vexch = 1.,\
-                Delay = 25,\
-                Tramp = 250,\
+rabi = WE.Rabi(name = 'Rabi_RP1',\
+                channel = 'awg_RP1',\
+                Vramp = 0.62,\
+                V11 = 2.,\
+                Vexch = 0.6,\
+                Delay = 50,\
+                Tramp = 500,\
                 T11 = 50,\
-                Texch = 10,\
+                Texch = 15.,\
                 unit = 'ns',\
                 )
-rabi.ramp_parameter('Rabi1_Texch','Texch',10,20,1)
-rabi.ramp_parameter('Rabi1_Vexch','Vexch',0.5,1.,2)
+#rabi.ramp_parameter('t_{ramp, RP1}','Tramp',0,300.,1)
+rabi.ramp_parameter('t_{exch, RP1}','Texch',70,0.,1)
+rabi.ramp_parameter('V_{exch, RP1}','Vexch',-0.17,2.03,2)
 Map.add_object(rabi)
 
-Map.build_all()
+rabi = WE.Rabi(name = 'Rabi_RP2',\
+                channel = 'awg_RP2',\
+                Vramp = -2.25*0.62,\
+                V11 = -2.25*2,\
+                Vexch = -2.25*0.6,\
+                Delay = 50,\
+                Tramp = 500,\
+                T11 = 50,\
+                Texch = 15.,\
+                unit = 'ns',\
+                )
+#rabi.ramp_parameter('t_{ramp, RP2}','Tramp',0,300.,1)
+rabi.ramp_parameter('t_{exch, RP2}','Texch',70,0.,1)
+rabi.ramp_parameter('V_{exch, RP2}','Vexch',-4.5,4.5,2)
+Map.add_object(rabi)
+
+outp = Map.build_all()
 Map.update_h5()
-AWG_fast_send(Map.waveforms,Map.channel_names)
+if outp==1:
+    AWG_fast_send(Map.waveforms,Map.channel_names,Map.wait_elements)

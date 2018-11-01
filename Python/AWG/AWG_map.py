@@ -47,21 +47,37 @@ class AWG_map():
         return wfms
     
     def build_all(self):
-        if np.prod(self.sweep_dim) > 4000:
-            log.send(level="critical",
-                        context="AWG_map.build_all",
-                        message="Sweep_dim is too big for AWG")
-            return 0
-        
-        self.waveforms = np.zeros((4,self.waveform_duration,np.prod(self.sweep_dim)))
-        for i in range(np.prod(self.sweep_dim)):
-            indexes = np.unravel_index(i,self.sweep_dim,'F')
-            indexes = [k for k in indexes]
-            self.waveforms[:,:,i] = self.build(indexes)
-
+        if len(self.sweep_dim)==1:   # only 1 dimension
+            if self.sweep_dim[0]+1>4000:
+                log.send(level="critical",
+                            context="AWG_map.build_all",
+                            message="Sweep_dim is too big for AWG")
+                return 0
+            self.waveforms = np.zeros((4,self.waveform_duration,self.sweep_dim[0]+1))
+            for i in range(self.sweep_dim[0]):
+                self.waveforms[:,:,i] = self.build([i])
+            self.wait_elements = [self.sweep_dim[0]]
+        else:
+            new_dim = [n+1 if i==0 else n for i,n in enumerate(self.sweep_dim)]
+            if np.prod(new_dim)>4000:
+                log.send(level="critical",
+                            context="AWG_map.build_all",
+                            message="Sweep_dim is too big for AWG")
+                return 0
+            is_wait = np.zeros(new_dim)
+            is_wait[-1,:] = 1
+            self.wait_elements = np.sort(np.ravel_multi_index(np.where(is_wait==1),new_dim,order='F'))
+#            self.wait_elements = [np.prod(new_dim)]
+            self.waveforms = np.zeros((4,self.waveform_duration,np.prod(new_dim)))
+            for i in range(np.prod(new_dim)):
+                indexes = np.unravel_index(i,new_dim,'F')
+                if not is_wait[indexes]:
+                    self.waveforms[:,:,i] = self.build(list(indexes))
+        self.waveforms[self.waveforms<-4] = -4.
         log.send(level="info",
                     context="AWG_map.build_all",
                     message=os.linesep+self.__str__())
+        return 1
 
     def __str__(self):
         txt = '--- AWG_map ---' + os.linesep
@@ -104,13 +120,14 @@ class AWG_map():
 
 
 if __name__ == '__main__':
-    a = AWG_map([11,3,4])
-    pulse = WE.Pulse('Pulse1_RP1','awg_RP1')
-    pulse.ramp_parameter('Pulse1_RP1_ampl','Amplitude',0.2,0.4,3)
-    a.add_object(pulse)
-    rabi = WE.Rabi('Rabi1_RP2','awg_RP2')
-    rabi.ramp_parameter('Rabi1_Texch','Texch',10,20,2)
-    rabi.ramp_parameter('Rabi1_Vexch','Vexch',0.5,1.,1)
-    a.add_object(rabi)
-    a.build_all()
+    pass
+#    a = AWG_map([11,3,4])
+#    pulse = WE.Pulse('Pulse1_RP1','awg_RP1')
+#    pulse.ramp_parameter('Pulse1_RP1_ampl','Amplitude',0.2,0.4,3)
+#    a.add_object(pulse)
+#    rabi = WE.Rabi('Rabi1_RP2','awg_RP2')
+#    rabi.ramp_parameter('Rabi1_Texch','Texch',10,20,2)
+#    rabi.ramp_parameter('Rabi1_Vexch','Vexch',0.5,1.,1)
+#    a.add_object(rabi)
+#    a.build_all()
     # a.txt_summary()

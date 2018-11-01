@@ -153,7 +153,7 @@ class RT_fastseq():
             if self.sequence[slotNo][0] not in name: # avoid wrong slot selection
                 log.send(level='critical',
                             context='RT_fastseq.ramp_slot',
-                            message='given slot name {} does not match the one is sequence at position {} ({})'.format(self.sequence[slotNo][0],slotNo,name))
+                            message='given slot name {} does not match the one is sequence at position {} ({})'.format(name,self.sequence[slotNo][0],slotNo))
                 self.critical_error = True
                 return 0
             slot = mc.FastSequenceSlot(name=name,
@@ -231,7 +231,7 @@ class RT_fastseq():
                  if channel_id not in self.fs.uint64s[4:20]:
                      print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
                      return 0  
-                 elif self.init_val[name]+val<-2 or self.init_val[name]+val>0:
+                 elif self.init_val[name]+val<-2.2 or self.init_val[name]+val>0:
                      print ('Error setting slot ' + str(len(seq)) + ' - DAC output out of boundaries')
                      return 0  
                  else:
@@ -308,17 +308,31 @@ class RT_fastseq():
         """ Modifies the ADC and fastseq settings for the current Map"""
         Nsegment = self.sweep_dim[0]
         sampling_rate_per_channel = self.ADC.uint64s[1] / self.ADC.uint64s[0]
+        
         if self.segment_param==[]: # Auto detection
             t_init,t_segment,t_read = segment_timing(self.sequence)
             segment_delay = int(np.round(t_init*sampling_rate_per_channel/1000.))
             segment_length = int(np.round(t_read*sampling_rate_per_channel/1000.))
             segment_period = t_segment*sampling_rate_per_channel/1000.
-        else:
-            segment_delay,segment_length,segment_period = self.segment_param
+            self.ADC.uint64s[3] = 1 # Turning ON segment mode
+            self.ADC.strings[5] = '{};{:3f};{};{}'.format(Nsegment,segment_period,segment_delay,segment_length)
         
-        self.ADC.strings[5] = '{};{};{};{:3f}'.format(segment_delay,Nsegment,segment_length,segment_period)
-        sample_count = np.ceil(segment_delay + Nsegment*segment_period) # total sample count per channel
-        self.ADC.uint64s[3] = 1 # Turning ON segment mode
+        elif len(self.segment_param)==3:
+            segment_period,segment_delay,segment_length = self.segment_param
+            self.ADC.uint64s[3] = 1 # Turning ON segment mode
+            self.ADC.strings[5] = '{};{:3f};{};{}'.format(Nsegment,segment_period,segment_delay,segment_length)
+       
+        elif len(self.segment_param)==5:
+            segment_period,segment_delay,segment_length,segment2_delay,segment2_length = self.segment_param
+            self.ADC.uint64s[3] = 2 # Turning ON segment diff mode
+            self.ADC.strings[5] = '{};{:3f};{};{};{};{}'.format(Nsegment,segment_period,segment_delay,segment_length,segment2_delay,segment2_length)
+        
+        else:
+            log.send(level='critical',
+            context='RT_fastseq.update_timings',
+            message='segment_param not understood.')
+        
+        sample_count = np.ceil(segment_delay + (Nsegment+1)*segment_period) # total sample count per channel
         self.ADC.uint64s[4] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
             log.send(level='info',
@@ -326,7 +340,7 @@ class RT_fastseq():
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
         self.fs.uint64s[0] = 111	# set divider to 50us (better timebase)
-        self.fs.uint64s[2] = np.ceil(sample_count/(sampling_rate_per_channel*50e-6))	 # set sample count
+        self.fs.uint64s[2] = np.ceil(sample_count/(sampling_rate_per_channel*50e-6))+10	 # set sample count
         
         log.send(level='debug',
                     context='RT_fastseq.update_timings',

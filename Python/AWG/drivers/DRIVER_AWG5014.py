@@ -1920,7 +1920,7 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
         # - Channel settings
         self._setChannels()
 
-    def SendToInstrument(self):
+    def SendToInstrument(self,wait_elements):
         """
         QCoDeS version
         """
@@ -1948,7 +1948,7 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
             cm = []
             for i in np.arange(wfs.shape[1]):
                 s = wfs[:, i].size
-                if (cind == 1) and (self.get_general_setting("rank") == "Master"):
+                if (i not in wait_elements) and (cind == 1) and (self.get_general_setting("rank") == "Master"):
                     marker = np.ones(s)
                     marker[0] = 1
                     marker[1:100] = 0
@@ -1958,11 +1958,22 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
             m1s.append(cm)
         m2s = m1s
 
-        nreps = [1] * len(waveforms[0])
-        trig_waits = [1] * len(waveforms[0])
-        goto_states = list(range(2, 2 + len(waveforms[0])))
-        goto_states[-1] = 1
-        jump_tos = [1] * len(waveforms[0])
+        nreps = []
+        trig_waits = []
+        goto_states = []
+        jump_tos = []
+        for i in range(len(waveforms[0])):
+            if i in wait_elements:
+                nreps.append(0)
+                trig_waits.append(0)
+                goto_states.append(i+1)
+                jump_tos.append(i+2 if i<len(waveforms[0])-1 else 1)
+            else:
+                nreps.append(1)
+                trig_waits.append(1)
+                goto_states.append(i+2)
+                jump_tos.append(0)
+                
         awg_file = self.make_awg_file(waveforms, m1s, m2s,
                                       nreps, trig_waits,
                                       goto_states, jump_tos,

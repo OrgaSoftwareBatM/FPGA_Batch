@@ -236,7 +236,7 @@ class StabilityDiagram():
         self.fs.uint64s[2] = self.sweep_dim[0]+np.ceil(pre_ramp_time/self.ms_per_point)	 # set sample count for FPGA
         self.fs.uint64s[0] = np.ceil(2222*self.ms_per_point)	# set divider
         
-        segment_param = [pre_ramp_pts+1,self.sweep_dim[0],RT_avg-2,RT_avg]
+        segment_param = [self.sweep_dim[0],RT_avg,pre_ramp_pts,RT_avg]
         self.ADC.strings[5] = ';'.join([str(int(ai)) for ai in segment_param])
         
         log.send(level='debug',

@@ -156,7 +156,8 @@ Doubles[1] = Maximum value
 
 [DATA ANALYSIS OPTIONS]
 0 : downsampling ()
-1 : Segment (First point ; Segment Number ; Segment Length; Segment Period)
+1 : Segment (Segment Number; Segment Period ; First point ; Segment Length)
+1 : Segment diff (Segment Number; Segment Period ; First point ; Segment 1 Length ; Segment 2 Delay ; Segment 2 Length)
 
 - K2000 (1)
 

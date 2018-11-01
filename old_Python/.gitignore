@@ -1,0 +1,5 @@
+*.pyc
+
+Fridge_settings.ini
+
+GUI/log.h5

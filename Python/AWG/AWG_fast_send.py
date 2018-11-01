@@ -18,7 +18,7 @@ from AWG.drivers.DRIVER_AWG5014 import DRIVER_AWG5014
 
 config_file = '..\\AWG\\drivers\\Baptiste_AWG.ini'
 
-def AWG_fast_send(waveforms,channel_names):
+def AWG_fast_send(waveforms,channel_names,wait_elements):
     if not os.path.isfile(config_file):
         log.send(level="critical",
                     context="AWG_fast_send",
@@ -30,8 +30,9 @@ def AWG_fast_send(waveforms,channel_names):
         t0 = time.time()
         awg = DRIVER_AWG5014(settings=ini_file['0'])
         awg.load_instructions(waveforms, channel_names)
-        awg.SendToInstrument()
+        awg.SendToInstrument(wait_elements)
         awg.OutputRunON()
+#        awg._wait_OPC()
         log.send(level="debug",
                     context="AWG_fast_send",
                     message="done in {} s.".format(time.time()-t0))

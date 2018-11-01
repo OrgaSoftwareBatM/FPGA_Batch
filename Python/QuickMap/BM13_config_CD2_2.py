@@ -68,7 +68,7 @@ def DAC_ADC_config():
     		triggerLength = 300, # Trigger length for ramp mode
     		SampleCount = 200, # Number of points for fast sequence mode
     		send_all_points = 0,
-    		fast_channels = [0,2,3,4,5,6,9,10,11,12,13,14,16,17,18,19],
+    		fast_channels = [1,2,3,4,5,6,9,10,11,12,13,14,16,17,18,19],
     		start_ramp_at = 2,
     		upper_limit = 2,
     		lower_limit = -2,
@@ -76,7 +76,7 @@ def DAC_ADC_config():
     		)
     
     ##########################
-    ###		 ADC
+    ###		 ADC 2 Channels
     ##########################
     ADC = mc.ADC(name='ADC',
                  SourceList='0;1',
@@ -94,6 +94,46 @@ def DAC_ADC_config():
                  trigger_input = 0,
                  minimum_value = -0.2,
                  maximum_value = 0.2)
+    
+#    ##########################
+#    ###		 ADC 1 Channel
+#    ##########################
+#    ADC = mc.ADC(name='ADC',
+#                 SourceList='1',
+#                 NameList='V_{RF,R}',
+#                 UnitList='mV',
+#                 ConversionList='1000',
+#                 NofChannels=1,
+#                 samplingRate=200000,
+#                 downsampling=100,
+#                 Analysis_type=0,
+#                 sample_count=100,
+#                 InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
+#                 BufferSize=1000000,
+#                 SamplePerChannel=1,
+#                 trigger_input = 0,
+#                 minimum_value = 0.,
+#                 maximum_value = 0.1)
+    
+#    ##########################
+#    ###		 ADC Trigger
+#    ##########################
+#    ADC = mc.ADC(name='ADC',
+#                 SourceList='2',
+#                 NameList='RF_Trigger',
+#                 UnitList='V',
+#                 ConversionList='1.0',
+#                 NofChannels=1,
+#                 samplingRate=200000,
+#                 downsampling=100,
+#                 Analysis_type=0,
+#                 sample_count=100,
+#                 InpConfig={'default':-1,'RSE':10083,'NRSE':10078,'Differential':10106,'Pseudodifferential':12529}['Differential'],
+#                 BufferSize=1000000,
+#                 SamplePerChannel=1,
+#                 trigger_input = 0,
+#                 minimum_value = -0.1,
+#                 maximum_value = 0.1)
     
     return DAC, fs, ADC
 

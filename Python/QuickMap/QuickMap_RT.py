@@ -229,7 +229,7 @@ class RT_fastseq():
                  if channel_id not in self.fs.uint64s[4:20]:
                      print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
                      return 0  
-                 elif self.init_val[name]+val<-2 or self.init_val[name]+val>0:
+                 elif self.init_val[name]+val<-2.2 or self.init_val[name]+val>0:
                      print ('Error setting slot ' + str(len(seq)) + ' - DAC output out of boundaries')
                      return 0  
                  else:
@@ -250,6 +250,8 @@ class RT_fastseq():
                                         initial = start, 
                                         final = stop, 
                                         method = self.sweep_param[key]['method'])
+#                if key=='SAW_{power}':
+#                    arr[1,Ellipsis] = +25.
                 sweep = mc.single_sweep(name = key,
                                         parameter = 0,
                                         ar = arr,
