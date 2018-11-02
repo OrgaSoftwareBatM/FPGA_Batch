@@ -19,7 +19,7 @@ ans=config.read('..\\Fridge_settings.ini')
 #ans=config.read('Fridge_settings.ini')
 FPGA_address = config.get('Instruments','FPGA')
 addressList = {}
-keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn','RF_Synth']
+keys = ['K2000','K34401A','DSP_lockIn','RS_RF','AWG','ATMDelayLine','RF_Attn','RF_Synth','MercuryIPS']
 for key in keys:
     addressList[key] = config.get('Instruments',key)
     
@@ -39,7 +39,7 @@ flexible_str_dt = h5py.special_dtype(vlen=bytes)
 readout_kind = [0,1,2,3,12,17]
 sweep_kind = [4,5,6,7,8,9,10,11,13,14,15,16,18]
 # list of class name ordered by 'kind' number
-classList = ['ADC','K2000','K34401A','LeCroy','DAC','DAC_Lock_in','RS_RF','AWG','dummy','FastSequences','FastSequenceSlot']
+classList = ['ADC','K2000','K34401A','LeCroy','DAC','DAC_Lock_in','RS_RF','AWG','MercuryIPS','FastSequences','FastSequenceSlot']
 classList+= ['CMD','DSP_lockIn','DSP_lockIn_sweep','mswait','ATMDelayLine','RF_Attn','FPGA_ADC','RF_Synth']
 readConfigForExpFile = [False,False,False,False,False,False,True,True,False,True,False]
 readConfigForExpFile+= [False,False,False,False,False,False,False,False,False]
@@ -1222,6 +1222,34 @@ class RF_Attn(sweep_inst):
 
     def getParameter(self):
         return 0
+
+class MercuryIPS(sweep_inst):
+    def __init__(self,
+                 name='MercuryIPS',
+                 IP_address=addressList['MercuryIPS'],
+                 unit='T',
+                 axis = 'GRPZ', # only Z axis implemented for now
+                 permanent_mode = 0, # not implemented yet
+                 wait_after_move = 10, # s
+                 upper_limit = 0.5, # T
+                 lower_limit = -0.5, # T
+                 rate = 0.1, # T/min
+                 ):
+        super(MercuryIPS, self).__init__()
+        self.kind = 8
+        self.name = name
+        self.strings = [name, IP_address, unit, axis]
+        self.uint64s = [permanent_mode, wait_after_move]
+        self.doubles = [upper_limit, lower_limit, rate]
+        
+    def getLimits(self):
+        return [self.doubles[0], self.doubles[1]]
+        
+    def getParameter(self):
+        return 0
+    
+    def getUnit(self):
+        return self.strings[2]
 
 
 if __name__=='__main__':

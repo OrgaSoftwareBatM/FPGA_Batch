@@ -126,7 +126,7 @@ Map.sequence.append(['Jump',4])
 #Map.sequence.append(['Jump',len(Map.sequence)])
 
 #Map.sweep_dim = [12000,10]
-Map.sweep_dim = [121,10000]
+Map.sweep_dim = [121,100,11]
 #Map.sweep_dim = [145,20,2,1000]
 Map.init_val['LD1'] = -0.662
 Map.init_val['LD2'] = -0.818
@@ -174,6 +174,8 @@ Map.segment_param = [71.824, 64, 17]
 #Map.ramp_RF('SAW_{freq}',2.6,3.,1)
 #Map.ramp_RF('SAW_{power}',25.,20.,2)
 #Map.ramp_RF('SAW_{width}',0.03,0.13,2)
+
+Map.ramp_Bfield('B_Z',0.015,0.030,2)
 
 ok_for_launch = Map.build_all()
 if ok_for_launch:

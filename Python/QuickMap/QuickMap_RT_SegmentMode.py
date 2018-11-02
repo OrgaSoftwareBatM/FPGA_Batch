@@ -11,9 +11,9 @@ sys.path.append(os.pardir)
 from _logs.logs import LOG_Manager
 import logging
 log = LOG_Manager()
-# log.start(level_console=logging.DEBUG)
+#log.start(level_console=logging.DEBUG)
 log.start(level_console=logging.INFO)
-# log.start(level_console=logging.CRITICAL)
+#log.start(level_console=logging.CRITICAL)
 
 import ctypes 
 MessageBoxW = ctypes.windll.user32.MessageBoxW
@@ -24,7 +24,7 @@ import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
 from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator, segment_timing
-from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
+from QuickMap.BM13_config_CD2_3 import DAC_ADC_config, RF_config, Bfield_config
 from QuickMap.find_unused_name import find_unused_name
 
 class RT_fastseq():
@@ -35,7 +35,8 @@ class RT_fastseq():
         
         self.DAC, self.fs, self.ADC = DAC_ADC_config()  
         self.RF = RF_config()  
-        self.waits = {}
+        self.waits = {} 
+        self.Bfield = []
         self.fs_slots = {}
         
         self.init_val = {}     # dict of [values]
@@ -213,6 +214,33 @@ class RT_fastseq():
                     context='RT_fastseq.add_wait',
                     message='added {}'.format(name))
         return 1
+    
+    def ramp_Bfield(self, name, start, stop, dim, init_at=None, method='Linear'):
+        """ Only add magnet when it needs to be ramped """
+        if dim == 0:     # adding to the fastseq
+            log.send(level='critical',
+                        context='RT_fastseq.ramp_Bfield',
+                        message='dim 0 not useable for parameter {}'.format(name))
+            self.critical_error = True
+            return 0
+        self.Bfield = Bfield_config()
+        self.Bfield.strings[0] = name
+        
+        self.sweep_param[name] = {}
+        self.sweep_param[name]['method'] = method
+        self.sweep_param[name]['start'] = start
+        self.sweep_param[name]['stop'] = stop
+        self.sweep_param[name]['dim'] = dim
+            
+        if init_at is not None:
+            self.init_val[name] = init_at
+        else:  # unless specified, param is initialized at starting value
+            self.init_val[name] = start
+        
+        log.send(level='debug',
+                    context='RT_fastseq.ramp_Bfield',
+                    message='added {}'.format(name))
+        return 1
 
     def build_seq(self):
          self.fast_channels = []
@@ -358,6 +386,9 @@ class RT_fastseq():
         self.inst_list += [self.waits[key] for key in self.waits.keys()]
         self.inst_list += [self.fs_slots[key] for key in self.fs_slots.keys()]
         self.inst_list += [self.RF[key] for key in self.RF.keys()]
+        if self.Bfield!=[]:
+            self.inst_list += [self.Bfield]
+            
         self.conf = mc.MeasConfig(filepath=self.config_path,
                                     initial_wait = self.initial_wait,
                                     wait_before_meas = 1,	# useless

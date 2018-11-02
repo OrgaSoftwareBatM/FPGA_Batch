@@ -479,6 +479,18 @@ Doubles[24] = ch 4 marker 2 low [V]
 	55: ch4 marker2 delay [ps]
 	56: ch4 skew [ps]
 
+- MercuryIPS (8)
+
+Strings[0] = Name
+Strings[1] = IP address
+Strings[2] = Unit
+Strings[3] = Axis (eg. "GRPZ")
+uint64s[0] = permanent mode (not implemented yet)
+uint64s[1] = wait after move (s)
+Doubles[0] = Upper limit (T)
+Doubles[1] = Lower limit (T)
+Doubles[2] = Rate (T/min, typical 0.1 T/min)
+
 - Fast sequence (9)
 
 Strings[0] = "fast_sequence"

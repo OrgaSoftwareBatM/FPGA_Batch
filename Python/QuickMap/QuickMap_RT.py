@@ -23,7 +23,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
-from QuickMap.BM13_config_CD2_2 import DAC_ADC_config, RF_config
+from QuickMap.BM13_config_CD2_3 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
 class RT_fastseq():
