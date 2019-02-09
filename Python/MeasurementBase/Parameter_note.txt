@@ -157,7 +157,8 @@ Doubles[1] = Maximum value
 [DATA ANALYSIS OPTIONS]
 0 : downsampling ()
 1 : Segment (Segment Number; Segment Period ; First point ; Segment Length)
-1 : Segment diff (Segment Number; Segment Period ; First point ; Segment 1 Length ; Segment 2 Delay ; Segment 2 Length)
+2 : Segment diff (Segment Number; Segment Period ; First point ; Segment 1 Length ; Segment 2 Delay ; Segment 2 Length)
+3 : 2 segments (Segment Number; Segment Period ; First point ; Segment 1 Length ; Segment 2 Delay ; Segment 2 Length)
 
 - K2000 (1)
 
@@ -499,7 +500,7 @@ Strings[2] = Unit
 uint64s[0] = fast sequence divider
 uint64s[1] = trigger length (us)
 uint64s[2] = Sample count (used only for 'fast cycle mode')
-uint64s[3] = send all points? (0: no, else: yes)
+uint64s[3] = send all points? (0: only used slots, 1:update all 4096, 2:don't update anything)
 uint64s[4 ~ 19] = fast channels (0=0:0, ..., 12=1:4, ...63=8:8, else = dummy)
 uint64s[20] = Start ramp at
 Doubles[0] = Upper limit (V)

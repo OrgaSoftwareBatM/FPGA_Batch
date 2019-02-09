@@ -62,7 +62,7 @@ Map.init_val['RF1_{power}'] = 12.
 Map.init_val['SAW_{freq}'] = 2.79
 Map.init_val['SAW_{power}'] = -60.
 Map.init_val['SAW_{width}'] = 0.1
-Map.init_val['SAW_{delay}'] = 20.1
+Map.init_val['SAW_{delay}'] = 5.1
 
 ##########################
 ###	 FAST SEQUENCE	
@@ -80,23 +80,20 @@ Map.sequence.append(['RH2',-0.02])  # 2e
 Map.sequence.append(['RH3',-0.15])
 
 Map.sequence.append(['RH2',0.3])    # WORMHOLE
-Map.sequence.append(['RH1',0.45])
+Map.sequence.append(['RH1',0.2])
 
 #Map.sequence.append(['RH2',0.])    # NOT WORMHOLE
 #Map.sequence.append(['RH1',-0.15])
 
 Map.sequence.append(['RH3',-0.3])
+Map.sequence.append(['Trigger','1000']) # AWG
 Map.sequence.append(['RH2',+0.0])
 
-#Map.sequence.append(['RH1',0.0])
-Map.sequence.append(['Trigger','1000']) # AWG
-Map.sequence.append(['RH1',0.2])
+Map.sequence.append(['RH2',0.3])    # WORMHOLE
+Map.sequence.append(['RH1',0.45])
 
-Map.sequence.append(['RH1',0.45])    # WORMHOLE
-Map.sequence.append(['RH2',0.3])
-
-#Map.sequence.append(['RH1',-0.15])    # NOT WORMHOLE
-#Map.sequence.append(['RH2',0.])
+#Map.sequence.append(['RH2',0.])    # NOT WORMHOLE
+#Map.sequence.append(['RH1',-0.15])
 
 Map.sequence.append(['RH3',-0.15])
 Map.sequence.append(['RH1',0.])
@@ -116,7 +113,7 @@ Map.sequence.append(['Jump',4])
 ###	 MAP
 ##########################
 #Map.sweep_dim = [12000,10]
-Map.sweep_dim = [301,500]
+Map.sweep_dim = [29,13,1000]
 #Map.sweep_dim = [101,5000]
 Map.init_val['LD1'] = -0.731
 Map.init_val['LD2'] = -0.829
@@ -124,8 +121,8 @@ Map.init_val['RD1'] = -0.7
 Map.init_val['RD2'] = -1.0
 
 #Map.segment_param = [47.063, 40, 17]
-#Map.segment_param = [43.838, 35, 17]
-Map.segment_param = [47.067, 38, 17]
+Map.segment_param = [45.450, 37, 17]
+#Map.segment_param = [48.682, 40, 17]
 
 #Map.ramp_slot(5,'dRH3_{load}',0.22,0.25,2)
 #Map.ramp_slot(6,'dRH2_{load}',-0.1,0.05,1)

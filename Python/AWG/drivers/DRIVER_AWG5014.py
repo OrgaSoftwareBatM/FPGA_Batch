@@ -1403,24 +1403,51 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
             waveforms = [waveforms]
             m1s = [m1s]
             m2s = [m2s]
-        for ii in range(len(waveforms)):
-            namelist = []
-            for jj in range(len(waveforms[ii])):
-                if channels is None:
-                    thisname = 'wfm{:03d}ch{}'.format(jj + 1, ii + 1)
-                else:
-                    thisname = 'wfm{:03d}ch{}'.format(jj + 1, channels[ii])
-                namelist.append(thisname)
 
+        # for ii in range(len(waveforms)):   #Baptiste Jan2019
+        # namelist = []
+        # for jj in range(len(waveforms[ii])):
+        #     if channels is None:
+        #         thisname = 'wfm{:03d}ch{}'.format(jj + 1, ii + 1)
+        #     else:
+        #         thisname = 'wfm{:03d}ch{}'.format(jj + 1, channels[ii])
+        #     namelist.append(thisname)
+
+        #     package = self._pack_waveform(waveforms[ii][jj],
+        #                                     m1s[ii][jj],
+        #                                     m2s[ii][jj])
+        #     packed_wfs[thisname] = package
+        # waveform_names.append(namelist)
+
+        for ii in range(len(waveforms)):   #Baptiste Jan2019
+            namelist = []
+            if channels is None:
+                ci = ii
+            else:
+                ci = channels[ii]
+            package = self._pack_waveform(0.*waveforms[ii][0],
+                                          0.*m1s[ii][0],
+                                          0.*m2s[ii][0])
+            packed_wfs['waitch{}'.format(ci)] = package
+            namelist.append('waitch{}'.format(ci))
+            for jj in range(len(waveforms[ii])):
                 package = self._pack_waveform(waveforms[ii][jj],
                                               m1s[ii][jj],
                                               m2s[ii][jj])
-
-                packed_wfs[thisname] = package
-            waveform_names.append(namelist)
-
+                already_exists = False
+                for name in namelist:
+                    if all(package==packed_wfs[name]):
+                        namelist.append(name)
+                        already_exists = True
+                        break
+                if not already_exists:
+                    thisname = 'wfm{:03d}ch{}'.format(jj + 1, ci)
+                    namelist.append(thisname)
+                    packed_wfs[thisname] = package
+            waveform_names.append(namelist[1:])
+            
         wavenamearray = np.array(waveform_names, dtype='str')
-
+#        print(wavenamearray)
         channel_cfg = {}
 
         return self._generate_awg_file(
@@ -1887,7 +1914,9 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
         self.setRun(True)
         # Outputs on
         self.setOutput(True)
-
+        
+        self.queryMessage('*OPC?')  # Baptiste jan2019
+        
         # Close Communication
         self.closeCom()
 
@@ -1920,7 +1949,7 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
         # - Channel settings
         self._setChannels()
 
-    def SendToInstrument(self,wait_elements):
+    def SendToInstrument(self,wait_elements,SAW_elements=[]):
         """
         QCoDeS version
         """
@@ -1939,24 +1968,31 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
             wfs, wf_names = c.get_waveforms()
             waveforms.append([wfs[:,i] for i in np.arange(wfs.shape[1])])
 
-        # Hardcode triggers ...
-        m1s = []
-        channels = []
-        for ckey, cval in self.channels.items():
-            cind = cval.physical_channel
-            channels.append(cind)
-            cm = []
-            for i in np.arange(wfs.shape[1]):
-                s = wfs[:, i].size
-                if (i not in wait_elements) and (cind == 1) and (self.get_general_setting("rank") == "Master"):
-                    marker = np.ones(s)
-                    marker[0] = 1
-                    marker[1:100] = 0
-                else:
-                    marker = np.zeros(s)
-                cm.append(marker)
-            m1s.append(cm)
-        m2s = m1s
+#         Hardcode triggers ...
+#        m1s = []
+#        channels = []
+#        for ckey, cval in self.channels.items():
+#            cind = cval.physical_channel
+#            channels.append(cind)
+#            cm1 = []
+#            for i in np.arange(wfs.shape[1]):
+#                s = wfs[:, i].size
+##                if (i not in wait_elements) and (cind == 1) and (self.get_general_setting("rank") == "Master"):
+#                if (i not in wait_elements) and (self.get_general_setting("rank") == "Master"): #Baptiste Jan2019
+#                    marker = np.zeros(s)
+#                    marker[1:100] = 1
+#                else:
+#                    marker = np.zeros(s)
+#                cm1.append(marker)
+#            m1s.append(cm1)
+#        m2s = m1s
+        
+        channels = [cval.physical_channel for ckey, cval in self.channels.items()]  #Baptiste Feb2019
+        marker_OFF = np.zeros(wfs[:,0].size)
+        marker_ON = np.zeros(wfs[:,0].size); marker_ON[1:100] = 1
+        m1s = [[marker_OFF if i in wait_elements else marker_ON for i in np.arange(wfs.shape[1])]]*4
+        m2s = [[marker_ON if i in SAW_elements else marker_OFF for i in np.arange(wfs.shape[1])]]*4
+        
 
         nreps = []
         trig_waits = []
@@ -1978,7 +2014,7 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
                                       nreps, trig_waits,
                                       goto_states, jump_tos,
                                       channels=channels, preservechannelsettings=False)
-        filename = "test.AWG"
+        filename = "Baptiste.AWG"
         self.openCom()
         self.send_awg_file(filename=filename, awg_file=awg_file)
         self.load_awg_file(filename)

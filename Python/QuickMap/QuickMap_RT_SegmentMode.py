@@ -350,11 +350,17 @@ class RT_fastseq():
             self.ADC.uint64s[3] = 1 # Turning ON segment mode
             self.ADC.strings[5] = '{};{:3f};{};{}'.format(Nsegment,segment_period,segment_delay,segment_length)
        
+#        elif len(self.segment_param)==5:
+#            segment_period,segment_delay,segment_length,segment2_delay,segment2_length = self.segment_param
+#            self.ADC.uint64s[3] = 2 # Turning ON segment diff mode
+#            self.ADC.strings[5] = '{};{:3f};{};{};{};{}'.format(Nsegment,segment_period,segment_delay,segment_length,segment2_delay,segment2_length)
+                   
         elif len(self.segment_param)==5:
             segment_period,segment_delay,segment_length,segment2_delay,segment2_length = self.segment_param
-            self.ADC.uint64s[3] = 2 # Turning ON segment diff mode
+            self.ADC.uint64s[3] = 3 # Turning ON 2 segments mode
             self.ADC.strings[5] = '{};{:3f};{};{};{};{}'.format(Nsegment,segment_period,segment_delay,segment_length,segment2_delay,segment2_length)
-        
+            self.sweep_dim[0] = 2*self.sweep_dim[0]
+            
         else:
             log.send(level='critical',
             context='RT_fastseq.update_timings',

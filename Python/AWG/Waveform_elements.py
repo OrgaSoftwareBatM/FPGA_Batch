@@ -11,6 +11,7 @@ import numpy as np
 import h5py
 
 sampling_rate = 1.2 # GHz
+#sampling_rate = 1. # GHz
 flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 class Pulse():
@@ -47,9 +48,10 @@ class Pulse():
     def make_wf(self, indexes, sweep_dim, waveform_duration=1000):
         if (len(indexes) != len(sweep_dim)) or any([indexes[i]>=sweep_dim[i] for i in range(len(sweep_dim))]):
             self.wf = np.zeros((1,waveform_duration))
+            self.footprint = [0,0]
             log.send(level="critical",
                         context="Waveform_elements.make_wf",
-                        message="Sweeep indexes are incorrect")
+                        message="Sweep indexes are incorrect")
             return (self.wf,0)
 
         if 'Amplitude' in self.varied_parameters.keys():
@@ -88,6 +90,7 @@ class Pulse():
 
         self.wf = np.zeros((wf_length,1))
         self.wf[pos_start:pos_stop] = amplitude   
+        self.footprint = [pos_start,pos_stop]
         return (self.wf,1)
 
     def __str__(self):
@@ -162,6 +165,7 @@ class Ramp():
     def make_wf(self, indexes, sweep_dim, waveform_duration=1000):
         if (len(indexes) != len(sweep_dim)) or any([indexes[i]>=sweep_dim[i] for i in range(len(sweep_dim))]):
             self.wf = np.zeros((1,waveform_duration))
+            self.footprint = [0,0]
             log.send(level="critical",
                         context="Waveform_elements.make_wf",
                         message="Sweeep indexes are incorrect")
@@ -210,6 +214,7 @@ class Ramp():
         self.wf = np.zeros((dur,1))
         ramp = np.linspace(Vstart,Vstop,Tramp)
         self.wf[Delay:Delay+len(ramp),0] = ramp
+        self.footprint = [Delay,Delay+len(ramp)]
         return (self.wf,1)
         
     def __str__(self):
@@ -287,6 +292,7 @@ class Rabi():
     def make_wf(self, indexes, sweep_dim, waveform_duration=1000):
         if (len(indexes) != len(sweep_dim)) or any([indexes[i]>=sweep_dim[i] for i in range(len(sweep_dim))]):
             self.wf = np.zeros((1,waveform_duration))
+            self.footprint = [0,0]
             log.send(level="critical",
                         context="Waveform_elements.make_wf",
                         message="Sweeep indexes are incorrect")
@@ -358,6 +364,7 @@ class Rabi():
         rabi_pulse = np.hstack((np.linspace(Vramp,V11,Tramp),np.linspace(V11,V11,T11)))
         rabi_pulse = np.hstack((rabi_pulse,np.linspace(Vexch,Vexch,Texch),rabi_pulse[::-1]))
         self.wf[Delay:Delay+len(rabi_pulse),0] = rabi_pulse
+        self.footprint = [Delay,Delay+len(rabi_pulse)]
         return (self.wf,1)
         
     def __str__(self):

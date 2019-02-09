@@ -14,7 +14,7 @@ from QuickMap.QuickMap_RT_SegmentMode import RT_fastseq
 ###	 CHOOSE FILE NAME
 ##########################
 folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
-prefix = 'RT_sending'
+prefix = 'RT_spin_calib'
 Map = RT_fastseq(folder,prefix)
 Map.use_AWG = True
 
@@ -59,9 +59,9 @@ Map.init_val['RF1_{freq}'] = 0.1382
 Map.init_val['RF1_{power}'] = 12.
 ### RS
 Map.init_val['SAW_{freq}'] = 2.79
-Map.init_val['SAW_{power}'] = +25
+Map.init_val['SAW_{power}'] = -60.
 Map.init_val['SAW_{width}'] = 0.1
-Map.init_val['SAW_{delay}'] = 1.1
+Map.init_val['SAW_{delay}'] = 5.1
 
 ##########################
 ###	 FASTSEQ 			
@@ -71,90 +71,108 @@ Map.sequence.append(['Timing',1.])
 Map.sequence.append(['Trigger','1010'])
 Map.sequence.append(['Timing',0.1])
 
-Map.sequence.append(['LH3',0.29])  # LOAD LEFT
+Map.sequence.append(['LH2',-0.05])  # LOAD LEFT
+Map.sequence.append(['LH3',0.29])
 #Map.sequence.append(['LH2',-0.05])
-Map.sequence.append(['LH2',0.02])
-#Map.sequence.append(['LH2',0.07])
+Map.sequence.append(['LH2',0.07])
 Map.sequence.append(['LH3',-0.3])
-Map.sequence.append(['LH2',0.])
 
-Map.sequence.append(['RH3',0.12])  # LOAD RIGHT
+Map.sequence.append(['RH2',-0.1])   # LOAD RIGHT
+Map.sequence.append(['RH3',0.12])
 #Map.sequence.append(['RH2',-0.1])
 Map.sequence.append(['RH2',-0.02])
 Map.sequence.append(['RH3',-0.15])
-Map.sequence.append(['RH2',0.])
 
-#Map.sequence.append(['Trigger','1011']) # read charges
-#Map.sequence.append(['Timing',0.5])
-#Map.sequence.append(['Trigger','1010'])
-
+Map.sequence.append(['LH2',0.])    # RECEIVING LEFT
 Map.sequence.append(['LH1',0.5])
-#Map.sequence.append(['LH2',+0.12])    # RECEIVING LEFT
-Map.sequence.append(['LH2',+0.08])    # RECEIVING LEFT
-Map.sequence.append(['LH3',0.])
+Map.sequence.append(['LH2',-0.10])
+Map.sequence.append(['LH3',0.12])
 
 Map.sequence.append(['RH2',0.3])    # SENDING RIGHT
-Map.sequence.append(['RH3',-0.6])
-Map.sequence.append(['RH1',+0.25])
-Map.sequence.append(['RH2',+0.])
+Map.sequence.append(['RH3',-0.5])
+Map.sequence.append(['RH1',0.15])
+Map.sequence.append(['RH2',0.0])
 
-#Map.sequence.append(['Timing',0.0])
-Map.sequence.append(['Trigger','1000']) # Send
-#Map.sequence.append(['Timing',0.0])
+Map.sequence.append(['Trigger','1000']) # MIXING
 
 Map.sequence.append(['LH3',-0.3])   # BACK LEFT
+Map.sequence.append(['LH2',-0.3])
+Map.sequence.append(['LH3',0.16]) # TUNNEL SELECTIVE L
+#Map.sequence.append(['LH2',-0.])
+#Map.sequence.append(['LH3',-0.3]) # TUNNEL SELECTIVE L
+Map.sequence.append(['LH3',-0.3])
 Map.sequence.append(['LH2',0.0])
 
 Map.sequence.append(['RH2',0.3])   # BACK RIGHT
 Map.sequence.append(['RH1',0.])
 Map.sequence.append(['RH3',-0.15])
 Map.sequence.append(['RH2',0.])
+Map.sequence.append(['RH2',-0.35]) # TUNNEL SELECTIVE R
+Map.sequence.append(['RH2',0.])
 
 Map.sequence.append(['Trigger','1011']) # CHARGE SENSING
-Map.sequence.append(['Timing',0.5])
+Map.sequence.append(['Timing',0.2])
 Map.sequence.append(['Trigger','1010'])
-Map.sequence.append(['LH1',0.0])
+Map.sequence.append(['LH1',0.])
+
 Map.sequence.append(['Jump',4])
 #Map.sequence.append(['Jump',len(Map.sequence)])
 
 #Map.sweep_dim = [12000,10]
-Map.sweep_dim = [73,49,1000]
-#Map.sweep_dim = [121,1000]
+#Map.sweep_dim = [61,61,250]
+#Map.sweep_dim = [401,1000]
+Map.sweep_dim = [101,2000]
+#Map.sweep_dim = [100,2,51,5]
 Map.init_val['LD1'] = -0.731
 Map.init_val['LD2'] = -0.829
 Map.init_val['RD1'] = -0.7
 Map.init_val['RD2'] = -1.0
 
-#Map.segment_param = [137.709, 27, 47]
-#Map.segment_param = [139.329, 29, 47, 73, 47]
-#Map.segment_param = [139.329, 29+73, 47]
-Map.segment_param = [88.281, 48, 47]
-
-#Map.ramp_slot(5,'dLH2_{load}',-0.3,0.3,1)
-#Map.ramp_slot(4,'dLH3_{load}',0.35,0.35,2)
+Map.segment_param = [66.447, 57, 17]
+#Map.segment_param = [92.469, 53, 17, 31, 17]
+#Map.segment_param = [92.469, 53, 17]
 #
-#Map.ramp_slot(9,'dRH2_{load}',-0.3,0.3,1)
-#Map.ramp_slot(8,'dRH3_{load}',0.15,0.15,2)
+#Map.ramp_slot(6,'dLH2_{load}',-0.05,0.07,1)
+#Map.ramp_slot(6,'dLH2_{load}',-0.1,0.2,1)
 
-#Map.ramp_slot(17,'dLH1_{wait}',-0.15,0.6,2)
-#Map.ramp_slot(13,'dLH2_{wait}',0.2,-0.2,1)
-#Map.ramp_slot(13,'dLH2_{wait}',0.3,-0.3,1)
-#Map.ramp_slot(17,'dLH3_{wait}',-0.6,0.3,2)
+#Map.ramp_slot(10,'dRH2_{load}',-0.12,0.12,1)
 #
-#Map.ramp_slot(17,'dRH1_{wait}',0,0.45,1)
-#Map.ramp_slot(19,'dRH2_{wait}',-0.3,0.3,3)
-#Map.ramp_slot(18,'dRH3_{wait}',-0.75,0.15,1)
-#
-#Map.ramp_slot(17,'dRV1_{wait}',-0.3,0.3,2)
-#Map.ramp_slot(20,'dLV1_{wait}',-0.3,0.3,1)
+#Map.ramp_slot(16,'dRH2_{crossing}',0.,0.3,1)
 
-#Map.ramp_DAC('LD1',-0.65,-1.1,1)
-#Map.ramp_DAC('LD2',-0.65,-1.1,1)
-#Map.ramp_DAC('RD1',-0.65,-1.1,1)
-#Map.ramp_DAC('RD2',-0.65,-1.1,1)
-#Map.ramp_RF('SAW_{freq}',2.69,2.89,2)
-#Map.ramp_RF('SAW_{power}',25.,10.,1)
-#Map.ramp_RF('SAW_{width}',0.18,0.03,1)
+#Map.ramp_slot(13,'dLH1_{wait}',0.3,0.75,2)
+#Map.ramp_slot(14,'dLH2_{wait}',-0.15,0.1,2)
+#Map.ramp_slot(15,'dLH3_{wait}',-0.45,+0.3,1)
+#Map.ramp_slot(19,'dBC_{wait}',-0.3,0.3,2)
+
+#Map.ramp_slot(18,'dRH1_{wait}',-0.3,0.3,2)
+#Map.ramp_slot(19,'dRH2_{wait}',0.15,-0.15,2)
+#Map.ramp_slot(17,'dRH3_{wait}',-0.9,-0.3,1)
+#
+#Map.ramp_slot(15,'dLH3_{mixing}',0.05,0.2,2)
+#Map.ramp_slot(14,'dLH2_{mixing}',-0.2,0.1,1)
+#
+#Map.ramp_slot(18,'dRH1_{mixing}',-0.15,+0.15,1)
+#Map.ramp_slot(17,'dRH3_{mixing}',-0.8,-0.5,1)
+#Map.ramp_slot(20,'dRH1_{mixing}',0.,-0.05,1)
+#Map.ramp_slot(20,'dRH1_{sending}',0.0,0.3,1)
+#Map.ramp_slot(22,'dRH1_{sending}',-0.3,0.3,1)
+#Map.ramp_slot(22,'dRH1_{sending}',0.06,0.3,1)
+
+#Map.ramp_slot(23,'dLH3_{spin2charge}',0.11,0.2,2)
+
+#Map.ramp_slot(30,'dRH2_{spin2charge}',-0.27,-0.42,2)
+
+#Map.ramp_DAC('LD1',-0.6,-0.75,2)
+#Map.ramp_DAC('LD2',-0.73,-0.88,1)
+
+#Map.ramp_DAC('RD1',-0.65,-0.8,1)
+#Map.ramp_DAC('RD2',-0.85,-1.15,1)
+
+#Map.ramp_RF('SAW_{freq}',2.6,3.,1)
+#Map.ramp_RF('SAW_{power}',3.,18.,1)
+#Map.ramp_RF('SAW_{width}',0.03,0.13,2)
+
+#Map.ramp_Bfield('B_Z',0.06,-0.06,2)
 
 ok_for_launch = Map.build_all()
 if ok_for_launch:

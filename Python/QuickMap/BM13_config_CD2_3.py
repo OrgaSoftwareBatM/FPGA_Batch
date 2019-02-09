@@ -219,7 +219,7 @@ def RF_config():
                  pulse_source = 0, # boolean, 0: internal, 1: external
                  pulse_mode = 0, # 0: single, 1: double, 2: train
                  trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
-                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+                 ex_trigger_input_slope = 1, # boolean, 0: negative, else: positive
                  external_impedance = 0, # 0: 10 kohm, else: 50 ohm
                  frequency_ul=6.001, # GHz upper limit
                  frequency_ll=9e-6, # GHz lower limit
@@ -241,7 +241,7 @@ def RF_config():
                  pulse_source = 0, # boolean, 0: internal, 1: external
                  pulse_mode = 0, # 0: single, 1: double, 2: train
                  trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
-                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+                 ex_trigger_input_slope = 1, # boolean, 0: negative, else: positive
                  external_impedance = 0, # 0: 10 kohm, else: 50 ohm
                  frequency_ul=6.001, # GHz upper limit
                  frequency_ll=9e-6, # GHz lower limit
@@ -263,7 +263,7 @@ def RF_config():
                  pulse_source = 0, # boolean, 0: internal, 1: external
                  pulse_mode = 0, # 0: single, 1: double, 2: train
                  trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
-                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+                 ex_trigger_input_slope = 1, # boolean, 0: negative, else: positive
                  external_impedance = 0, # 0: 10 kohm, else: 50 ohm
                  frequency_ul=6.001, # GHz upper limit
                  frequency_ll=9e-6, # GHz lower limit
@@ -285,7 +285,7 @@ def RF_config():
                  pulse_source = 0, # boolean, 0: internal, 1: external
                  pulse_mode = 0, # 0: single, 1: double, 2: train
                  trigger_mode = 1, # 0: auto, 1: external, 2: external gate, 3: single  
-                 ex_trigger_input_slope = 0, # boolean, 0: negative, else: positive
+                 ex_trigger_input_slope = 1, # boolean, 0: negative, else: positive
                  external_impedance = 0, # 0: 10 kohm, else: 50 ohm
                  frequency_ul=6.001, # GHz upper limit
                  frequency_ll=9e-6, # GHz lower limit

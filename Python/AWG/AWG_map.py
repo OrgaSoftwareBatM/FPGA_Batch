@@ -22,14 +22,21 @@ class AWG_map():
         self.sweep_dim = sweep_dim
         self.waveform_duration = waveform_duration
         self.objects = []
-
-    def add_object(self,obj):
+        
+    def add_object(self,obj,enable_bools=[]):
+        if enable_bools == []:
+            enable_bools =  [True]*self.sweep_dim[0]
         if obj.channel not in self.channel_names:
             log.send(level="critical",
                         context="AWG_map.add_object",
                         message="Unknown channel")
+        elif len(enable_bools) != self.sweep_dim[0]:
+            log.send(level="critical",
+                        context="AWG_map.add_object",
+                        message="Enable bools not understood")
         else:
             obj.cind = self.channel_names.index(obj.channel)
+            obj.enable_bools = enable_bools
             self.objects.append(obj)
             log.send(level="debug",
                         context="AWG_map.add_object",
@@ -38,9 +45,12 @@ class AWG_map():
     def build(self,indexes):
         wfms = np.zeros((4,self.waveform_duration))
         for obj in self.objects:
+            if not obj.enable_bools[indexes[0]]:
+                continue
             (to_add,make_output) = obj.make_wf(indexes,self.sweep_dim,self.waveform_duration)
             if make_output:
-                wfms[obj.cind,:] = wfms[obj.cind,:] + to_add.T
+#                wfms[obj.cind,:] = wfms[obj.cind,:] + to_add.T     # Baptiste Jan2019
+                wfms[obj.cind,obj.footprint[0]:obj.footprint[1]] = to_add[obj.footprint[0]:obj.footprint[1]].T  # Only modify when different than 0
         log.send(level="debug",
                     context="AWG_map.build",
                     message="index {}.".format(indexes))
@@ -57,23 +67,40 @@ class AWG_map():
             for i in range(self.sweep_dim[0]):
                 self.waveforms[:,:,i] = self.build([i])
             self.wait_elements = [self.sweep_dim[0]]
+            self.SAW_elements = []
+            
+        elif self.wait_dim>=len(self.sweep_dim)-1:   # wait element only on last pos
+            if np.prod(self.sweep_dim)+1>4000:
+                log.send(level="critical",
+                            context="AWG_map.build_all",
+                            message="Sweep_dim is too big for AWG")
+                return 0
+            self.waveforms = np.zeros((4,self.waveform_duration,np.prod(self.sweep_dim)+1))
+            for i in range(np.prod(self.sweep_dim)):
+                indexes = np.unravel_index(i,self.sweep_dim,'F')
+                self.waveforms[:,:,i] = self.build(list(indexes))
+            self.wait_elements = [np.prod(self.sweep_dim)]
+            self.SAW_elements = list(np.where(self.SAW_marker*np.prod(self.sweep_dim[1:]))[0])
+            
         else:
-            new_dim = [n+1 if i==0 else n for i,n in enumerate(self.sweep_dim)]
+            new_dim = [n+1 if i==self.wait_dim else n for i,n in enumerate(self.sweep_dim)]
             if np.prod(new_dim)>4000:
                 log.send(level="critical",
                             context="AWG_map.build_all",
                             message="Sweep_dim is too big for AWG")
                 return 0
-            is_wait = np.zeros(new_dim)
-            is_wait[-1,:] = 1
-            self.wait_elements = np.sort(np.ravel_multi_index(np.where(is_wait==1),new_dim,order='F'))
-#            self.wait_elements = [np.prod(new_dim)]
+            self.wait_elements = []
             self.waveforms = np.zeros((4,self.waveform_duration,np.prod(new_dim)))
             for i in range(np.prod(new_dim)):
                 indexes = np.unravel_index(i,new_dim,'F')
-                if not is_wait[indexes]:
+                if indexes[self.wait_dim] == new_dim[self.wait_dim]-1:   # wait element
+                    self.wait_elements.append(i)
+                else:
                     self.waveforms[:,:,i] = self.build(list(indexes))
-        self.waveforms[self.waveforms<-4] = -4.
+            self.SAW_elements = list(np.where(self.SAW_marker*np.prod(new_dim[1:]))[0])
+#        self.waveforms[self.waveforms<-4.5] = -4.5
+#        self.waveforms[self.waveforms>+4.5] = +4.5
+#        self.waveforms[self.waveforms<-4.] = -4.
         log.send(level="info",
                     context="AWG_map.build_all",
                     message=os.linesep+self.__str__())
@@ -82,11 +109,15 @@ class AWG_map():
     def __str__(self):
         txt = '--- AWG_map ---' + os.linesep
         txt += 'sweep_dim = {}'.format(self.sweep_dim) + os.linesep
+        txt += 'wait_dim = {}'.format(self.wait_dim) + os.linesep
+        txt += 'SAW_markers = {}'.format(self.SAW_marker) + os.linesep
         txt += 'waveform_duration = {}'.format(self.waveform_duration) + os.linesep
         txt += '--- Content ---'
         for obj in self.objects:
             txt += os.linesep
             txt += obj.__str__()
+            txt += os.linesep
+            txt += '\tEnable bools : ' + str(obj.enable_bools)
         return txt
 
     def update_h5(self):
@@ -104,6 +135,7 @@ class AWG_map():
                 dset = f.create_dataset('Param_list', (1,),data=np.array((0), dtype='f'))
             dset.attrs.create('sweep_dim', np.array(self.sweep_dim, dtype=np.uint64), dtype='uint64')
             dset.attrs.create('waveform_duration', self.waveform_duration, dtype='uint64')
+            dset.attrs.create('wait_dim', self.wait_dim, dtype='uint64')
             dset.attrs['comments'] = self.__str__() + os.linesep
             dset.attrs.create('obj_list', data=[obj.name for obj in self.objects], dtype=flexible_str_dt)
             sweep_list = []
