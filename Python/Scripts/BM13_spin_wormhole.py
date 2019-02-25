@@ -80,25 +80,18 @@ Map.sequence.append(['RH2',-0.02])  # 2e
 Map.sequence.append(['RH3',-0.15])
 
 Map.sequence.append(['RH2',0.3])    # WORMHOLE
-Map.sequence.append(['RH1',0.2])
+Map.sequence.append(['RH1',0.05])
+Map.sequence.append(['RH3',-0.65])
+Map.sequence.append(['RH2',+0.])
 
-#Map.sequence.append(['RH2',0.])    # NOT WORMHOLE
-#Map.sequence.append(['RH1',-0.15])
-
-Map.sequence.append(['RH3',-0.3])
 Map.sequence.append(['Trigger','1000']) # AWG
-Map.sequence.append(['RH2',+0.0])
 
 Map.sequence.append(['RH2',0.3])    # WORMHOLE
-Map.sequence.append(['RH1',0.45])
-
-#Map.sequence.append(['RH2',0.])    # NOT WORMHOLE
-#Map.sequence.append(['RH1',-0.15])
-
 Map.sequence.append(['RH3',-0.15])
 Map.sequence.append(['RH1',0.])
+Map.sequence.append(['RH2',0.])
 
-Map.sequence.append(['RH2',-0.35]) # TUNNEL SELECTIVE
+Map.sequence.append(['RH2',-0.36]) # TUNNEL SELECTIVE
 #Map.sequence.append(['RH2',-0.15]) # TUNNEL SELECTIVE
 #Map.sequence.append(['RH2',-0]) # TUNNEL SELECTIVE
 Map.sequence.append(['RH2',0.])
@@ -113,7 +106,7 @@ Map.sequence.append(['Jump',4])
 ###	 MAP
 ##########################
 #Map.sweep_dim = [12000,10]
-Map.sweep_dim = [29,13,1000]
+Map.sweep_dim = [49,5000]
 #Map.sweep_dim = [101,5000]
 Map.init_val['LD1'] = -0.731
 Map.init_val['LD2'] = -0.829
@@ -134,7 +127,7 @@ Map.segment_param = [45.450, 37, 17]
 #Map.ramp_slot(10,'dRH3_{wait}',-0.15,-0.45,2)
 #
 
-#Map.ramp_slot(10,'dRH1_{wait}',-0.3,0.,1)
+#Map.ramp_slot(9,'dRH1_{wait}',0.15,0.3,1)
 
 #Map.ramp_slot(18,'dRH2_{spin2charge}',-0.19,-0.1,2)
 #Map.ramp_slot(15,'dRH3_{spin2charge}',-0.35,0.1,3)

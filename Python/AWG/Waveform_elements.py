@@ -41,9 +41,9 @@ class Pulse():
         return 1
 
     def calc_value(self, start, stop, dim, indexes, sweep_dim):
-        val_list = np.linspace(start,stop,sweep_dim[dim-1])
+        val_list = np.linspace(start,stop,sweep_dim[dim])
         # print (val_list[indexes[dim-1]])
-        return val_list[indexes[dim-1]]
+        return val_list[indexes[dim]]
 
     def make_wf(self, indexes, sweep_dim, waveform_duration=1000):
         if (len(indexes) != len(sweep_dim)) or any([indexes[i]>=sweep_dim[i] for i in range(len(sweep_dim))]):
@@ -121,7 +121,7 @@ class Pulse():
             grp.attrs[key] = getattr(self, key)
             if key in self.varied_parameters:
                 sweep_infos = self.varied_parameters[key]
-                val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']-1])
+                val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']])
                 val_list = val_list.reshape((len(val_list),1))
                 dset = grp.create_dataset(sweep_infos['name'], data=val_list)
                 dset.attrs['parameter'] = key 
@@ -158,9 +158,9 @@ class Ramp():
         return 1
 
     def calc_value(self, start, stop, dim, indexes, sweep_dim):
-        val_list = np.linspace(start,stop,sweep_dim[dim-1])
+        val_list = np.linspace(start,stop,sweep_dim[dim])
         # print (val_list[indexes[dim-1]])
-        return val_list[indexes[dim-1]]
+        return val_list[indexes[dim]]
 
     def make_wf(self, indexes, sweep_dim, waveform_duration=1000):
         if (len(indexes) != len(sweep_dim)) or any([indexes[i]>=sweep_dim[i] for i in range(len(sweep_dim))]):
@@ -245,7 +245,7 @@ class Ramp():
             grp.attrs[key] = getattr(self, key)
             if key in self.varied_parameters:
                 sweep_infos = self.varied_parameters[key]
-                val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']-1])
+                val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']])
                 val_list = val_list.reshape((len(val_list),1))
                 dset = grp.create_dataset(sweep_infos['name'], data=val_list)
                 dset.attrs['parameter'] = key 
@@ -285,9 +285,9 @@ class Rabi():
         return 1
 
     def calc_value(self, start, stop, dim, indexes, sweep_dim):
-        val_list = np.linspace(start,stop,sweep_dim[dim-1])
+        val_list = np.linspace(start,stop,sweep_dim[dim])
         # print (val_list[indexes[dim-1]])
-        return val_list[indexes[dim-1]]
+        return val_list[indexes[dim]]
 
     def make_wf(self, indexes, sweep_dim, waveform_duration=1000):
         if (len(indexes) != len(sweep_dim)) or any([indexes[i]>=sweep_dim[i] for i in range(len(sweep_dim))]):
@@ -395,7 +395,7 @@ class Rabi():
             grp.attrs[key] = getattr(self, key)
             if key in self.varied_parameters:
                 sweep_infos = self.varied_parameters[key]
-                val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']-1])
+                val_list = np.linspace(sweep_infos['start'], sweep_infos['stop'], sweep_dim[sweep_infos['dim']])
                 val_list = val_list.reshape((len(val_list),1))
                 dset = grp.create_dataset(sweep_infos['name'], data=val_list)
                 dset.attrs['parameter'] = key 

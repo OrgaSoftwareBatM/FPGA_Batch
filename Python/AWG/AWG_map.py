@@ -57,47 +57,76 @@ class AWG_map():
         return wfms
     
     def build_all(self):
-        if len(self.sweep_dim)==1:   # only 1 dimension
-            if self.sweep_dim[0]+1>4000:
-                log.send(level="critical",
-                            context="AWG_map.build_all",
-                            message="Sweep_dim is too big for AWG")
-                return 0
-            self.waveforms = np.zeros((4,self.waveform_duration,self.sweep_dim[0]+1))
-            for i in range(self.sweep_dim[0]):
-                self.waveforms[:,:,i] = self.build([i])
-            self.wait_elements = [self.sweep_dim[0]]
-            self.SAW_elements = []
+        # if len(self.sweep_dim)==1:   # only 1 dimension
+        #     if self.sweep_dim[0]+1>4000:
+        #         log.send(level="critical",
+        #                     context="AWG_map.build_all",
+        #                     message="Sweep_dim is too big for AWG")
+        #         return 0
+        #     self.waveforms = np.zeros((4,self.waveform_duration,self.sweep_dim[0]+1))
+        #     for i in range(self.sweep_dim[0]):
+        #         self.waveforms[:,:,i] = self.build([i])
+        #     self.wait_elements = [self.sweep_dim[0]]
+        #     self.SAW_elements = list(np.where(self.SAW_marker)[0])
             
+        # elif self.wait_dim>=len(self.sweep_dim)-1:   # wait element only on last pos
+        #     if np.prod(self.sweep_dim)+1>4000:
+        #         log.send(level="critical",
+        #                     context="AWG_map.build_all",
+        #                     message="Sweep_dim is too big for AWG")
+        #         return 0
+        #     self.waveforms = np.zeros((4,self.waveform_duration,np.prod(self.sweep_dim)+1))
+        #     for i in range(np.prod(self.sweep_dim)):
+        #         indexes = np.unravel_index(i,self.sweep_dim,'F')
+        #         self.waveforms[:,:,i] = self.build(list(indexes))
+        #     self.wait_elements = [np.prod(self.sweep_dim)]
+        #     self.SAW_elements = list(np.where(self.SAW_marker*np.prod(self.sweep_dim[1:]))[0])
+            
+        # else:
+        #     new_dim = [n+1 if i==self.wait_dim else n for i,n in enumerate(self.sweep_dim)]
+        #     if np.prod(new_dim)>4000:
+        #         log.send(level="critical",
+        #                     context="AWG_map.build_all",
+        #                     message="Sweep_dim is too big for AWG")
+        #         return 0
+        #     self.wait_elements = []
+        #     self.waveforms = np.zeros((4,self.waveform_duration,np.prod(new_dim)))
+        #     for i in range(np.prod(new_dim)):
+        #         indexes = np.unravel_index(i,new_dim,'F')
+        #         if indexes[self.wait_dim] == new_dim[self.wait_dim]-1:   # wait element
+        #             self.wait_elements.append(i)
+        #         else:
+        #             self.waveforms[:,:,i] = self.build(list(indexes))
+        #     self.SAW_elements = list(np.where(self.SAW_marker*np.prod(new_dim[1:]))[0])
+        
+        if len(self.sweep_dim)==1:   # only 1 dimension
+            N1 = len(self.sweep_dim)
+            self.wait_elements = [self.sweep_dim[0]]
+            self.SAW_elements = list(np.where(self.SAW_marker)[0])
         elif self.wait_dim>=len(self.sweep_dim)-1:   # wait element only on last pos
-            if np.prod(self.sweep_dim)+1>4000:
-                log.send(level="critical",
-                            context="AWG_map.build_all",
-                            message="Sweep_dim is too big for AWG")
-                return 0
-            self.waveforms = np.zeros((4,self.waveform_duration,np.prod(self.sweep_dim)+1))
-            for i in range(np.prod(self.sweep_dim)):
-                indexes = np.unravel_index(i,self.sweep_dim,'F')
-                self.waveforms[:,:,i] = self.build(list(indexes))
+            N1 = np.prod(self.sweep_dim)
             self.wait_elements = [np.prod(self.sweep_dim)]
             self.SAW_elements = list(np.where(self.SAW_marker*np.prod(self.sweep_dim[1:]))[0])
-            
-        else:
-            new_dim = [n+1 if i==self.wait_dim else n for i,n in enumerate(self.sweep_dim)]
-            if np.prod(new_dim)>4000:
-                log.send(level="critical",
-                            context="AWG_map.build_all",
-                            message="Sweep_dim is too big for AWG")
-                return 0
-            self.wait_elements = []
-            self.waveforms = np.zeros((4,self.waveform_duration,np.prod(new_dim)))
-            for i in range(np.prod(new_dim)):
-                indexes = np.unravel_index(i,new_dim,'F')
-                if indexes[self.wait_dim] == new_dim[self.wait_dim]-1:   # wait element
-                    self.wait_elements.append(i)
-                else:
-                    self.waveforms[:,:,i] = self.build(list(indexes))
-            self.SAW_elements = list(np.where(self.SAW_marker*np.prod(new_dim[1:]))[0])
+        else:   # multiple wait elements
+            N1 = np.prod(self.sweep_dim[:self.wait_dim+1])
+            N2 = np.prod(self.sweep_dim[self.wait_dim+1:])
+            self.wait_elements = [(N1+1)*i+N1 for i in range(N2)]
+            self.SAW_elements = list(np.where(self.SAW_marker*np.prod(self.sweep_dim[1:]))[0])
+            self.SAW_elements = [i+sum([we<=i for we in self.wait_elements]) for i in self.SAW_elements]
+
+        if np.prod(self.sweep_dim)+len(self.wait_elements)>4000:
+            log.send(level="critical",
+                        context="AWG_map.build_all",
+                        message="Sweep_dim is too big for AWG")
+            return 0
+        
+        self.waveforms = np.zeros((4,self.waveform_duration,np.prod(self.sweep_dim)+len(self.wait_elements)))
+        for i in range(np.prod(self.sweep_dim)):
+            indexes = np.unravel_index(i,self.sweep_dim,'F')
+            ind = i + int(np.floor(i/N1))
+#            ind = i + sum([we<=i for we in self.wait_elements])
+            self.waveforms[:,:,ind] = self.build(list(indexes))
+
 #        self.waveforms[self.waveforms<-4.5] = -4.5
 #        self.waveforms[self.waveforms>+4.5] = +4.5
 #        self.waveforms[self.waveforms<-4.] = -4.
@@ -148,8 +177,6 @@ class AWG_map():
                     context="AWG_map.update_h5",
                     message='done.')
         return 1
-
-
 
 if __name__ == '__main__':
     pass
