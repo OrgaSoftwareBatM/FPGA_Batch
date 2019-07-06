@@ -15,7 +15,7 @@ from QuickMap.QuickMap_RT_SegmentMode import RT_fastseq
 ##########################
 folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
 #folder = 'C:\\Users\\manip.batm\\Documents\\GitKraken\\FPGA_Batch\\Python\\h5'
-prefix = 'RT_spin_segment'
+prefix = 'RT_PSB'
 Map = RT_fastseq(folder,prefix)
 Map.use_AWG = True
 
@@ -69,7 +69,7 @@ Map.init_val['SAW_{delay}'] = 5.1
 ##########################
 Map.sequence.append(['Trigger','1110'])
 Map.sequence.append(['Timing',1.])
-Map.sequence.append(['Trigger','1010'])
+Map.sequence.append(['Trigger','1011'])
 Map.sequence.append(['Timing',0.1])
 
 Map.sequence.append(['RH2',-0.1])   # LOAD SINGLET
@@ -79,17 +79,23 @@ Map.sequence.append(['RH2',-0.02])  # 2e
 #Map.sequence.append(['RH2',+0.025])  # 4e
 Map.sequence.append(['RH3',-0.15])
 
-Map.sequence.append(['RH1',-0.2])    # WORMHOLE
-Map.sequence.append(['RH3',-0.15])
-Map.sequence.append(['RH2',+0.15])
+Map.sequence.append(['RH2',0.3])    # WORMHOLE
+Map.sequence.append(['RH3',-0.5])
+Map.sequence.append(['RH1',0.15])
+Map.sequence.append(['RH2',0.])
 
-Map.sequence.append(['Trigger','1000']) # AWG
-Map.sequence.append(['RH1',0.25])
+Map.sequence.append(['Timing',0.5])
+Map.sequence.append(['Trigger','1001']) # AWG
+Map.sequence.append(['Timing',0.5])
+Map.sequence.append(['Trigger','1011']) # AWG
+Map.sequence.append(['Timing',3.])
+Map.sequence.append(['Trigger','1111']) # AWG
+Map.sequence.append(['Trigger','1111'])
 
-Map.sequence.append(['RH1',-0.2])
-Map.sequence.append(['RH2',-0.05])
+Map.sequence.append(['RH2',0.3])
+Map.sequence.append(['RH1',0.])
 Map.sequence.append(['RH3',-0.15])
-Map.sequence.append(['RH1',0.])    # WORMHOLE
+Map.sequence.append(['RH2',0.])    # WORMHOLE
 
 Map.sequence.append(['RH2',-0.36]) # TUNNEL SELECTIVE
 #Map.sequence.append(['RH2',-0.15]) # TUNNEL SELECTIVE
@@ -97,16 +103,16 @@ Map.sequence.append(['RH2',-0.36]) # TUNNEL SELECTIVE
 Map.sequence.append(['RH2',0.])
 
 Map.sequence.append(['RH3',-0.15]) # CHARGE SENSING
-Map.sequence.append(['Trigger','1011'])
+Map.sequence.append(['Trigger','1111'])
 Map.sequence.append(['Timing',0.2])
-Map.sequence.append(['Trigger','1010'])
-Map.sequence.append(['Jump',4])
+Map.sequence.append(['Trigger','1111'])
+#Map.sequence.append(['Jump',4])
 
 ##########################
 ###	 MAP
 ##########################
-#Map.sweep_dim = [12000,10]
-Map.sweep_dim = [61,61,5000]
+#Map.sweep_dim = [12000,1000]
+Map.sweep_dim = [1,100000]
 #Map.sweep_dim = [50,51,51,5]
 Map.init_val['LD1'] = -0.731
 Map.init_val['LD2'] = -0.829
@@ -114,7 +120,8 @@ Map.init_val['RD1'] = -0.7
 Map.init_val['RD2'] = -1.0
 
 #Map.segment_param = [47.063, 40, 17]
-Map.segment_param = [45.450, 37, 17]
+#Map.segment_param = [48.727, 40, 17]
+Map.segment_param = [500, 40, 17]
 #Map.segment_param = [30.917, 22, 17]
 
 #Map.ramp_slot(5,'dRH3_{load}',0.05,0.2,2)
@@ -127,10 +134,10 @@ Map.segment_param = [45.450, 37, 17]
 #Map.ramp_slot(12,'dRH1_{wait}',0.1,0.4,2)
 #Map.ramp_slot(9,'dRH3_{wait}',-0.6,-0.05,1)
 
-Map.ramp_slot(10,'dRH2_{wait}',0.05,0.15,1)
-Map.ramp_slot(12,'dRH1_{wait}',0.35,0.25,1)
+#Map.ramp_slot(10,'dRH2_{wait}',0.05,0.15,1)
+#Map.ramp_slot(12,'dRH1_{wait}',0.35,0.25,1)
 
-#Map.ramp_slot(17,'dRH2_{spin2charge}',-0.3,-0.45,2)
+#Map.ramp_slot(18,'dRH2_{spin2charge}',-0.15,-0.45,2)
 #Map.ramp_slot(15,'dRH3_{spin2charge}',-0.35,0.1,3)
 
 #Map.ramp_DAC('RD1',-0.6,-0.9,1)

@@ -97,13 +97,16 @@ Map.init_val['LD2'] = -0.83
 #Map.ramp_DAC('LD2',-0.725,-0.725,1)
 
 
-Map.ramp_slot(4,'dLH2_{load}',0.03,0.08,2)
+#Map.ramp_slot(4,'dLH2_{load}',0.03,0.08,2)
 #Map.ramp_slot(7,'dLH2',0.15,0.,1)
 #Map.ramp_slot(8,'dLH1',0.4,0.7,1)
 #Map.ramp_slot(9,'dLV2',-0.15,0.15,1)
 #
-#Map.ramp_DAC('LD1',-0.62,-0.77,0)
-#Map.ramp_DAC('LD2',-0.6,-1.05,1)
+#Map.ramp_DAC('LD1',-0.62,-0.77,1)
+#Map.ramp_DAC('LD2',-0.6,-1.05,0)
+
+Map.ramp_DAC('RD1',-0.6,-1.05,1)
+Map.ramp_DAC('RD2',-0.6,-1.05,0)
 
 #Map.ramp_RF('RF0_{freq}',0.195,0.210,1)
 #Map.ramp_RF('RF0_{power}',15.,0.,1)

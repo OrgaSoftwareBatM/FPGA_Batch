@@ -2010,6 +2010,9 @@ class DRIVER_AWG5014(LowLevelCom_AWG5014):
                 goto_states.append(i+2)
                 jump_tos.append(0)
                 
+#        goto_states[-2] = 1   #Baptiste March 2019
+#        trig_waits = [1 if i==0 else 0 for i in range(len(nreps))]
+        
         awg_file = self.make_awg_file(waveforms, m1s, m2s,
                                       nreps, trig_waits,
                                       goto_states, jump_tos,

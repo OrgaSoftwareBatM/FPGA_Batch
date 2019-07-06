@@ -9,11 +9,11 @@ import AWG.Waveform_elements as WE
 
 
 #Map = AWG_map(sweep_dim=[101],waveform_duration=4000)
-Map = AWG_map(sweep_dim=[3,49,2],waveform_duration=4000)
+Map = AWG_map(sweep_dim=[3,61,2,2],waveform_duration=4000)
 #Map = AWG_map(sweep_dim=[201],waveform_duration=30000)
 #Map = AWG_map(sweep_dim=[100,2],waveform_duration=7000)
 
-Map.wait_dim = 1
+Map.wait_dim = 3
 #Map.wait_dim = len(Map.sweep_dim)-1
 Map.SAW_marker = [False,True,False]
 
@@ -53,9 +53,9 @@ Map.add_object(SAW_protec,enable_bools=saw_bools)
 SAW_small = WE.Pulse(name = 'SAW_small_RP1',\
                  channel = 'awg_RP1',\
                  Amplitude = -1.,\
-                 Duration = 3./1.2,\
+                 Duration = 2.5,\
                  unit = 'ns',\
-                 Delay = 2005.,\
+                 Delay = 1980.,\
                  )
 #SAW_small.ramp_parameter('V_{sending1, RP1}','Amplitude',0,-4.5,1)
 #SAW_small.ramp_parameter('t_{sending1, RP1}','Duration',42.5,2.5,2)
@@ -79,11 +79,12 @@ SAW_attac = WE.Pulse(name = 'SAW_attac_RP1',\
                  Amplitude = -4.5,\
                  Duration = 2.5,\
                  unit = 'ns',\
-                 Delay = 2005+6.666,\
+                 Delay = 1990,\
                  )
 #SAW_attac.ramp_parameter('V_{sending2, RP1}','Amplitude',-4.5,3.,1)
 #SAW_attac.ramp_parameter('t_{sending2, RP1}','Duration',2.5,102.5,1)
-#SAW_attac.ramp_parameter('dt_{sending2, RP1}','Delay',2002.5,2077.5,1)
+SAW_attac.ramp_parameter('dt_{sending2, RP1}','Delay',2030.,1980.,1)
+#SAW_attac.ramp_parameter('dt_{sending2, RP1}','Delay',1990.,1982.5,1)
 Map.add_object(SAW_attac,enable_bools=saw_bools)
 
 #SAW_attac = WE.Pulse(name = 'SAW_attac_RP2',\
@@ -104,12 +105,12 @@ Map.add_object(SAW_attac,enable_bools=saw_bools)
 
 pulse = WE.Pulse(name = 'Mixing_LP1',\
                  channel = 'awg_LP1',\
-                 Amplitude = -2.6,\
-                 Duration = 600.,\
+                 Amplitude = -3.,\
+                 Duration = 500.,\
                  unit = 'ns',\
                  Delay = 2000.,\
                  )
-pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.,-2.6,2)
+pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.,-3.,3)
 #pulse.ramp_parameter('t_{mixing, LP1}','Duration',300.,0.,1)
 Map.add_object(pulse,enable_bools=mix2_bools)
 #
@@ -128,16 +129,16 @@ Map.add_object(pulse,enable_bools=mix2_bools)
 ############## MIXING RIGHT #############
 #########################################
 
-#pulse = WE.Pulse(name = 'Mixing_RP1',\
-#                 channel = 'awg_RP1',\
-#                 Amplitude = 0.,\
-#                 Duration = 500.,\
-#                 unit = 'ns',\
-#                 Delay = 2000.,\
-#                 )
-#pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,-4.5,2)
-##pulse.ramp_parameter('t_{mixing, RP1}','Duration',120.,0.,1)
-#Map.add_object(pulse,enable_bools=mix1_bools)
+pulse = WE.Pulse(name = 'Mixing_RP1',\
+                 channel = 'awg_RP1',\
+                 Amplitude = -3.,\
+                 Duration = 500.,\
+                 unit = 'ns',\
+                 Delay = 2000.,\
+                 )
+pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,-3.,2)
+#pulse.ramp_parameter('t_{mixing, RP1}','Duration',120.,0.,1)
+Map.add_object(pulse,enable_bools=mix1_bools)
 
 #pulse = WE.Pulse(name = 'Mixing_RP2',\
 #                 channel = 'awg_RP2',\
@@ -150,43 +151,43 @@ Map.add_object(pulse,enable_bools=mix2_bools)
 ##pulse.ramp_parameter('t_{mixing, RP2}','Duration',0.,300.,2)
 #Map.add_object(pulse,enable_bools=mix1_bools)
 
-rabi = WE.Rabi(name = 'Rabi_RP1',\
-                channel = 'awg_RP1',\
-                Vramp = -0.8,\
-                V11 = -2.5,\
-                Vexch = -0.785,\
-                Delay = 2000,\
-                Tramp = 500,\
-                T11 = 50.,\
-                Texch = 5.,\
-                unit = 'ns',\
-                )
-#rabi.ramp_parameter('t_{ramp, RP1}','Tramp',10.,510.,1)
-rabi.ramp_parameter('t_{exch, RP1}','Texch',0,40,1)
-#rabi.ramp_parameter('t_{exch, RP1}','Texch',3.33,18.33,2)
-#rabi.ramp_parameter('V_{exch, RP1}','Vexch',-0.65,-0.95,2)
-#rabi.ramp_parameter('V_{ramp, RP1}','Vramp',-0.5,-1.5,1)
-#rabi.ramp_parameter('V_{11, RP1}','V11',-1.,-3.,1)
-Map.add_object(rabi,enable_bools=mix1_bools)
+#rabi = WE.Rabi(name = 'Rabi_RP1',\
+#                channel = 'awg_RP1',\
+#                Vramp = -1.25,\
+#                V11 = -3.,\
+#                Vexch = -1.36,\
+#                Delay = 2000,\
+#                Tramp = 250,\
+#                T11 = 50.,\
+#                Texch = 10,\
+#                unit = 'ns',\
+#                )
+##rabi.ramp_parameter('t_{ramp, RP1}','Tramp',10.,510.,1)
+##rabi.ramp_parameter('t_{exch, RP1}','Texch',100,0,1)
+##rabi.ramp_parameter('t_{exch, RP1}','Texch',0,20,2)
+##rabi.ramp_parameter('V_{exch, RP1}','Vexch',0.,-2.,1)
+##rabi.ramp_parameter('V_{ramp, RP1}','Vramp',-1.,-2.,1)
+##rabi.ramp_parameter('V_{11, RP1}','V11',-1.,-3.,1)
+#Map.add_object(rabi,enable_bools=mix1_bools)
 
-rabi = WE.Rabi(name = 'Rabi_RP2',\
-                channel = 'awg_RP2',\
-                Vramp = +4.5,\
-                V11 = +4.5,\
-                Vexch = +3.525,\
-                Delay = 2000,\
-                Tramp = 500,\
-                T11 = 50.,\
-                Texch = 5.,\
-                unit = 'ns',\
-                )
-#rabi.ramp_parameter('t_{ramp, RP2}','Tramp',10.,510.,1)
-rabi.ramp_parameter('t_{exch, RP2}','Texch',0,40,1)
-#rabi.ramp_parameter('t_{exch, RP2}','Texch',3.33,18.33,2)
-#rabi.ramp_parameter('V_{exch, RP2}','Vexch',2.925,4.275,2)
-#rabi.ramp_parameter('V_{ramp, RP2}','Vramp',-4.5,+4.5,1)
-#rabi.ramp_parameter('V_{11, RP2}','V11',-1.,-3.,1)
-Map.add_object(rabi,enable_bools=mix1_bools)
+#rabi = WE.Rabi(name = 'Rabi_RP2',\
+#                channel = 'awg_RP2',\
+#                Vramp = +4.5,\
+#                V11 = +4.5,\
+#                Vexch = +4.,\
+#                Delay = 2000,\
+#                Tramp = 500,\
+#                T11 = 50.,\
+#                Texch = 5.,\
+#                unit = 'ns',\
+#                )
+##rabi.ramp_parameter('t_{ramp, RP2}','Tramp',10.,510.,1)
+#rabi.ramp_parameter('t_{exch, RP2}','Texch',0,100,2)
+##rabi.ramp_parameter('t_{exch, RP2}','Texch',3.33,18.33,2)
+##rabi.ramp_parameter('V_{exch, RP2}','Vexch',2.925,4.275,2)
+##rabi.ramp_parameter('V_{ramp, RP2}','Vramp',-4.5,+4.5,1)
+##rabi.ramp_parameter('V_{11, RP2}','V11',-1.,-3.,1)
+#Map.add_object(rabi,enable_bools=mix1_bools)
 
 outp = Map.build_all()
 Map.update_h5()

@@ -8,17 +8,17 @@ from AWG.AWG_fast_send import AWG_fast_send
 import AWG.Waveform_elements as WE
 
 #Map = AWG_map(sweep_dim=[101],waveform_duration=4000)
-Map = AWG_map(sweep_dim=[1,200],waveform_duration=4100)
-#Map = AWG_map(sweep_dim=[1,61],waveform_duration=41000)
-#Map = AWG_map(sweep_dim=[1,100],waveform_duration=4000)
+#Map = AWG_map(sweep_dim=[1,121],waveform_duration=41000)
+#Map = AWG_map(sweep_dim=[1,100,2],waveform_duration=41000)
+Map = AWG_map(sweep_dim=[1,101,2],waveform_duration=12500)
 
 
 Map.wait_dim = 1
 #Map.wait_dim = len(Map.sweep_dim)-1
 Map.SAW_marker = [False]
 
-#mix1_bools = [True]
-mix2_bools = [True]
+mix1_bools = [True]
+#mix2_bools = [True]
 #saw_bools = [False]
 
 
@@ -28,14 +28,39 @@ mix2_bools = [True]
 
 pulse = WE.Pulse(name = 'Mixing_LP1',\
                  channel = 'awg_LP1',\
-                 Amplitude = -2.,\
+                 Amplitude = -3.,\
                  Duration = 500.,\
                  unit = 'ns',\
                  Delay = 2000.,\
                  )
-pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.5,-4.5,1)
+pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.,-3,2)
 #pulse.ramp_parameter('t_{mixing, LP1}','Duration',300.,0.,1)
-Map.add_object(pulse,enable_bools=mix2_bools)
+Map.add_object(pulse,enable_bools=mix1_bools)
+
+#ramp = WE.Ramp(name = 'Ramp_up_LP1',\
+#                 channel = 'awg_LP1',\
+#                 Vstart = -1.,\
+#                 Vstop = -2.,\
+#                 Tramp = 20000.,\
+#                 unit = 'ns',\
+#                 Delay = 3000.,\
+#                 )
+##ramp.ramp_parameter('V0_{rampup, LP1}','Vstart',-1.,-3.,2)
+##ramp.ramp_parameter('V1_{rampup, LP1}','Vstop',-0,-3.,1)
+#ramp.ramp_parameter('t_{rampup, LP1}','Tramp',0.,2000.,1)
+##ramp.ramp_parameter('dt_{rampup, LP1}','Delay',200.,450.,2)
+#Map.add_object(ramp)
+#
+pulse = WE.Pulse(name = 'Decay_LP1',\
+                 channel = 'awg_LP1',\
+                 Amplitude = -1.56,\
+                 Duration = 20000.,\
+                 unit = 'ns',\
+                 Delay = 3000,\
+                 )
+pulse.ramp_parameter('V_{decay, LP1}','Amplitude',0,-3,1)
+#pulse.ramp_parameter('t_{mixing, LP1}','Duration',0.,20000.,1)
+Map.add_object(pulse,enable_bools=mix1_bools)
 #
 #pulse = WE.Pulse(name = 'Mixing_LP2',\
 #                 channel = 'awg_LP2',\
@@ -62,23 +87,64 @@ Map.add_object(pulse,enable_bools=mix2_bools)
 ##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,-2,1)
 ##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.,-3.,2)
 ##pulse.ramp_parameter('t_{mixing, RP1}','Duration',0.,100.,1)
-#Map.add_object(pulse,enable_bools=mix_bools)
+#Map.add_object(pulse,enable_bools=mix1_bools)
 #
 #pulse = WE.Pulse(name = 'Mixing_RP1',\
 #                 channel = 'awg_RP1',\
-#                 Amplitude = -1.,\
+#                 Amplitude = 2.5,\
 #                 Duration = 500.,\
+#                 unit = 'ns',\
+#                 Delay = 2000.,\
+#                 )
+#pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.,0.6,1)
+##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,2.5,2)
+##pulse.ramp_parameter('t_{mixing, RP1}','Duration',100.,0.,1)
+#Map.add_object(pulse,enable_bools=mix1_bools)
+
+
+#pulse = WE.Pulse(name = 'Positive_pulse_RP1',\
+#                 channel = 'awg_RP1',\
+#                 Amplitude = 3,\
+#                 Duration = 5000.,\
 #                 unit = 'ns',\
 #                 Delay = 20000.,\
 #                 )
-#pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,-4.5,1)
-##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,3.,1)
-##pulse.ramp_parameter('t_{mixing, RP1}','Duration',0.,100.,1)
+##pulse.ramp_parameter('V_{positive pulse, RP1}','Amplitude',0,0.865,2)
+##pulse.ramp_parameter('V_{positive pulse, RP1}','Amplitude',0,3.,1)
+##pulse.ramp_parameter('t_{positive pulse, RP1}','Duration',1000.,11000.,1)
 #Map.add_object(pulse,enable_bools=mix1_bools)
+#
+#ramp = WE.Ramp(name = 'Ramp_up_RP1',\
+#                 channel = 'awg_RP1',\
+#                 Vstart = 0.,\
+#                 Vstop = 1.,\
+#                 Tramp = 800.,\
+#                 unit = 'ns',\
+#                 Delay = 2000.,\
+#                 )
+##ramp.ramp_parameter('V0_{rampup, RP1}','Vstart',-1.,-2.5,2)
+#ramp.ramp_parameter('V1_{rampup, RP1}','Vstop',1,0,2)
+##ramp.ramp_parameter('t_{rampup, RP1}','Tramp',0.,1000.,1)
+##ramp.ramp_parameter('dt_{rampup, RP1}','Delay',200.,450.,2)
+#Map.add_object(ramp)
+
+#ramp = WE.Ramp(name = 'Ramp_down_RP1',\
+#                 channel = 'awg_RP1',\
+#                 Vstart = 3,\
+#                 Vstop = 2,\
+#                 Tramp = 800.,\
+#                 unit = 'ns',\
+#                 Delay = 25000.,\
+#                 )
+##ramp.ramp_parameter('V0_{rampdown, RP1}','Vstart',3,1,1)
+##ramp.ramp_parameter('V1_{rampdown, RP1}','Vstop',3,0,1)
+##ramp.ramp_parameter('t_{rampdown, RP1}','Tramp',0.,1000.,1)
+##ramp.ramp_parameter('dt_{rampdown, RP1}','Delay',21000.,31000.,1)
+#Map.add_object(ramp)
 
 #pulse = WE.Pulse(name = 'Protect_RP2',\
 #                 channel = 'awg_RP2',\
-#                 Amplitude = +4.5,\
+#                 Amplitude = -4.5,\
 #                 Duration = 20000.,\
 #                 unit = 'ns',\
 #                 Delay = 14000.,\
@@ -86,17 +152,17 @@ Map.add_object(pulse,enable_bools=mix2_bools)
 ##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0,-2,1)
 ##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.,-3.,2)
 ##pulse.ramp_parameter('t_{mixing, RP1}','Duration',0.,100.,1)
-#Map.add_object(pulse,enable_bools=mix2_bools)
-#
+#Map.add_object(pulse,enable_bools=mix1_bools)
+##
 #pulse = WE.Pulse(name = 'Mixing_RP2',\
 #                 channel = 'awg_RP2',\
-#                 Amplitude = -4.5,\
-#                 Duration = 200.,\
+#                 Amplitude = 2.34,\
+#                 Duration = 500.,\
 #                 unit = 'ns',\
 #                 Delay = 20000.,\
 #                 )
-#pulse.ramp_parameter('V_{mixing, RP2}','Amplitude',0.1,-0.1,2)
-###pulse.ramp_parameter('t_{mixing, RP2}','Duration',0.,300.,2)
+#pulse.ramp_parameter('V_{mixing, RP2}','Amplitude',-4.5,4.5,1)
+##pulse.ramp_parameter('t_{mixing, RP2}','Duration',0.,1000.,1)
 #Map.add_object(pulse,enable_bools=mix1_bools)
 
 #rabi = WE.Rabi(name = 'Rabi_RP1',\

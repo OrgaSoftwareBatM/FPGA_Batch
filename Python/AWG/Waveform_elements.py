@@ -11,7 +11,8 @@ import numpy as np
 import h5py
 
 sampling_rate = 1.2 # GHz
-#sampling_rate = 1. # GHz
+#sampling_rate = 0.12 # GHz
+#sampling_rate = 0.012 # GHz
 flexible_str_dt = h5py.special_dtype(vlen=bytes)
 
 class Pulse():
@@ -81,7 +82,7 @@ class Pulse():
             pos_start = int(np.round(delay))
             pos_stop = int(np.round(delay + duration))
 
-        if delay + duration + 1 > waveform_duration:
+        if pos_stop + 1 > waveform_duration:
             self.wf = np.zeros((1,waveform_duration))
             log.send(level="critical",
                         context="Waveform_elements.make_wf",

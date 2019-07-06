@@ -8,7 +8,7 @@ from AWG.AWG_fast_send import AWG_fast_send
 import AWG.Waveform_elements as WE
 
 #Map = AWG_map(sweep_dim=[51,51],waveform_duration=7500)
-Map = AWG_map(sweep_dim=[1,121],waveform_duration=12000)
+Map = AWG_map(sweep_dim=[1,101],waveform_duration=4000)
 #Map = AWG_map(sweep_dim=[1,100,2],waveform_duration=4000)
 Map.wait_dim = 1
 Map.SAW_marker = [False]
@@ -19,28 +19,29 @@ pulse = WE.Pulse(name = 'V_{mixing, LP1}',\
                  Amplitude = -3.,\
                  Duration = 500.,\
                  unit = 'ns',\
-                 Delay = 8000.,\
+                 Delay = 2000.,\
                  )
 #pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',-2.4,-2.7,2)
-#pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.5,-4.5,1)
-#pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',-2.4,-2.9,1)
+pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.5,-4.5,1)
+#pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.,-3.,2)
 #pulse.ramp_parameter('V_{mixing, LP1}','Amplitude',0.,-4.5,2)
-pulse.ramp_parameter('t_{pulse, LP1}','Duration',100,0,1)
+#pulse.ramp_parameter('t_{pulse, LP1}','Duration',100,0,1)
 #pulse.ramp_parameter('t_{pulse, LP1}','Duration',0,500,2)
 Map.add_object(pulse)
 ##
-#pulse = WE.Pulse(name = 'V_{mixing, RP1}',\
-#                 channel = 'awg_RP1',\
-#                 Amplitude = -3.,\
-#                 Duration = 500.,\
-#                 unit = 'ns',\
-#                 Delay = 2000.,\
-#                 )
-#pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.5,-4.5,1)
-##pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.,-4.5,2)
-##pulse.ramp_parameter('t_{mixing, RP1}','Duration',0.,500.,2)
-###pulse.ramp_parameter('t_{mixing, RP2}','Delay',200.,450.,2)
-#Map.add_object(pulse)
+pulse = WE.Pulse(name = 'V_{mixing, RP1}',\
+                 channel = 'awg_RP1',\
+                 Amplitude = -3.,\
+                 Duration = 500.,\
+                 unit = 'ns',\
+                 Delay = 2000.,\
+                 )
+#pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.5,-4.5,2)
+pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.5,-4.5,1)
+#pulse.ramp_parameter('V_{mixing, RP1}','Amplitude',0.,-3,2)
+#pulse.ramp_parameter('t_{mixing, RP1}','Duration',0.,500.,2)
+##pulse.ramp_parameter('t_{mixing, RP2}','Delay',200.,450.,2)
+Map.add_object(pulse)
 
 #pulse = WE.Pulse(name = 'V_{mixing, LP2}',
 #                 channel = 'awg_LP2',

@@ -79,8 +79,8 @@ Map.sequence.append(['LH3',-0.3])
 
 Map.sequence.append(['RH2',-0.1])   # LOAD RIGHT
 Map.sequence.append(['RH3',0.12])
-Map.sequence.append(['RH2',-0.1])
-#Map.sequence.append(['RH2',-0.02])
+#Map.sequence.append(['RH2',-0.1])
+Map.sequence.append(['RH2',-0.02])
 Map.sequence.append(['RH3',-0.15])
 
 Map.sequence.append(['LH2',0.])    # RECEIVING LEFT
@@ -99,8 +99,7 @@ Map.sequence.append(['Trigger','1000']) # MIXING
 Map.sequence.append(['LH3',-0.3])   # BACK LEFT
 Map.sequence.append(['LH2',-0.3])
 Map.sequence.append(['LH3',0.15]) # TUNNEL SELECTIVE L
-#Map.sequence.append(['LH2',-0.])
-#Map.sequence.append(['LH3',-0.3]) # TUNNEL SELECTIVE L
+#Map.sequence.append(['LH3',-0.3]) # TUNNEL SELECTIVE DISABLED
 Map.sequence.append(['LH3',-0.3])
 Map.sequence.append(['LH2',0.0])
 
@@ -108,7 +107,8 @@ Map.sequence.append(['RH2',0.3])   # BACK RIGHT
 Map.sequence.append(['RH1',0.])
 Map.sequence.append(['RH3',-0.15])
 Map.sequence.append(['RH2',0.])
-Map.sequence.append(['RH2',-0.36]) # TUNNEL SELECTIVE R
+Map.sequence.append(['RH2',-0.345]) # TUNNEL SELECTIVE R
+#Map.sequence.append(['RH2',-0.]) # TUNNEL SELECTIVE DISABLED
 Map.sequence.append(['RH2',0.])
 
 Map.sequence.append(['Trigger','1011']) # CHARGE SENSING
@@ -118,15 +118,14 @@ Map.sequence.append(['LH1',0.])
 
 Map.sequence.append(['Jump',4])
 #Map.sequence.append(['Jump',len(Map.sequence)])
-
+#
 #Map.sweep_dim = [12000,10]
 #Map.sweep_dim = [61,61,250]
-#Map.sweep_dim = [401,1000]
+Map.sweep_dim = [101,2000]
 #Map.sweep_dim = [100,2,101,5]
-Map.sweep_dim = [121,5000]
-#Map.sweep_dim = [100,2,51,5]
-Map.init_val['LD1'] = -0.731
-Map.init_val['LD2'] = -0.829
+#Map.sweep_dim = [100,2,101,5]
+Map.init_val['LD1'] = -0.702
+Map.init_val['LD2'] = -0.822
 Map.init_val['RD1'] = -0.7
 Map.init_val['RD2'] = -1.0
 
@@ -134,11 +133,11 @@ Map.segment_param = [66.447, 57, 17]
 #Map.segment_param = [92.469, 53, 17, 31, 17]
 #Map.segment_param = [92.469, 53, 17]
 
-#Map.ramp_slot(6,'dLH2_{load}',-0.05,0.07,1)
+#Map.ramp_slot(6,'dLH2_{load}',-0.05,0.07,2)
 #Map.ramp_slot(6,'dLH2_{load}',-0.1,0.2,1)
 
+#Map.ramp_slot(10,'dRH2_{load}',-0.1,-0.02,2)
 #Map.ramp_slot(10,'dRH2_{load}',-0.12,0.12,1)
-#Map.ramp_slot(16,'dRH2_{crossing}',0.,0.3,1)
 
 #Map.ramp_slot(13,'dLH1_{wait}',0.3,0.75,2)
 #Map.ramp_slot(14,'dLH2_{wait}',-0.15,0.1,2)
@@ -161,9 +160,9 @@ Map.segment_param = [66.447, 57, 17]
 
 #Map.ramp_slot(23,'dLH3_{spin2charge}',0.11,0.2,2)
 #
-#Map.ramp_slot(30,'dRH2_{spin2charge}',-0.27,-0.42,2)61
+#Map.ramp_slot(30,'dRH2_{spin2charge}',-0.27,-0.42,2)
 
-#Map.ramp_DAC('LD1',-0.6,-0.75,2)
+#Map.ramp_DAC('LD1',-0.6,-0.75,1)
 #Map.ramp_DAC('LD2',-0.73,-0.88,1)
 
 #Map.ramp_DAC('RD1',-0.65,-0.8,1)

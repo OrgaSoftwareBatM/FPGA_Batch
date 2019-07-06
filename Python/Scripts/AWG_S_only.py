@@ -8,8 +8,8 @@ from AWG.AWG_fast_send import AWG_fast_send
 import AWG.Waveform_elements as WE
 
 #Map = AWG_map(sweep_dim=[101],waveform_duration=4000)
-Map = AWG_map(sweep_dim=[1,101],waveform_duration=4000)
-#Map = AWG_map(sweep_dim=[201],waveform_duration=30000)
+#Map = AWG_map(sweep_dim=[1,101],waveform_duration=4000)
+Map = AWG_map(sweep_dim=[1,101],waveform_duration=41000)
 #Map = AWG_map(sweep_dim=[100,2],waveform_duration=7000)
 
 Map.wait_dim = 1
@@ -24,18 +24,18 @@ mix2_bools = [True]
 ######### SAW #########
 #######################
 
-SAW_protec = WE.Pulse(name = 'SAW_protec_RP1',\
-                 channel = 'awg_RP1',\
-                 Amplitude = 3.,\
-                 Duration = 3000.,\
-                 unit = 'ns',\
-                 Delay = 200.,\
-                 )
-#SAW_protec.ramp_parameter('V_{protect, RP1}','Amplitude',0.05,0.05,1)
-#SAW_protec.ramp_parameter('V_{protect, RP1}','Amplitude',-4.5,+3.,1)
-#SAW_protec.ramp_parameter('t_{protect, RP1}','Duration',0.,100,2)
-#SAW_protec.ramp_parameter('t_{protect, RP1}','Delay',1000+470.,1000+430.,1)
-Map.add_object(SAW_protec,enable_bools=saw_bools)
+#SAW_protec = WE.Pulse(name = 'SAW_protec_RP1',\
+#                 channel = 'awg_RP1',\
+#                 Amplitude = 3.,\
+#                 Duration = 20000.,\
+#                 unit = 'ns',\
+#                 Delay = 14000.,\
+#                 )
+##SAW_protec.ramp_parameter('V_{protect, RP1}','Amplitude',0.0,0.01,1)
+##SAW_protec.ramp_parameter('V_{protect, RP1}','Amplitude',-4.5,+3.,1)
+##SAW_protec.ramp_parameter('t_{protect, RP1}','Duration',0.,100,2)
+##SAW_protec.ramp_parameter('t_{protect, RP1}','Delay',1000+470.,1000+430.,1)
+#Map.add_object(SAW_protec,enable_bools=saw_bools)
 
 #SAW_protec = WE.Pulse(name = 'SAW_protec_RP2',\
 #                 channel = 'awg_RP2',\
@@ -51,10 +51,10 @@ Map.add_object(SAW_protec,enable_bools=saw_bools)
 
 #SAW_small = WE.Pulse(name = 'SAW_small_RP1',\
 #                 channel = 'awg_RP1',\
-#                 Amplitude = -2.4,\
-#                 Duration = 3./1.2,\
+#                 Amplitude = -4.5,\
+#                 Duration = 2.5,\
 #                 unit = 'ns',\
-#                 Delay = 2005.,\
+#                 Delay = 1980.+20000,\
 #                 )
 ##SAW_small.ramp_parameter('V_{sending1, RP1}','Amplitude',0,-4.5,1)
 ##SAW_small.ramp_parameter('t_{sending1, RP1}','Duration',42.5,2.5,2)
@@ -72,18 +72,18 @@ Map.add_object(SAW_protec,enable_bools=saw_bools)
 ##SAW_small.ramp_parameter('t_{sending1, RP2}','Duration',42.5,2.5,2)
 ##SAW_small.ramp_parameter('dt_{sending1, RP2}','Delay',1440-40.,1440,2)
 #Map.add_object(SAW_small,enable_bools=saw_bools)
-
-SAW_attac = WE.Pulse(name = 'SAW_attac_RP1',\
-                 channel = 'awg_RP1',\
-                 Amplitude = -4.5,\
-                 Duration = 2.5,\
-                 unit = 'ns',\
-                 Delay = 2005,\
-                 )
-SAW_attac.ramp_parameter('V_{sending2, RP1}','Amplitude',-4.5,3.,1)
-#SAW_attac.ramp_parameter('t_{sending2, RP1}','Duration',2.5,102.5,1)
-#SAW_attac.ramp_parameter('dt_{sending2, RP1}','Delay',1000.,2200.,2)
-Map.add_object(SAW_attac,enable_bools=saw_bools)
+#
+#SAW_attac = WE.Pulse(name = 'SAW_attac_RP1',\
+#                 channel = 'awg_RP1',\
+#                 Amplitude = 0.,\
+#                 Duration = 2.5,\
+#                 unit = 'ns',\
+#                 Delay = 1985+20000.,\
+#                 )
+#SAW_attac.ramp_parameter('V_{sending2, RP1}','Amplitude',-4.5,3.,1)
+##SAW_attac.ramp_parameter('t_{sending2, RP1}','Duration',2.5,102.5,1)
+##SAW_attac.ramp_parameter('dt_{sending2, RP1}','Delay',1925.+20000.,2125.+20000,1)
+#Map.add_object(SAW_attac,enable_bools=saw_bools)
 
 #SAW_attac = WE.Pulse(name = 'SAW_attac_RP2',\
 #                 channel = 'awg_RP2',\
