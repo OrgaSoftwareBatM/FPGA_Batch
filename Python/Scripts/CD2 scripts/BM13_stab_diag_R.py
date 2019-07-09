@@ -12,7 +12,7 @@ from QuickMap.QuickMap_ramp import StabilityDiagram
 ##########################
 ###	 CHOOSE FILE NAME
 ##########################
-folder = 'D:\\BaptisteData\\BM13\\CD3\\data1'
+folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
 #folder = 'C:\\Users\\manip.batm\\Documents\\GitKraken\\FPGA_Batch\\Python\\h5'
 prefix = 'stab'
 Map = StabilityDiagram(folder,prefix)
@@ -21,7 +21,7 @@ Map = StabilityDiagram(folder,prefix)
 ###	 TIMINGS 			
 ##########################
 Map.initial_wait = 10.   # ms before everything
-Map.ms_per_point = 0.05 # integration time (ms per DAC instruction)
+Map.ms_per_point = 0.05 # integration time (fastseq divider)
 Map.step_wait = 0.       # ms wait after every fastseq
 
 ##########################
@@ -38,7 +38,6 @@ Map.init_val['LV2'] = -1.45
 Map.init_val['LH1'] = -1.9
 Map.init_val['LH2'] = -0.75
 Map.init_val['LH3'] = -0.9
-Map.init_val['LP1'] = -0.85
 Map.init_val['LP2'] = -0.85
 ### RIGHT
 Map.init_val['RD1'] = -0.763
@@ -48,16 +47,15 @@ Map.init_val['RV2'] = -1.0
 Map.init_val['RH1'] = -1.75
 Map.init_val['RH2'] = -0.7
 Map.init_val['RH3'] = -1.
-Map.init_val['RP1'] = -0.85
 Map.init_val['RP2'] = -0.85
 ### CHANNEL
 Map.init_val['TC'] = -1.
 Map.init_val['BC'] = -1.
 ### REFLECTO
 Map.init_val['RF0_{freq}'] = 0.2028
-Map.init_val['RF0_{power}'] = -60.
+Map.init_val['RF0_{power}'] = 15.
 Map.init_val['RF1_{freq}'] = 0.1382
-Map.init_val['RF1_{power}'] = -60.
+Map.init_val['RF1_{power}'] = 12.
 ### RS
 Map.init_val['SAW_{freq}'] = 2.79
 Map.init_val['SAW_{power}'] = -60.
@@ -67,19 +65,20 @@ Map.init_val['SAW_{delay}'] = 0.1
 ##########################
 ###	 FASTSEQ 			
 ##########################
-Map.sequence.append(['Trigger',[],'1111111111'])
+Map.sequence.append(['Trigger','1111'])
+Map.sequence.append(['Timing',0])
+Map.sequence.append(['Trigger','0011'])
 
-Map.sequence.append(['RH2',[],-1.1])   # LOAD RIGHT
-Map.sequence.append(['RH3',[],0.3])
-#Map.sequence.append(['RH2',[],-0.025]) # 2
-Map.sequence.append(['RH2',[],+0.06]) # 4
-Map.sequence.append(['RH3',[],-0.3])
-# Map.sequence.append(['RH2',[],0.3])
-# Map.sequence.append(['RH1',[],0.3])
-# Map.sequence.append(['RH3',[],-0.8])
-# Map.sequence.append(['RH2',[],0.])
 
-Map.sequence.append(['Trigger',[],'001111111111'])
+Map.sequence.append(['RH2',-0.1])   # LOAD RIGHT
+Map.sequence.append(['RH3',0.12])
+#Map.sequence.append(['RH2',-0.025]) # 2
+Map.sequence.append(['RH2',+0.06]) # 4
+Map.sequence.append(['RH3',-0.3])
+Map.sequence.append(['RH2',0.3])
+Map.sequence.append(['RH1',0.3])
+Map.sequence.append(['RH3',-0.8])
+Map.sequence.append(['RH2',0.])
 
 ##########################
 ###	 MAP
@@ -90,6 +89,7 @@ Map.init_val['LD1'] = -0.731
 Map.init_val['LD2'] = -0.829
 Map.init_val['RD1'] = -0.6
 Map.init_val['RD2'] = -1.025
+
 
 
 #Map.ramp_DAC('RH3',-0.7,-1.,0,init_at=-1.0)

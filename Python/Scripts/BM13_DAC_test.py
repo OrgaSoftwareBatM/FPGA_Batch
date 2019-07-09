@@ -15,7 +15,7 @@ from QuickMap.QuickMap_RT_SegmentMode import RT_fastseq
 ##########################
 ###	 CHOOSE FILE NAME
 ##########################
-folder = 'D:\\BaptisteData\\BM13\\CD2\\data2'
+folder = 'D:\\BaptisteData\\BM13\\CD3\\data1'
 prefix = 'DAC_test'
 Map = RT_fastseq(folder,prefix)
 Map.use_AWG = False
@@ -40,6 +40,7 @@ Map.init_val['LV2'] = -1.45
 Map.init_val['LH1'] = -1.9
 Map.init_val['LH2'] = -0.75
 Map.init_val['LH3'] = -0.9
+Map.init_val['LP1'] = -0.85
 Map.init_val['LP2'] = -0.85
 ### RIGHT
 Map.init_val['RD1'] = -0.763
@@ -49,6 +50,7 @@ Map.init_val['RV2'] = -1.0
 Map.init_val['RH1'] = -1.75
 Map.init_val['RH2'] = -0.7
 Map.init_val['RH3'] = -1.
+Map.init_val['RP1'] = -0.85
 Map.init_val['RP2'] = -0.85
 ### CHANNEL
 Map.init_val['TC'] = -1.
@@ -68,19 +70,19 @@ Map.init_val['SAW_{delay}'] = 1.1
 ###	 FASTSEQ 			
 ##########################
 
-Map.sequence.append(['Trigger','1110'])
-Map.sequence.append(['Timing',1.])
-Map.sequence.append(['Trigger','1010'])
-Map.sequence.append(['Timing',0.1])
+Map.sequence.append(['Trigger',[],'1110000000'])
+Map.sequence.append(['Timing',[],1.])
+Map.sequence.append(['Trigger',[],'1010000000'])
+Map.sequence.append(['Timing',[],0.1])
 
+Map.sequence.append(['TC',-1.5])   # LOAD RIGHT
+Map.sequence.append(['Timing','1us',10])
 Map.sequence.append(['TC',-0.5])   # LOAD RIGHT
-Map.sequence.append(['Timing',0.1])
-Map.sequence.append(['TC',+0.5])   # LOAD RIGHT
-Map.sequence.append(['Timing',0.1])
+Map.sequence.append(['Timing','1us',10])
+Map.sequence.append(['BC',-1.5])   # LOAD RIGHT
+Map.sequence.append(['Timing','1us',10])
 Map.sequence.append(['BC',-0.5])   # LOAD RIGHT
-Map.sequence.append(['Timing',0.1])
-Map.sequence.append(['BC',+0.5])   # LOAD RIGHT
-Map.sequence.append(['Timing',0.1])
+Map.sequence.append(['Timing','1us',10])
 
 Map.sequence.append(['Jump',4])
 

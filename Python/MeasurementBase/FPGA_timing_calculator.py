@@ -7,14 +7,23 @@ Created on Tue Aug 21 09:44:12 2018
 def timing_correction(t):
     return 1.054*t+0.00155
     
-def FPGA_timing_calculator(sequence,ms_per_DAC=0.01617):
+def FPGA_timing_calculator(sequence,ms_per_DAC=0.005):
     total = 0
     for s in sequence:
-        if s[0] in ['Trigger','Jump']:
+        if s[0] in ['Trigger out','Trigger in','Jump']:
             continue
+        elif s[0] == 'End':
+            break
         elif s[0] == 'Timing':
-            total += timing_correction(s[1])
-        else:
+            if s[1]=='1us':
+                total += timing_correction(s[2]*0.001)
+            elif s[1]=='10us':
+                total += timing_correction(s[2]*0.01)
+            elif s[1]=='100us':
+                total += timing_correction(s[2]*0.1)
+            else:
+                total += timing_correction(s[2])
+        else: # DAC
             total += ms_per_DAC
     return total
     
@@ -37,15 +46,15 @@ def total_seq_time(sequence,Njumps=0,ms_per_DAC=0.01617):
         i += 1
     return total
     
-def segment_timing(sequence,ms_per_DAC=0.01617):
-    ADC_trigger = min([i for i,seq in enumerate(sequence) if seq[0]=='Trigger' and seq[1][1]=='0'])
+def segment_timing(sequence,ms_per_DAC=0.005):
+    ADC_trigger = min([i for i,seq in enumerate(sequence) if seq[0]=='Trigger out' and seq[2][1]=='0'])
     jump_index = [s[0] for s in sequence].index('Jump')
-    jump_to = sequence[jump_index][1]
+    jump_to = sequence[jump_index][2]
     last_timing_index = max([i for i,seq in enumerate(sequence[:jump_index]) if seq[0]=='Timing'])
     
     t_init = FPGA_timing_calculator(sequence[ADC_trigger:last_timing_index],ms_per_DAC)
     t_segment = FPGA_timing_calculator(sequence[jump_to:jump_index],ms_per_DAC)
-    t_read = timing_correction(sequence[last_timing_index][1])
+    t_read = timing_correction(sequence[last_timing_index][2])
 #    print (t_init,t_segment,t_read)
     return t_init,t_segment,t_read
 

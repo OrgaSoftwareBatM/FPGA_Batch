@@ -127,9 +127,6 @@ class Experiment():
             fast_seq_data = fast_sequence.sequence
             if len(data_size)>0:
                 pass
-            elif measConfig.ramp == True:
-                # fast sequence size - 2 (trigger and jump) - start ramp at
-                data_size = [fast_seq_data[1,:].shape[0]-2-fast_sequence.uint64s[20]]+self.dim
             else:
                 data_size = [fast_sequence.uint64s[2]]+self.dim
         else:
@@ -182,10 +179,10 @@ class Experiment():
                 
                 # set parameter and collect unit information
                 parameter = inst.getParameter()
-                if inst.kind == 10:
-                    # special treatment for fast sequence slot
-                    # convert slot number to fast channel number
-                    parameter = fast_seq_data[0, parameter]
+                # if inst.kind == 10:
+                #     # special treatment for fast sequence slot
+                #     # convert slot number to fast channel number
+                #     parameter = fast_seq_data[0, parameter]
                 
                 if inst.name in sweep_name_list:
                     unit = inst.getUnit()
@@ -363,7 +360,6 @@ class MeasConfig():
                  fastSweep = False,
                  ramp = False,
                  listOfInst = [],
-                 fastChannelNameList=[],
                  ):
         self.fpath = filepath
         self.initial_wait = initial_wait
@@ -373,7 +369,6 @@ class MeasConfig():
         self.fastSweep = fastSweep
         self.ramp = ramp
         self.list = listOfInst
-        self.fastChannelNameList = fastChannelNameList
         
     def write(self, group=None):
         if group==None: 
@@ -387,8 +382,8 @@ class MeasConfig():
                 dset.attrs.create('fast_mode', b, dtype='bool')
                 s = [i.name for i in self.list]
                 dset.attrs.create('Inst_list', s, dtype=flexible_str_dt)
-                if not self.fastChannelNameList == []:
-                    dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
+                # if not self.fastChannelNameList == []:
+                #     dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
 #                dset = f.get('Inst_list')
     
             for inst in self.list:
@@ -410,8 +405,8 @@ class MeasConfig():
                 dset.attrs.create('fast_mode', b, dtype='bool')
                 s = [i.name for i in self.list]
                 dset.attrs.create('Inst_list', s, dtype=flexible_str_dt)
-                if not self.fastChannelNameList == []:
-                    dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
+                # if not self.fastChannelNameList == []:
+                #     dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
 #                dset = f.get('Inst_list')
     
             for inst in self.list:
@@ -437,7 +432,7 @@ class MeasConfig():
             self.ramp = b[1]
             self.list = []
             inst_name_list = [str(s, 'utf-8') for s in dset.attrs['Inst_list']]
-            fastChannelNameList = ['']*64
+            # fastChannelNameList = ['']*64
             for i in inst_name_list:
                 if group == None:
                     dset = f.get(i)
@@ -457,13 +452,13 @@ class MeasConfig():
                 item.strings = s
                 item.uint64s = u
                 item.doubles = d
-                if kind == 4:
-                    # just collect information for fast sequence operation
-                    fastChannelNameList[int(8*u[0]+u[1])]=s[0]
-                elif kind == 9:   # readout data for fast sequence
+                # if kind == 4:
+                #     # just collect information for fast sequence operation
+                #     fastChannelNameList[int(8*u[0]+u[1])]=s[0]
+                if kind == 9:   # readout data for fast sequence
                     item.sequence = dset[...]
                 self.list.append(item)
-            self.fastChannelNameList = fastChannelNameList
+            # self.fastChannelNameList = fastChannelNameList
                 
                 
     def readForExpFile(self,group=None):
@@ -487,7 +482,7 @@ class MeasConfig():
             self.ramp = b[1]
             self.list = []
             inst_name_list = [str(s, 'utf-8') for s in dset.attrs['Inst_list']]
-            fastChannelNameList = ['']*64
+            # fastChannelNameList = ['']*64
             for i in inst_name_list:
                 if group == None:
                     dset = f.get(i)
@@ -514,10 +509,10 @@ class MeasConfig():
                 else:
                     pass
                 
-                if kind == 4:
-                    # just collect information for fast sequence operation
-                    fastChannelNameList[int(8*u[0]+u[1])]=s[0]
-            self.fastChannelNameList = fastChannelNameList
+                # if kind == 4:
+            #         # just collect information for fast sequence operation
+            #         fastChannelNameList[int(8*u[0]+u[1])]=s[0]
+            # self.fastChannelNameList = fastChannelNameList
 
 """-------------------------------------------------------------------------
 ----------------------------------------------------------------------------
@@ -791,7 +786,7 @@ class DAC(sweep_inst):
                  channel = 0,
                  upper_limit = 0.3,
                  lower_limit = -2.0,
-                 ms2wait = 2,# ms to wai between each bit (~ 150 uV)
+                 us2wait = 1000,# us to wait between each bit (~ 150 uV)
                  conversion = 1.0,# only for analysis
                  ):
         super(DAC,self).__init__()
@@ -799,7 +794,7 @@ class DAC(sweep_inst):
         self.name = name
         self.strings = [name, IPAddress, unit]
         self.uint64s = [panel, channel]
-        self.doubles = [upper_limit, lower_limit, ms2wait, -1, conversion]
+        self.doubles = [upper_limit, lower_limit, us2wait, -1, conversion]
         
     def getLimits(self):
         return [self.doubles[0],self.doubles[1]]
@@ -980,37 +975,27 @@ class FastSequences(sweep_inst):
     def __init__(self,
                  IPAddress = FPGA_address,
                  Unit = 'V',
-                 fastSequenceDivider = 44439, #averaging time for ramp mode
-                 triggerLength = 300, # Trigger length for ramp mode
+                 us_per_DAC = 1000, # DAC duration in ramp mode
+                 triggerLength = 20, # Trigger length for ramp mode (us)
                  SampleCount = 200, # Number of points for fast sequence mode
-                 send_all_points = 0,
-                 fast_channels = [0,1,2,3,4,5,6,7,16,17,18,19,20,21,22,23],
-                 start_ramp_at = 0,
-                 upper_limit = 0.5,
-                 lower_limit = -0.5,
-                 sequence = np.zeros((2,10))
+                 send_all_points = 0, # 0:update sequence only; 1:update all 4096 ; 2:don't update
+                 start_index = 0, # start sequence at a specific index
+                 start_ramp_at = 0, # used for analysis
+                 sequence = np.zeros((3,10)),
+                 upper_limit = +0.5,
+                 lower_limit = -0.5
                  ):
         super(FastSequences, self).__init__()
         self.kind = 9
         self.name = 'fast_sequence'
         self.strings = ['fast_sequence', IPAddress, Unit]
-        self.uint64s = [fastSequenceDivider, triggerLength, SampleCount, send_all_points]
-        for i in fast_channels:
-            self.uint64s.append(i)
-        self.uint64s.append(start_ramp_at)
-        self.doubles = [upper_limit, lower_limit, -1, -1]
-        
+        self.uint64s = [us_per_DAC, triggerLength, SampleCount, send_all_points, start_index, start_ramp_at]
+        self.doubles = [upper_limit, lower_limit]
         self.sequence = sequence
         
     def writeSequence(self, h5path, group=None):
         with h5py.File(h5path, 'r+') as f:
-            #check the limitation of the sequence
-            dacRange = np.logical_and(self.sequence[0,:]>-1, self.sequence[0,:]<16)
-            if np.any(dacRange):
-                if (self.doubles[0] < np.amax(self.sequence[1,dacRange]) or self.doubles[1] > np.amin(self.sequence[1,dacRange])):
-                    print('check the values of fast sequence')
-                    return 1
-                    
+            #check the limitation of the sequence                    
             if self.sequence[1,:].shape[0]>4096:
                 print('check the size of fast sequence')
                 return 1

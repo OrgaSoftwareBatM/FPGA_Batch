@@ -297,7 +297,7 @@ uint64s[0] = panel
 uint64s[1] = channel
 Doubles[0] = Upper limit (V)
 Doubles[1] = Lower limit (V)
-Doubles[2] = ms to wait between each bit (~ 150 uV)
+Doubles[2] = us to wait between each bit (~ 150 uV)
 Doubles[3] = -1 (dummy)
 Doubles[4] = conversion factor for analysis
 
@@ -492,35 +492,36 @@ Doubles[0] = Upper limit (T)
 Doubles[1] = Lower limit (T)
 Doubles[2] = Rate (T/min, typical 0.1 T/min)
 
-- Fast sequence (9)
+- Fast sequence (9) __Baptiste update july 2019__
 
 Strings[0] = "fast_sequence"
 Strings[1] = IP address
-Strings[2] = Unit
-uint64s[0] = fast sequence divider
+Strings[2] = Unit (dummy)
+uint64s[0] = us per DAC
 uint64s[1] = trigger length (us)
-uint64s[2] = Sample count (used only for 'fast cycle mode')
+uint64s[2] = sample count
 uint64s[3] = send all points? (0: only used slots, 1:update all 4096, 2:don't update anything)
-uint64s[4 ~ 19] = fast channels (0=0:0, ..., 12=1:4, ...63=8:8, else = dummy)
-uint64s[20] = Start ramp at
-Doubles[0] = Upper limit (V)
-Doubles[1] = Lower limit (V)
-Doubles[2] = -1 (dummy)
-Doubles[3] = -1 (dummy)
-	- Fast sequence has a data set of (2, N) dimension, which include information about the sequence
-	  (0,:) is parameter (0 ~ 15: fast channels, 101: trigger, 102: timing (ms), 103: jump, else: jump to its index)
-	  (1,:) is values. (DAC = value offset, trigger = bit wise value for each trigger (1~4, stop)
-		timing = ms to wait, jump = # of slot ot jump)
+uint64s[4] = start index
+uint64s[5] = start ramp at
+Doubles[0] = upper limit (with respect to init_move)
+Doubles[1] = lower limit
+	- Fast sequence has a data set of (3, N) dimension (N<4096), with each slot:
+	DAC : [0 ; DAC id (0=0:0 to 63=8:8) ; value (0:-5V to 65535:+5V)] NOW ABSOLUTE VALUE
+	Timing : [1 ; unit (0:1us, 1:10us, 2:100us, 3:1ms) ; value]
+	Trigger out : [2 ; 0 ; trigger status (10 bools)]
+	Jump : [3 ; jump count ; slot n°]
+	Trigger in : [4 ; monitor trigger? (10 bools) ; trigger status (10 bools)]
+	End : [5 ; monitor trigger? (10 bools) ; trigger status (10 bools)]
 
-- Fast sequence slot (10)
+- Fast sequence slot (10) __Baptiste update july 2019__
 
 Strings[0] = name
 Strings[1] = IP address
 Strings[2] = unit
 uint64s[0] = slot number
 uint64s[1] = 0 (dummy, we need at least 2 elements. You can change if necessary.)
-Doubles[0] = upper limit [V]
-Doubles[1] = lower limit [V]
+Doubles[0] = upper limit
+Doubles[1] = lower limit
 
 
 - Command line (11) [cannot be used for initial move.

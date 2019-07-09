@@ -23,7 +23,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
-from QuickMap.BM13_config_CD2_3 import DAC_ADC_config, RF_config
+from QuickMap.BM13_config_CD3_1 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
 class RT_fastseq():
@@ -61,17 +61,17 @@ class RT_fastseq():
             return 0
         elif dim == 0:     # adding to the fastseq
             channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
-            if channel_id not in self.fs.uint64s[4:20]:
-                log.send(level='critical',
-                            context='RT_fastseq.ramp_DAC',
-                            message='channel {} is not useable for dim 0'.format(channel_id))
-                self.critical_error = True
-                return 0
+            # if channel_id not in self.fs.uint64s[4:20]:
+            #     log.send(level='critical',
+            #                 context='RT_fastseq.ramp_DAC',
+            #                 message='channel {} is not useable for dim 0'.format(channel_id))
+            #     self.critical_error = True
+            #     return 0
             self.fast_ramp[name] = {}
             self.fast_ramp[name]['method'] = method
             self.fast_ramp[name]['start'] = start
             self.fast_ramp[name]['stop'] = stop
-            self.fast_ramp[name]['channel'] = self.fs.uint64s[4:20].index(channel_id)
+            self.fast_ramp[name]['channel'] = channel_id
         else:      # adding to sweep_param
             self.sweep_param[name] = {}
             self.sweep_param[name]['method'] = method
@@ -134,18 +134,24 @@ class RT_fastseq():
                         message='slot {} not in sequence (parameter {})'.format(slotNo,name))
             self.critical_error = True
             return 0
-        elif self.sequence[slotNo][0] in ['Trigger', 'Jump', 'End']:
+        elif self.sequence[slotNo][0] in ['Trigger out', 'Trigger in', 'Jump', 'End']:
             log.send(level='critical',
                         context='RT_fastseq.ramp_slot',
                         message='slot {} is not DAC or timing (parameter {})'.format(slotNo,name))
             self.critical_error = True
             return 0
         elif self.sequence[slotNo][0] == 'Timing':
+            if max([start,stop])>2**16-1:
+                log.send(level='critical',
+                            context='RT_fastseq.ramp_slot',
+                            message='increase the range of timing slot {})'.format(slotNo))
+                self.critical_error = True
+                return 0
             slot = mc.FastSequenceSlot(name=name, 
                                         IPAddress=self.fs.strings[1],
-                                        unit='ms',
+                                        unit=self.sequence[slotNo][1],
                                         slotNo=slotNo,
-                                        upperlimit=10000,
+                                        upperlimit=2^16-1,
                                         lowerlimit=0)
         else: # DAC slot
             if self.sequence[slotNo][0] not in name: # avoid wrong slot selection
@@ -213,28 +219,56 @@ class RT_fastseq():
         return 1
 
     def build_seq(self):
-         self.fast_channels = []
          seq = []
          for name,val in self.sequence:
-             if name=='Trigger':
-                 seq.append([101,int(val[::-1],2)])   # convert to bitwise value
-             elif name=='Timing':
-                 seq.append([102,val])
-             elif name=='Jump':
-                 seq.append([103,val])
-             elif name=='End':
-                 seq.append([100,0])
-             else:
-                 channel_id = self.DAC[name].uint64s[0]*8+self.DAC[name].uint64s[1]
-                 if channel_id not in self.fs.uint64s[4:20]:
-                     print ('Error adding parameter ' + name + ' - channel '+str(channel_id)+' not useable')
-                     return 0  
-                 elif self.init_val[name]+val<-2.2 or self.init_val[name]+val>0:
-                     print ('Error setting slot ' + str(len(seq)) + ' - DAC output out of boundaries')
-                     return 0  
-                 else:
-                     pos = self.fs.uint64s[4:20].index(channel_id)
-                     seq.append([pos,val])
+            if name == 'Timing':
+                if val1 not in ['1us','10us','100us','1ms']:
+                    log.send(level='critical',
+                                context='RT_fastseq.build_seq',
+                                message='Range of timing slot {} not understood'.format(len(seq)))
+                    return 0
+                range_ = ['1us','10us','100us','1ms'].index(val1)
+                if val2>2**16-1:
+                    log.send(level='critical',
+                                context='RT_fastseq.build_seq',
+                                message='Increase range of timing slot {}'.format(len(seq)))
+                    return 0
+                seq.append([1, range_, val2])
+            elif name == 'Trigger out':
+                seq.append([2, 0, int(val2[::-1], 2)])   # convert to bitwise value
+            elif name == 'Jump':
+                if val1>1023:
+                    val1 = 1023
+                    log.send(level='critical',
+                                context='RT_fastseq.build_seq',
+                                message='cannot jump more than 1023 times')
+                    return 0
+                seq.append([3, val1, val2])
+            if name == 'Trigger in':
+                seq.append([4, int(val1[::-1], 2), int(val2[::-1], 2)])   # convert to bitwise value
+            elif name == 'End':
+                seq.append([5, 0, 0])
+            else: # DAC
+                if name not in self.DAC.keys():
+                    log.send(level='critical',
+                                context='RT_fastseq.build_seq',
+                                message='Unknown DAC name {}'.format(name))
+                    return 0
+                [ul,ll] = self.DAC[name].getLimits()
+                elif val2<ll or val2>ul:
+                    log.send(level='critical',
+                                context='RT_fastseq.build_seq',
+                                message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
+                    return 0
+                [ul,ll] = self.fs.getLimits()
+                V0 = self.init_val[name]
+                elif val2-V0<ll or val2-V0>ul:
+                    log.send(level='critical',
+                                context='RT_fastseq.build_pre_ramp_seq',
+                                message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
+                    return 0
+                channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
+                seq.append([0, channel_id, val2])
          self.fs.sequence = np.array(seq).T
          return 1
 
@@ -266,14 +300,26 @@ class RT_fastseq():
 
             if key in self.fs_slots.keys():
                 sweep.param = self.fs_slots[key].getParameter() # adding slot n°
-                if self.sequence[sweep.param][0] != 'Timing': # Safety for DAC (V+dV)
+                if self.sequence[sweep.param][0] == 'Timing':
+                    if max([start,stop])>2**16-1:
+                        log.send(level='critical',
+                                    context='RT_fastseq.build_sweep',
+                                    message='{} on slot {} would be out of limits.'.format(key,sweep.param))
+                        return 0
+                else: # Safety for DAC
                     DAC_name = self.sequence[sweep.param][0]
                     [ul,ll] = self.DAC[DAC_name].getLimits()
-                    V0 = self.init_val[DAC_name]
-                    if any([V0+dV<ll or V0+dV>ul for dV in [start,stop]]):
-                        log.send(level='debug',
+                    if any([Vi<ll or Vi>ul for Vi in [start,stop]]):
+                        log.send(level='critical',
                                     context='RT_fastseq.build_sweep',
                                     message='{} on slot {} would be out of limits.'.format(DAC_name,sweep.param))
+                        return 0
+                    [ul,ll] = self.fs.getLimits()
+                    V0 = self.init_val[DAC_name]
+                    elif any([Vi-V0<ll or Vi-V0>ul for Vi in [start,stop]]):
+                        log.send(level='critical',
+                                    context='RT_fastseq.build_pre_ramp_seq',
+                                    message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
                         return 0
             elif key in self.RF.keys():
                 sweep.param = self.RF[key].getParameter()
@@ -289,7 +335,7 @@ class RT_fastseq():
         txt = '--- Fast seq ---' + os.linesep
         txt += '{} points, {} ms per point'.format(self.sweep_dim[0], self.ms_per_point) + os.linesep
         for i, line in enumerate(self.sequence):
-            txt += '{}.\t{}\t{}'.format(i, line[0], line[1]) + os.linesep
+            txt += '{}.\t{}\t{}\t{}'.format(i, line[0], line[1], line[2]) + os.linesep
             if i > 49: # don't plot more than 50 elements
                 txt += '\t\t...' + os.linesep
                 break
@@ -322,7 +368,7 @@ class RT_fastseq():
                         context='RT_fastseq.update_timings',
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
-        self.fs.uint64s[0] = np.ceil(2222*self.ms_per_point)	# set divider
+        self.fs.uint64s[0] = np.ceil(self.ms_per_point*1000)	# set us per DAC
         self.fs.uint64s[2] = sample_count # set sample count
         
         log.send(level='debug',

@@ -23,7 +23,7 @@ import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
 from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator
-from QuickMap.BM13_config_CD2_3 import DAC_ADC_config, RF_config
+from QuickMap.BM13_config_CD3_1 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
 class StabilityDiagram():
@@ -61,17 +61,18 @@ class StabilityDiagram():
             return 0
         elif dim == 0:     # adding to the fastseq
             channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
-            if channel_id not in self.fs.uint64s[4:20]:
+            [ul,ll] = self.fs.getLimits()
+            if (init_at is not None) and any([Vi-init_at<ll or Vi-init_at>ul for Vi in [start,stop]]):
                 log.send(level='critical',
                             context='StabilityDiagram.ramp_DAC',
-                            message='channel {} is not useable for dim 0'.format(channel_id))
+                            message='DAC {} is out of range on dim 0'.format(name))
                 self.critical_error = True
                 return 0
             self.fast_ramp[name] = {}
             self.fast_ramp[name]['method'] = method
             self.fast_ramp[name]['start'] = start
             self.fast_ramp[name]['stop'] = stop
-            self.fast_ramp[name]['channel'] = self.fs.uint64s[4:20].index(channel_id)
+            self.fast_ramp[name]['channel'] = channel_id
         else:      # adding to sweep_param
             self.sweep_param[name] = {}
             self.sweep_param[name]['method'] = method
@@ -134,18 +135,24 @@ class StabilityDiagram():
                         message='slot {} not in sequence (parameter {})'.format(slotNo,name))
             self.critical_error = True
             return 0
-        elif self.sequence[slotNo][0] in ['Trigger', 'Jump', 'End']:
+        elif self.sequence[slotNo][0] in ['Trigger out', 'Trigger in', 'Jump', 'End']:
             log.send(level='critical',
                         context='StabilityDiagram.ramp_slot',
                         message='slot {} is not DAC or timing (parameter {})'.format(slotNo,name))
             self.critical_error = True
             return 0
         elif self.sequence[slotNo][0] == 'Timing':
+            if max([start,stop])>2**16-1:
+                log.send(level='critical',
+                            context='StabilityDiagram.ramp_slot',
+                            message='increase the range of timing slot {})'.format(slotNo))
+                self.critical_error = True
+                return 0
             slot = mc.FastSequenceSlot(name=name, 
                                         IPAddress=self.fs.strings[1],
-                                        unit='ms',
+                                        unit=self.sequence[slotNo][1],
                                         slotNo=slotNo,
-                                        upperlimit=10000,
+                                        upperlimit=2^16-1,
                                         lowerlimit=0)
         else: # DAC slot
             if self.sequence[slotNo][0] not in name: # avoid wrong slot selection
@@ -222,13 +229,12 @@ class StabilityDiagram():
                         message='rounding integrated points to {}'.format(int(RT_avg)))
         RT_avg = int(RT_avg)
         self.ADC.uint64s[2] = RT_avg
-        pre_ramp_time = FPGA_timing_calculator(self.sequence,ms_per_DAC=self.ms_per_point) # total time in ms
-        pre_ramp_pts = np.ceil(pre_ramp_time*sampling_rate_per_channel/1000.)
-        tot_time = pre_ramp_time + self.sweep_dim[0]*len(self.fast_channels)*self.ms_per_point # total time in ms
-        tot_pts = np.ceil(tot_time*sampling_rate_per_channel/1000.)
+        # pre_ramp_time = FPGA_timing_calculator(self.sequence,ms_per_DAC=self.ms_per_point) # total time in ms
+        # pre_ramp_pts = np.ceil(pre_ramp_time*sampling_rate_per_channel/1000.)+1 #+1 because the first DAC is updated after self.ms_per_point
+        # tot_time = pre_ramp_time + self.sweep_dim[0]*len(self.fast_channels)*self.ms_per_point # total time in ms
+        N_DAC = self.sweep_dim[0]*len(self.fast_channels)
+        sample_count = (N_DAC+1)*RT_avg
         self.ADC.uint64s[3] = 1 # Turning on segment mode
-#        sample_count = self.sweep_dim[0]*RT_avg + pre_ramp_pts  # total sample count per sweep
-        sample_count = tot_pts  # total sample count per sweep
         self.ADC.uint64s[4] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
             log.send(level='info',
@@ -236,10 +242,10 @@ class StabilityDiagram():
                         message='ADC buffer size had to be increased to {}'.format(sample_count))
             self.ADC.uint64s[6] = sample_count
             
-        self.fs.uint64s[2] = np.ceil(tot_time/self.ms_per_point)	 # set sample count for FPGA
-        self.fs.uint64s[0] = np.ceil(2222*self.ms_per_point)	# set divider
+        self.fs.uint64s[2] = N_DAC	 # set sample count for FPGA
+        self.fs.uint64s[0] = np.ceil(self.ms_per_point*1000)	# us per DAC
         
-        segment_param = [self.sweep_dim[0]*len(self.fast_channels),RT_avg,pre_ramp_pts,RT_avg]
+        segment_param = [N_DAC,RT_avg,RT_avg,RT_avg]
         self.ADC.strings[5] = ';'.join([str(int(ai)) for ai in segment_param])
         
         log.send(level='debug',
@@ -249,25 +255,55 @@ class StabilityDiagram():
     def build_pre_ramp_seq(self):
         """ Inserts a custom sequence before the map begins """
         seq = []
-        for name, val in self.sequence:
-            if name == 'Trigger':
-                seq.append([101, int(val[::-1], 2)])   # convert to bitwise value
-            elif name == 'Timing':
-                seq.append([102, val])
-            elif name == 'Jump':
-                seq.append([103, val])
-            elif name == 'End':     # not used?
-                seq.append([100, 0])
-            else: # DAC
-                channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
-                if channel_id not in self.fs.uint64s[4:20]:
+        for name, val1, val2 in self.sequence:
+            if name == 'Timing':
+                if val1 not in ['1us','10us','100us','1ms']:
                     log.send(level='critical',
                                 context='StabilityDiagram.build_pre_ramp_seq',
-                                message='channel {} is not useable for dim 0'.format(channel_id))
+                                message='Range of timing slot {} not understood'.format(len(seq)))
                     return 0
-                else:
-                    pos = self.fs.uint64s[4:20].index(channel_id)
-                    seq.append([pos, val])
+                range_ = ['1us','10us','100us','1ms'].index(val1)
+                if val2>2**16-1:
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_pre_ramp_seq',
+                                message='Increase range of timing slot {}'.format(len(seq)))
+                    return 0
+                seq.append([1, range_, val2])
+            elif name == 'Trigger out':
+                seq.append([2, 0, int(val2[::-1], 2)])   # convert to bitwise value
+            elif name == 'Jump':
+                if val1>1023:
+                    val1 = 1023
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_pre_ramp_seq',
+                                message='cannot jump more than 1023 times')
+                    return 0
+                seq.append([3, val1, val2])
+            if name == 'Trigger in':
+                seq.append([4, int(val1[::-1], 2), int(val2[::-1], 2)])   # convert to bitwise value
+            elif name == 'End':
+                seq.append([5, 0, 0])
+            else: # DAC
+                if name not in self.DAC.keys():
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_pre_ramp_seq',
+                                message='Unknown DAC name {}'.format(name))
+                    return 0
+                [ul,ll] = self.DAC[name].getLimits()
+                elif val2<ll or val2>ul:
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_pre_ramp_seq',
+                                message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
+                    return 0
+                [ul,ll] = self.fs.getLimits()
+                V0 = self.init_val[name]
+                elif val2-V0<ll or val2-V0>ul:
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_pre_ramp_seq',
+                                message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
+                    return 0
+                channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
+                seq.append([0, channel_id, val2])
         self.pre_ramp_seq = np.array(seq).T
         
         log.send(level='debug',
@@ -280,9 +316,9 @@ class StabilityDiagram():
         self.fast_channels = []
         start = []
         stop = []
-        for name in self.fast_ramp.keys(): # difference with init_val
-            start.append(self.fast_ramp[name]['start']-self.init_val[name])
-            stop.append(self.fast_ramp[name]['stop']-self.init_val[name])
+        for name in self.fast_ramp.keys():
+            start.append(self.fast_ramp[name]['start'])
+            stop.append(self.fast_ramp[name]['stop'])
             self.fast_channels.append(self.fast_ramp[name]['channel'])
             
         ramp = fsg.createRamp(points=self.sweep_dim[0],
@@ -291,12 +327,12 @@ class StabilityDiagram():
                     final=stop)
         if self.pre_ramp_seq == []:
            self.fs.sequence = ramp
-           self.fs.uint64s[20] = 4 # StartAt (Trigger,Timing,Trigger,Jump)
+           self.fs.uint64s[5] = 2 # StartAt (Trigger,Ramp,End)
         else:
             N = np.size(self.pre_ramp_seq, 1)
             self.fs.sequence = np.concatenate((self.pre_ramp_seq, ramp[:,1:]), 1) # remove first trigger from ramp
-            self.fs.sequence[1,-1] = len(self.fs.sequence[1,:]) - 1  # update jump
-            self.fs.uint64s[20] = N-1
+            # self.fs.sequence[1,-1] = len(self.fs.sequence[1,:]) - 1  # update jump
+            self.fs.uint64s[5] = N-1
         
         if len(self.fs.sequence[1,:]) > 4096:        
             log.send(level='critical',
@@ -335,14 +371,26 @@ class StabilityDiagram():
 
             if key in self.fs_slots.keys():
                 sweep.param = self.fs_slots[key].getParameter() # adding slot n°
-                if self.sequence[sweep.param][0] != 'Timing': # Safety for DAC (V+dV)
+                if self.sequence[sweep.param][0] == 'Timing':
+                    if max([start,stop])>2**16-1:
+                        log.send(level='critical',
+                                    context='StabilityDiagram.build_sweep',
+                                    message='{} on slot {} would be out of limits.'.format(key,sweep.param))
+                        return 0
+                else: # Safety for DAC
                     DAC_name = self.sequence[sweep.param][0]
                     [ul,ll] = self.DAC[DAC_name].getLimits()
-                    V0 = self.init_val[DAC_name]
-                    if any([V0+dV<ll or V0+dV>ul for dV in [start,stop]]):
+                    if any([Vi<ll or Vi>ul for Vi in [start,stop]]):
                         log.send(level='critical',
                                     context='StabilityDiagram.build_sweep',
                                     message='{} on slot {} would be out of limits.'.format(DAC_name,sweep.param))
+                        return 0
+                    [ul,ll] = self.fs.getLimits()
+                    V0 = self.init_val[DAC_name]
+                    elif any([Vi-V0<ll or Vi-V0>ul for Vi in [start,stop]]):
+                        log.send(level='critical',
+                                    context='StabilityDiagram.build_pre_ramp_seq',
+                                    message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
                         return 0
             elif key in self.RF.keys():
                 sweep.param = self.RF[key].getParameter()
@@ -357,17 +405,21 @@ class StabilityDiagram():
         """ Prints a summary of the map content"""
         txt = '--- Pre-ramp seq ---' + os.linesep
         for i, line in enumerate(self.sequence):
-            txt += '{}.\t{}\t{}'.format(i, line[0], line[1]) + os.linesep
+            txt += '{}.\t{}\t{}\t{}'.format(i, line[0], line[1], line[2]) + os.linesep
         txt += '--- Fast ramp ---' + os.linesep
-        txt += '{} points, {} ms per point'.format(self.sweep_dim[0], self.ms_per_point) + os.linesep
+        txt += '{} points, {} ms per DAC'.format(self.sweep_dim[0], self.ms_per_point) + os.linesep
         for name in self.fast_ramp.keys():
             txt += '{} on channel {} : '.format(name, self.fast_ramp[name]['channel'])
-            txt += 'offset {}, from {} to {}'.format(self.init_val[name], self.fast_ramp[name]['start'], self.fast_ramp[name]['stop'])
+            txt += 'init {}, from {} to {}'.format(self.init_val[name], self.fast_ramp[name]['start'], self.fast_ramp[name]['stop'])
             txt += os.linesep
         txt += '--- Step dimensions ---' + os.linesep
         txt += '{} points, wait {} ms'.format(self.sweep_dim[1:], self.step_wait) + os.linesep
         for name in self.sweep_param.keys():
-            txt += 'dim {} : {} from {} to {}'.format(self.sweep_param[name]['dim'], name, self.sweep_param[name]['start'], self.sweep_param[name]['stop'])
+            if name in self.fs_slots.keys():
+                slotNo = self.fs_slots[name].getParameter()
+                txt += 'dim {} : {} on slot {} from {} to {}'.format(self.sweep_param[name]['dim'], name, slotNo, self.sweep_param[name]['start'], self.sweep_param[name]['stop'])
+            else:
+                txt += 'dim {} : {} from {} to {}'.format(self.sweep_param[name]['dim'], name, self.sweep_param[name]['start'], self.sweep_param[name]['stop'])
             txt += os.linesep
         return txt[:-len(os.linesep)]
         
