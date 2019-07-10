@@ -22,7 +22,7 @@ import MeasurementBase.measurement_classes as mc
 import MeasurementBase.FastSequenceGenerator as fsg
 from MeasurementBase.SendFileNames import sendFiles
 from MeasurementBase.ArrayGenerator import ArrayGenerator
-from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator
+from MeasurementBase.FPGA_timing_calculator import FPGA_timing_calculator,timing_correction
 from QuickMap.BM13_config_CD3_1 import DAC_ADC_config, RF_config
 from QuickMap.find_unused_name import find_unused_name
 
@@ -61,6 +61,13 @@ class StabilityDiagram():
             return 0
         elif dim == 0:     # adding to the fastseq
             channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
+            [ul,ll] = self.DAC[name].getLimits()
+            if any([Vi<ll or Vi>ul for Vi in [start,stop]]):
+                log.send(level='critical',
+                            context='StabilityDiagram.ramp_DAC',
+                            message='DAC {} is out of range on dim 0'.format(name))
+                self.critical_error = True
+                return 0
             [ul,ll] = self.fs.getLimits()
             if (init_at is not None) and any([Vi-init_at<ll or Vi-init_at>ul for Vi in [start,stop]]):
                 log.send(level='critical',
@@ -223,6 +230,7 @@ class StabilityDiagram():
         """ Modifies the ADC and fastseq settings for the current Map"""
         sampling_rate_per_channel = self.ADC.uint64s[1] / self.ADC.uint64s[0]
         RT_avg = self.ms_per_point / 1000. * sampling_rate_per_channel
+        RT_avg = timing_correction(RT_avg)
         if int(RT_avg) != RT_avg:   # if you want to wait 1.0067 ms, you're gonna have a bad time
             log.send(level='info',
                         context='StabilityDiagram.update_timings',
@@ -233,7 +241,7 @@ class StabilityDiagram():
         # pre_ramp_pts = np.ceil(pre_ramp_time*sampling_rate_per_channel/1000.)+1 #+1 because the first DAC is updated after self.ms_per_point
         # tot_time = pre_ramp_time + self.sweep_dim[0]*len(self.fast_channels)*self.ms_per_point # total time in ms
         N_DAC = self.sweep_dim[0]*len(self.fast_channels)
-        sample_count = (N_DAC+1)*RT_avg
+        sample_count = N_DAC*RT_avg
         self.ADC.uint64s[3] = 1 # Turning on segment mode
         self.ADC.uint64s[4] = sample_count
         if self.ADC.uint64s[6] < sample_count:   # Buffer too small
@@ -245,7 +253,7 @@ class StabilityDiagram():
         self.fs.uint64s[2] = N_DAC	 # set sample count for FPGA
         self.fs.uint64s[0] = np.ceil(self.ms_per_point*1000)	# us per DAC
         
-        segment_param = [N_DAC,RT_avg,RT_avg,RT_avg]
+        segment_param = [N_DAC,RT_avg,0,RT_avg]
         self.ADC.strings[5] = ';'.join([str(int(ai)) for ai in segment_param])
         
         log.send(level='debug',
@@ -279,7 +287,7 @@ class StabilityDiagram():
                                 message='cannot jump more than 1023 times')
                     return 0
                 seq.append([3, val1, val2])
-            if name == 'Trigger in':
+            elif name == 'Trigger in':
                 seq.append([4, int(val1[::-1], 2), int(val2[::-1], 2)])   # convert to bitwise value
             elif name == 'End':
                 seq.append([5, 0, 0])
@@ -290,14 +298,14 @@ class StabilityDiagram():
                                 message='Unknown DAC name {}'.format(name))
                     return 0
                 [ul,ll] = self.DAC[name].getLimits()
-                elif val2<ll or val2>ul:
+                if (val2<ll or val2>ul):
                     log.send(level='critical',
                                 context='StabilityDiagram.build_pre_ramp_seq',
                                 message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
                     return 0
                 [ul,ll] = self.fs.getLimits()
                 V0 = self.init_val[name]
-                elif val2-V0<ll or val2-V0>ul:
+                if val2-V0<ll or val2-V0>ul:
                     log.send(level='critical',
                                 context='StabilityDiagram.build_pre_ramp_seq',
                                 message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
@@ -387,10 +395,10 @@ class StabilityDiagram():
                         return 0
                     [ul,ll] = self.fs.getLimits()
                     V0 = self.init_val[DAC_name]
-                    elif any([Vi-V0<ll or Vi-V0>ul for Vi in [start,stop]]):
+                    if any([Vi-V0<ll or Vi-V0>ul for Vi in [start,stop]]):
                         log.send(level='critical',
                                     context='StabilityDiagram.build_pre_ramp_seq',
-                                    message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
+                                    message='DAC {} on slot {} is out of limits{}'.format(DAC_name,sweep.param))
                         return 0
             elif key in self.RF.keys():
                 sweep.param = self.RF[key].getParameter()
@@ -405,7 +413,18 @@ class StabilityDiagram():
         """ Prints a summary of the map content"""
         txt = '--- Pre-ramp seq ---' + os.linesep
         for i, line in enumerate(self.sequence):
-            txt += '{}.\t{}\t{}\t{}'.format(i, line[0], line[1], line[2]) + os.linesep
+            if line[0]=='Trigger out':
+                txt += '{}.\t{}\t{}'.format(i, 'Trigger', ''.join(['F' if line[2][i]=='0' else 'T' for i in range(10)])) + os.linesep
+            elif line[0]=='Trigger in':
+                txt += '{}.\t{}\t{}'.format(i, 'Trig in', ''.join(['X' if line[1][i]=='0' else line[2][i] for i in range(10)])) + os.linesep
+            elif line[0]=='Jump':
+                txt += '{}.\t{}\tto {} x {}'.format(i, line[0], line[2], line[1]) + os.linesep
+            elif line[0]=='Timing':
+                txt += '{}.\t{}\t{} x {}'.format(i, line[0], line[2], line[1]) + os.linesep
+            elif line[0]=='End':
+                txt += '{}.\tEnd'.format(i) + os.linesep
+            else:
+                txt += '{}.\t{}\t{} V'.format(i, line[0], line[2]) + os.linesep
         txt += '--- Fast ramp ---' + os.linesep
         txt += '{} points, {} ms per DAC'.format(self.sweep_dim[0], self.ms_per_point) + os.linesep
         for name in self.fast_ramp.keys():
@@ -453,6 +472,13 @@ class StabilityDiagram():
         init_move_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})
         init_move = []
         for (name, val) in self.init_val.items():
+            if name in self.DAC.keys():
+                [ul,ll] = self.DAC[name].getLimits()
+                if val<ll or val>ul:
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_files',
+                                message='DAC {} init value is out of range'.format(name))
+                    return 0
             if name in self.fs_slots.keys():
                 param = self.fs_slots[name].getParameter() # adding slot n°
             elif name in self.RF.keys():
@@ -514,5 +540,5 @@ class StabilityDiagram():
         log.send(level='info',
                     context='StabilityDiagram.send',
                     message=os.path.basename(self.exp_path) + ' sent.')
-        sendFiles(fileList=[self.exp_path])
+#        sendFiles(fileList=[self.exp_path])
         return 1

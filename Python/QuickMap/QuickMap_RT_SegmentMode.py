@@ -63,18 +63,11 @@ class RT_fastseq():
             self.critical_error = True
             return 0
         elif dim == 0:     # adding to the fastseq
-            channel_id = self.DAC[name].uint64s[0] * 8 + self.DAC[name].uint64s[1]
-            # if channel_id not in self.fs.uint64s[4:20]:
-            #     log.send(level='critical',
-            #                 context='RT_fastseq.ramp_DAC',
-            #                 message='channel {} is not useable for dim 0'.format(channel_id))
-            #     self.critical_error = True
-            #     return 0
-            self.fast_ramp[name] = {}
-            self.fast_ramp[name]['method'] = method
-            self.fast_ramp[name]['start'] = start
-            self.fast_ramp[name]['stop'] = stop
-            self.fast_ramp[name]['channel'] = channel_id
+            log.send(level='critical',
+                        context='RT_fastseq.ramp_DAC',
+                        message='dim 0 is not useable in RT')
+            self.critical_error = True
+            return 0
         else:      # adding to sweep_param
             self.sweep_param[name] = {}
             self.sweep_param[name]['method'] = method
@@ -250,7 +243,7 @@ class RT_fastseq():
 
     def build_seq(self):
          seq = []
-         for name,val in self.sequence:
+         for name,val1,val2 in self.sequence:
             if name == 'Timing':
                 if val1 not in ['1us','10us','100us','1ms']:
                     log.send(level='critical',
@@ -274,7 +267,7 @@ class RT_fastseq():
                                 message='cannot jump more than 1023 times')
                     return 0
                 seq.append([3, val1, val2])
-            if name == 'Trigger in':
+            elif name == 'Trigger in':
                 seq.append([4, int(val1[::-1], 2), int(val2[::-1], 2)])   # convert to bitwise value
             elif name == 'End':
                 seq.append([5, 0, 0])
@@ -285,14 +278,14 @@ class RT_fastseq():
                                 message='Unknown DAC name {}'.format(name))
                     return 0
                 [ul,ll] = self.DAC[name].getLimits()
-                elif val2<ll or val2>ul:
+                if val2<ll or val2>ul:
                     log.send(level='critical',
                                 context='RT_fastseq.build_seq',
                                 message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
                     return 0
                 [ul,ll] = self.fs.getLimits()
                 V0 = self.init_val[name]
-                elif val2-V0<ll or val2-V0>ul:
+                if val2-V0<ll or val2-V0>ul:
                     log.send(level='critical',
                                 context='RT_fastseq.build_pre_ramp_seq',
                                 message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
@@ -344,10 +337,10 @@ class RT_fastseq():
                         return 0
                     [ul,ll] = self.fs.getLimits()
                     V0 = self.init_val[DAC_name]
-                    elif any([Vi-V0<ll or Vi-V0>ul for Vi in [start,stop]]):
+                    if any([Vi-V0<ll or Vi-V0>ul for Vi in [start,stop]]):
                         log.send(level='critical',
                                     context='RT_fastseq.build_pre_ramp_seq',
-                                    message='DAC {} on slot {} is out of limits{}'.format(name,len(seq)))
+                                    message='DAC {} on slot {} is out of limits{}'.format(DAC_name,sweep.param))
                         return 0
             elif key in self.RF.keys():
                 sweep.param = self.RF[key].getParameter()
@@ -363,7 +356,18 @@ class RT_fastseq():
         txt = '--- Fast seq ---' + os.linesep
         txt += '{} points, {} ms per point'.format(self.sweep_dim[0], self.ms_per_point) + os.linesep
         for i, line in enumerate(self.sequence):
-            txt += '{}.\t{}\t{}\t{}'.format(i, line[0], line[1], line[2]) + os.linesep
+            if line[0]=='Trigger out':
+                txt += '{}.\t{}\t{}'.format(i, 'Trigger', ''.join(['F' if line[2][i]=='0' else 'T' for i in range(10)])) + os.linesep
+            elif line[0]=='Trigger in':
+                txt += '{}.\t{}\t{}'.format(i, 'Trig in', ''.join(['X' if line[1][i]=='0' else line[2][i] for i in range(10)])) + os.linesep
+            elif line[0]=='Jump':
+                txt += '{}.\t{}\tto {} x {}'.format(i, line[0], line[2], line[1]) + os.linesep
+            elif line[0]=='Timing':
+                txt += '{}.\t{}\t{} x {}'.format(i, line[0], line[2], line[1]) + os.linesep
+            elif line[0]=='End':
+                txt += '{}.\tEnd'.format(i) + os.linesep
+            else:
+                txt += '{}.\t{}\t{} V'.format(i, line[0], line[2]) + os.linesep
             if i > 49: # don't plot more than 50 elements
                 txt += '\t\t...' + os.linesep
                 break
@@ -459,6 +463,13 @@ class RT_fastseq():
         init_move_dt = np.dtype({'names':['name','parameter','value'],'formats':['S100','u8','f8']})
         init_move = []
         for (name, val) in self.init_val.items():
+            if name in self.DAC.keys():
+                [ul,ll] = self.DAC[name].getLimits()
+                if val<ll or val>ul:
+                    log.send(level='critical',
+                                context='StabilityDiagram.build_files',
+                                message='DAC {} init value is out of range'.format(name))
+                    return 0
             if name in self.fs_slots.keys():
                 param = self.fs_slots[name].getParameter() # adding slot n°
             elif name in self.RF.keys():
@@ -526,5 +537,5 @@ class RT_fastseq():
         log.send(level='info',
                     context='RT_fastseq.send',
                     message=os.path.basename(self.exp_path) + ' sent.')
-        sendFiles(fileList=[self.exp_path])
+        # sendFiles(fileList=[self.exp_path])
         return 1

@@ -360,6 +360,7 @@ class MeasConfig():
                  fastSweep = False,
                  ramp = False,
                  listOfInst = [],
+                 fastChannelNameList = [],
                  ):
         self.fpath = filepath
         self.initial_wait = initial_wait
@@ -369,6 +370,7 @@ class MeasConfig():
         self.fastSweep = fastSweep
         self.ramp = ramp
         self.list = listOfInst
+        self.fastChannelNameList = fastChannelNameList
         
     def write(self, group=None):
         if group==None: 
@@ -382,8 +384,8 @@ class MeasConfig():
                 dset.attrs.create('fast_mode', b, dtype='bool')
                 s = [i.name for i in self.list]
                 dset.attrs.create('Inst_list', s, dtype=flexible_str_dt)
-                # if not self.fastChannelNameList == []:
-                #     dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
+                if not self.fastChannelNameList == []:
+                    dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
 #                dset = f.get('Inst_list')
     
             for inst in self.list:
@@ -405,8 +407,8 @@ class MeasConfig():
                 dset.attrs.create('fast_mode', b, dtype='bool')
                 s = [i.name for i in self.list]
                 dset.attrs.create('Inst_list', s, dtype=flexible_str_dt)
-                # if not self.fastChannelNameList == []:
-                #     dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
+                if not self.fastChannelNameList == []:
+                    dset.attrs.create('Fast_channel_name_list', self.fastChannelNameList, dtype=flexible_str_dt)
 #                dset = f.get('Inst_list')
     
             for inst in self.list:
@@ -432,7 +434,7 @@ class MeasConfig():
             self.ramp = b[1]
             self.list = []
             inst_name_list = [str(s, 'utf-8') for s in dset.attrs['Inst_list']]
-            # fastChannelNameList = ['']*64
+            fastChannelNameList = ['']*64
             for i in inst_name_list:
                 if group == None:
                     dset = f.get(i)
@@ -452,13 +454,13 @@ class MeasConfig():
                 item.strings = s
                 item.uint64s = u
                 item.doubles = d
-                # if kind == 4:
-                #     # just collect information for fast sequence operation
-                #     fastChannelNameList[int(8*u[0]+u[1])]=s[0]
+                if kind == 4:
+                    # just collect information for fast sequence operation
+                    fastChannelNameList[int(8*u[0]+u[1])]=s[0]
                 if kind == 9:   # readout data for fast sequence
                     item.sequence = dset[...]
                 self.list.append(item)
-            # self.fastChannelNameList = fastChannelNameList
+            self.fastChannelNameList = fastChannelNameList
                 
                 
     def readForExpFile(self,group=None):
@@ -482,7 +484,7 @@ class MeasConfig():
             self.ramp = b[1]
             self.list = []
             inst_name_list = [str(s, 'utf-8') for s in dset.attrs['Inst_list']]
-            # fastChannelNameList = ['']*64
+            fastChannelNameList = ['']*64
             for i in inst_name_list:
                 if group == None:
                     dset = f.get(i)
@@ -509,10 +511,10 @@ class MeasConfig():
                 else:
                     pass
                 
-                # if kind == 4:
-            #         # just collect information for fast sequence operation
-            #         fastChannelNameList[int(8*u[0]+u[1])]=s[0]
-            # self.fastChannelNameList = fastChannelNameList
+                if kind == 4:
+                    # just collect information for fast sequence operation
+                    fastChannelNameList[int(8*u[0]+u[1])]=s[0]
+            self.fastChannelNameList = fastChannelNameList
 
 """-------------------------------------------------------------------------
 ----------------------------------------------------------------------------
@@ -992,6 +994,9 @@ class FastSequences(sweep_inst):
         self.uint64s = [us_per_DAC, triggerLength, SampleCount, send_all_points, start_index, start_ramp_at]
         self.doubles = [upper_limit, lower_limit]
         self.sequence = sequence
+       
+    def getLimits(self):
+        return [self.doubles[0], self.doubles[1]]
         
     def writeSequence(self, h5path, group=None):
         with h5py.File(h5path, 'r+') as f:

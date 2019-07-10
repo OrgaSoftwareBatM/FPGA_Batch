@@ -9,7 +9,7 @@ import numpy as np
 
 def array2rampSequence(array=np.zeros((3,301))):
     asize = array.shape[1]+2
-    ramp_array = np.zeros((2,asize),dtype=np.double)
+    ramp_array = np.zeros((3,asize),dtype=np.double)
     ramp_array[:,0]=[2,0,0] #Lower all the trigger
     ramp_array[:,1:asize-1]=array[:,:]
     ramp_array[:,asize-1] = [5,0,0] # End

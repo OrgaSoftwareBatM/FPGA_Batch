@@ -84,17 +84,13 @@ Map.sequence.append(['Timing','1us',10])
 Map.sequence.append(['BC',-0.5])   # LOAD RIGHT
 Map.sequence.append(['Timing','1us',10])
 
-Map.sequence.append(['Jump',4])
+Map.sequence.append(['Jump',1000,4])
+Map.sequence.append(['End',[],[]])
 
 
 Map.sweep_dim = [10000,10000]
 #Map.sweep_dim = [50,201,13,4]
 #Map.sweep_dim = [12000,10]
-
-Map.init_val['LD1'] = -0.702
-Map.init_val['LD2'] = -0.822
-Map.init_val['RD1'] = -0.7
-Map.init_val['RD2'] = -1.0
 
 Map.segment_param = [46.093,38,17]
 

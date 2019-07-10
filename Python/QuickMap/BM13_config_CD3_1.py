@@ -36,10 +36,10 @@ def DAC_ADC_config():
     DAC_id['RH3'] = [1,6]
     DAC_id['TC'] = [2,0]
     DAC_id['BC'] = [2,1]
-    DAC_id['LP2'] = [2,2]
-    DAC_id['RP2'] = [2,3]
-    DAC_id['LP1'] = [2,4]
-    DAC_id['RP1'] = [2,5]
+    DAC_id['LP1'] = [2,2]
+    DAC_id['LP2'] = [2,3]
+    DAC_id['RP1'] = [2,4]
+    DAC_id['RP2'] = [2,5]
     DAC_id['Lbias'] = [3,0]
     DAC_id['Rbias'] = [3,1]
     DAC = {}
@@ -66,7 +66,7 @@ def DAC_ADC_config():
     fs = mc.FastSequences(IPAddress = addr_dict['FPGA'],
     		Unit = 'V',
             us_per_DAC = 1000, # DAC duration in ramp mode
-            triggerLength = 20, # Trigger length for ramp mode (us)
+            triggerLength = 20, # Trigger length for ramp mode (us)b
             SampleCount = 200, # Number of points for fast sequence mode
             send_all_points = 0, # 0:update sequence only; 1:update all 4096 ; 2:don't update
             start_index = 0, # start sequence at a specific index
@@ -92,8 +92,8 @@ def DAC_ADC_config():
                  BufferSize=1000000,
                  SamplePerChannel=1,
                  trigger_input = 0,
-                 minimum_value = -0.2,
-                 maximum_value = 0.2)
+                 minimum_value = -2,
+                 maximum_value = 2)
     
 #    ##########################
 #    ###		 ADC 1 Channel

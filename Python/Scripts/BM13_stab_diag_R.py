@@ -67,7 +67,7 @@ Map.init_val['SAW_{delay}'] = 0.1
 ##########################
 ###	 FASTSEQ 			
 ##########################
-Map.sequence.append(['Trigger',[],'1111111111'])
+Map.sequence.append(['Trigger out',[],'1111111111'])
 
 Map.sequence.append(['RH2',[],-1.1])   # LOAD RIGHT
 Map.sequence.append(['RH3',[],0.3])
@@ -79,7 +79,8 @@ Map.sequence.append(['RH3',[],-0.3])
 # Map.sequence.append(['RH3',[],-0.8])
 # Map.sequence.append(['RH2',[],0.])
 
-Map.sequence.append(['Trigger',[],'001111111111'])
+Map.sequence.append(['Timing','1us',10])
+Map.sequence.append(['Trigger out',[],'001111111111'])
 
 ##########################
 ###	 MAP
